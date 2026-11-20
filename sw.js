@@ -1,7 +1,7 @@
-/* أصلي service worker — cache-first for the app shell only.
+/* Lyra service worker — cache-first for the app shell only.
    API calls (Pollinations / Gemini) are never cached. */
-const CACHE = 'asly-v8';
-const SHELL = ['index.html', 'style.css', 'app.js', 'manifest.json', 'asly.png', 'icon-192.png', 'icon-512.png', 'icon.svg', 'featured.json', 'featured-1.jpg', 'featured-2.jpg', 'featured-3.jpg', 'sponsors.json', 'prompts.json'];
+const CACHE = 'lyra-v2';
+const SHELL = ['index.html', 'style.css', 'app.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon.svg', 'featured.json', 'featured-1.jpg', 'featured-2.jpg', 'featured-3.jpg', 'sponsors.json', 'prompts.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

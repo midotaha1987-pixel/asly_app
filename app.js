@@ -1,37 +1,38 @@
 'use strict';
 /* =====================================================================
-   أصلي — اعمل فيديو بالذكاء الاصطناعي ببلاش (نسخة مجانية 100% — بلا خادم)
+   Lyra — اعمل فيديو بالذكاء الاصطناعي ببلاش (نسخة مجانية 100% — بلا خادم)
    كل شيء يعمل على جهاز المستخدم. لا مفاتيح، لا بطاقات، لا مدفوعات.
    المحرك المجاني: Pollinations Classic API (صور + محادثة).
    ===================================================================== */
 const CONFIG = {
-  appName: 'أصلي',
+  appName: 'Lyra',
   imageBase: 'https://image.pollinations.ai/prompt',
   textUrl: 'https://text.pollinations.ai/openai/chat/completions',
   chatModel: 'openai',                 // GPT-OSS 20B — النموذج المجاني الوحيد في المسار المجهول
   imageSize: { w: 576, h: 1024 },      // حد المساحة المجانية 768×768 — 576×1024 = نفس المساحة
   exportSize: { w: 720, h: 1280 },     // 9:16 عمودي
   minIntervalMs: 46000,                // Pollinations المجاني: طلب واحد كل 45 ثانية تقريباً
-  caps: { videosPerDay: 3, chatPerDay: 10, imagesPerDay: 10, previewPerDay: 5, chatAdBundle: 5 },
+  caps: { videosPerDay: 50, chatPerDay: 10, imagesPerDay: 10, previewPerDay: 5, chatAdBundle: 5 },
   // --- برو (اشتراك يدوي عبر واتساب الآن — فوترة Play لاحقاً عند النشر) ---
   pro: {
     priceEgp: 50, // السعر الشهري التقديري — روني يحدد السعر النهائي
-    codePrefix: 'ASLY-PRO', // كود التفعيل اليدوي: روني يرسله للمشترك بعد الدفع
+    codePrefix: 'LYRA-PRO', // كود التفعيل اليدوي: روني يرسله للمشترك بعد الدفع
     extraStyles: ['noir', 'watercolor'], // أنماط إضافية تظهر لمشتركي برو فقط
     extraVoices: ['deep', 'bright'], // أصوات إضافية تظهر لمشتركي برو فقط
   },
-  // --- تقسيم دخل الصندوق (بعد احتياطي روني 3$/يوم): 50% سعة Veo + 50% تطوير المزايا ---
+  // --- تقسيم دخل الصندوق (بعد احتياطي روني 3$/يوم): 50% سعة الفيديو المباشر + 50% تطوير المزايا ---
   poolSplit: { improvementsPct: 50 },
   // --- AdMob: قيم مؤقتة — استبدلها بعد إنشاء حساب AdMob وبناء نسخة أندرويد ---
   admob: {
-    appId: 'ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY',
-    rewardedUnitId: 'ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ',
-    bannerUnitId: 'ca-app-pub-XXXXXXXXXXXXXXXX/WWWWWWWWWW',
+    appId: 'ca-app-pub-9117972626650086~8368459382', // AdMob App ID الحقيقي (تطبيق Lyra — أندرويد)
+    rewardedUnitId: 'ca-app-pub-9117972626650086/3449185524', // وحدة Lyra rewarded الحقيقية
+    bannerUnitId: 'ca-app-pub-9117972626650086/9739261706', // وحدة Lyra Banner الحقيقية
   },
   geminiModel: 'gemini-2.5-flash',
+  geminiImageModel: 'gemini-2.5-flash-image', // Nano Banana — توليد وتعديل الصور (يحتاج مفتاحاً مجانياً من المستخدم)
   geminiUrl: m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
-  // صندوق فيو المشترك: كل الإعلانات تصب في صندوق واحد.
-  // أول 3$ من كل يوم ربح لصاحب التطبيق، والباقي يموّل فيديوهات Veo
+  // صندوق الفيديو المباشر المشترك: كل الإعلانات تصب في صندوق واحد.
+  // أول 3$ من كل يوم ربح لصاحب التطبيق، والباقي يموّل الفيديوهات المباشرة
   // بالترتيب (FIFO) — والطابور نفسه مخفي عن المستخدم تماماً.
   // التقدير: إعلان واحد ≈ 0.002$. يُدار من الـ Worker عند التفعيل.
   pool: { profitReserveUsd: 3, adValueUsd: 0.002 },
@@ -39,10 +40,13 @@ const CONFIG = {
   // ضع رقم روني هنا بصيغة دولية بدون + (مثال: 201001234567).
   // حتى يملأه روني، زر «أعلن معنا» يشرح ذلك ولا يفتح رابطاً مكسوراً.
   advertiseWhatsapp: '20XXXXXXXXXX',
-  // --- Veo السينمائي: متوقف افتراضياً. للتفعيل: انشر الـ Worker في worker/veo-proxy.js
-  // على Cloudflare (مفتاح Gemini في متغيرات بيئة الـ Worker فقط — أبداً داخل التطبيق)،
+  // --- الفيديو السينمائي المباشر (Gemini Omni 1.2 Flash): متوقف افتراضياً.
+  // للتفعيل: انشر الـ Worker في worker/direct-video-proxy.js على Cloudflare
+  // (مفتاح Gemini في متغيرات بيئة الـ Worker فقط — أبداً داخل التطبيق)،
   // ثم ضع رابط الـ Worker في إعدادات التطبيق. بدون الرابط تبقى الميزة مغلقة.
-  // --- اشتراك Veo الشهري عبر Google Play (in-app purchase) — قيم مؤقتة يحددها روني
+  // ملاحظة: أسماء المتغيرات والدوال الداخلية ما زالت تحمل «veo» تاريخياً؛
+  // المحرك الفعلي الآن هو Gemini Omni (Veo 3.1 أُوقف في Gemini API في 22 أكتوبر 2026).
+  // --- اشتراك الفيديو المباشر الشهري عبر Google Play (in-app purchase) — قيم مؤقتة يحددها روني
   // في Play Console. السعر المقترح ~50 ج/شهر؛ Google Play تأخذ ~15% عمولة.
   // خطوة لاحقة (later): التطبيق حالياً ويب + PWA بدون Play — الاشتراك
   // لا يعمل إلا بعد النشر على Google Play (انظر DEPLOY.md).
@@ -51,10 +55,10 @@ const CONFIG = {
     subscription: { productId: 'veo_monthly', priceEgp: 50, playFeePct: 15, later: true },
   },
 };
-/* ---------------- الترفيه: ترند، تحدي اليوم، نصائح عم أصلي ---------------- */
+/* ---------------- الترفيه: ترند، تحدي اليوم، نصائح Lyra ---------------- */
 const TRENDING_PROMPTS = [
   'قط صغير يطبخ كشري في مطبخ مصري',
-  'رجل خشبي يكتشف باور بانك مضروب',
+  'مقدّم يكتشف باور بانك مضروب',
   'روبوت يتعلم الرقص الشرقي',
   'سفينة فضاء تهبط في شارع مصري',
   'طفل يطير فوق أهرامات الجيزة',
@@ -72,14 +76,14 @@ const CHALLENGES = [
   'اصنع فيديو عن كتاب سحري يطير من المكتبة',
   'اصنع فيديو عن نملة تبني مدينة كاملة',
   'اصنع فيديو عن شجرة تتكلم مع العصافير',
-  'اصنع فيديو عن رجل خشبي يفتح محل عصير',
+  'اصنع فيديو عن شاب يفتح محل عصير',
   'اصنع فيديو عن غواصة صغيرة في كوباية شاي',
   'اصنع فيديو عن ساعة حائط تسافر عبر الزمن',
   'اصنع فيديو عن قطة تحرس مكتبة قديمة',
   'اصنع فيديو عن بالون يطير بصاحبه فوق المدينة',
 ];
 const TIPS_VIDEO = [
-  'اكتب فكرتك هنا يا باشا، وأنا أعمل الباقي 🙂',
+  'اكتب فكرتك هنا، وسأتولى الباقي 🙂',
   'الفكرة الحلوة نص الفيديو، والنص التاني التنفيذ — جرّب فكرة جاهزة من فوق 👆',
   'الوصف بالعربي أحسن — اكتب زي ما بتتكلم بالظبط.',
   'جرّب النمط الكرتوني لو الفكرة مضحكة، والسينمائي لو درامية.',
@@ -95,7 +99,7 @@ const WEEKLY_CHALLENGES = [
   { theme: '📖 الكتاب السحري', prompt: 'اصنع فيديو عن كتاب سحري يطير من المكتبة' },
   { theme: '🐜 مدينة النمل', prompt: 'اصنع فيديو عن نملة تبني مدينة كاملة' },
   { theme: '🌳 الشجرة', prompt: 'اصنع فيديو عن شجرة تتكلم مع العصافير' },
-  { theme: '🧃 محل العصير', prompt: 'اصنع فيديو عن رجل خشبي يفتح محل عصير' },
+  { theme: '🧃 محل العصير', prompt: 'اصنع فيديو عن شاب يفتح محل عصير' },
   { theme: '🚢 غواصة الشاي', prompt: 'اصنع فيديو عن غواصة صغيرة في كوباية شاي' },
   { theme: '⏰ الساعة', prompt: 'اصنع فيديو عن ساعة حائط تسافر عبر الزمن' },
   { theme: '🐱 حارسة المكتبة', prompt: 'اصنع فيديو عن قطة تحرس مكتبة قديمة' },
@@ -110,11 +114,11 @@ function weeklyChallenge() {
 }
 /* ---------------- قوالب جاهزة بضغطة واحدة ---------------- */
 const TEMPLATES = [
-  { id: 'story', icon: '🎬', title: 'فيديو قصة', desc: 'قصة قصيرة بمشاهد متتابعة', prompt: 'قصة قصيرة عن رجل خشبي صغير يتعلم الطيران فوق مدينة جميلة', style: 'cinematic' },
+  { id: 'story', icon: '🎬', title: 'فيديو قصة', desc: 'قصة قصيرة بمشاهد متتابعة', prompt: 'قصة قصيرة عن طفل صغير يتعلم الطيران فوق مدينة جميلة', style: 'cinematic' },
   { id: 'beforeafter', icon: '🔄', title: 'قبل وبعد', desc: 'تحويل واضح يلفت النظر', prompt: 'تحويل غرفة قديمة مظلمة إلى غرفة جميلة مضيئة، قبل وبعد', style: 'realistic' },
   { id: 'product', icon: '🛍️', title: 'إعلان منتج', desc: 'إعلان قصير جذاب لمنتج', prompt: 'إعلان قصير جذاب عن باور بانك صغير قوي يشحن الهاتف ثلاث مرات', style: 'cinematic' },
   { id: 'greeting', icon: '💌', title: 'بطاقة تهنئة', desc: 'تهنئة لمناسبة سعيدة', prompt: 'بطاقة تهنئة جميلة بعيد ميلاد سعيد مع بالونات وهدايا ملونة', style: 'cartoon' },
-  { id: 'ask', icon: '❓', title: 'اسأل أصلي', desc: 'سؤال وجواب مبسط', prompt: 'سؤال وجواب: هل الباور بانك المضروب خطر على الهاتف؟ اشرح ببساطة', style: 'cartoon' },
+  { id: 'ask', icon: '❓', title: 'اسأل Lyra', desc: 'سؤال وجواب مبسط', prompt: 'سؤال وجواب: هل الباور بانك المضروب خطر على الهاتف؟ اشرح ببساطة', style: 'cartoon' },
 ];
 /* ---------------- أمثلة جاهزة للمبتدئين ---------------- */
 const EXAMPLES = [
@@ -126,15 +130,16 @@ const EXAMPLES = [
   { icon: '🐟', title: 'سمكة في السماء', prompt: 'سمكة تسبح في السماء فوق النيل' },
 ];
 /* ---------------- عجلة الحظ (لفّة مجانية كل يوم) ---------------- */
+// جوائز العجلة من نوع videos تعني الآن نقاط فيديو مباشر (n × 25 نقطة)
 const WHEEL_PRIZES = [
-  { label: '+1 🎥', kind: 'videos', n: 1 },
-  { label: '+2 🎥', kind: 'videos', n: 2 },
+  { label: '+25 ⭐', kind: 'videos', n: 1 },
+  { label: '+50 ⭐', kind: 'videos', n: 2 },
   { label: '+1 🖼️', kind: 'images', n: 1 },
   { label: '+5 💬', kind: 'chat', n: 5 },
-  { label: '+1 🎥', kind: 'videos', n: 1 },
+  { label: '+25 ⭐', kind: 'videos', n: 1 },
   { label: 'حظ أوفر 😅', kind: 'none', n: 0 },
-  { label: '+3 🎥', kind: 'videos', n: 3 },
-  { label: '+1 🎥', kind: 'videos', n: 1 },
+  { label: '+75 ⭐', kind: 'videos', n: 3 },
+  { label: '+25 ⭐', kind: 'videos', n: 1 },
 ];
 /* ---------------- أنماط صوت الراوي (للقراءة الحيّة فقط) ---------------- */
 const VOICE_STYLES = {
@@ -147,13 +152,13 @@ const VOICE_STYLES = {
 let selectedVoiceStyle = 'normal';
 /* ---------------- واجهة المميزين (تُقرأ من featured.json — روني يحدّثها) ---------------- */
 const FEATURED_DEFAULT = [
-  { title: 'غروب النيل', creator: 'فريق أصلي', theme: 'منظر طبيعي', img: 'featured-1.jpg', prompt: 'غروب شمس فوق النيل بقارب شراعي' },
-  { title: 'عم أصلي بالعدسة', creator: 'فريق أصلي', theme: 'شخصية', img: 'featured-2.jpg', prompt: 'رجل خشبي صغير بعدسة مكبرة يكتشف الفرق بين الأصلي والمضروب' },
-  { title: 'القط الشيف', creator: 'فريق أصلي', theme: 'كرتوني', img: 'featured-3.jpg', prompt: 'قط صغير يطبخ كشري في مطبخ مصري' },
+  { title: 'غروب النيل', creator: 'فريق Lyra', theme: 'منظر طبيعي', img: 'featured-1.jpg', prompt: 'غروب شمس فوق النيل بقارب شراعي' },
+  { title: 'فحص المنتج بالعدسة', creator: 'فريق Lyra', theme: 'تصوير منتجات', img: 'featured-2.jpg', prompt: 'عدسة مكبرة تفحص صندوق هاتف ذكي على طاولة خشبية، إضاءة دافئة، تصوير منتجات احترافي' },
+  { title: 'القط الشيف', creator: 'فريق Lyra', theme: 'كرتوني', img: 'featured-3.jpg', prompt: 'قط صغير يطبخ كشري في مطبخ مصري' },
 ];
 /* ---------------- نص مشاركة جاهز يروّج للتطبيق ---------------- */
 function shareCaption(prompt) {
-  return `🎬 عملت الفيديو ده بتطبيق «أصلي» — اعمل فيديو بالذكاء الاصطناعي ببلاش!\n📝 الفكرة: ${prompt}\n⬇️ حمّل التطبيق من هنا: ${getAppLink()}\n📘 وتابع صفحة «أصلى مش مضروب»: https://facebook.com/people/أصلى-مش-مضروب/61571405720824/`;
+  return `🎬 عملت الفيديو ده بتطبيق Lyra — اعمل فيديو بالذكاء الاصطناعي ببلاش!\n📝 الفكرة: ${prompt}\n⬇️ حمّل التطبيق من هنا: ${getAppLink()}\n📘 وتابع صفحة «أصلى مش مضروب»: https://facebook.com/people/أصلى-مش-مضروب/61571405720824/`;
 }
 const TIPS_CHAT = [
   'اسألني عن أفكار فيديوهات — أنا مليان أفكار!',
@@ -162,7 +167,7 @@ const TIPS_CHAT = [
 ];
 const TIPS_GALLERY = [
   'فيديوهاتك محفوظة على جهازك بس — حمّلها قبل ما تمسح التطبيق.',
-  'شارك فيديو على واتساب أو فيسبوك وخد فيديو إضافي هدية 🎁',
+  'شارك فيديو على واتساب أو فيسبوك وخد +25 نقطة للفيديو السينمائي هدية 🎁',
   'أحسن فيديو عندك؟ شاركه مع صحابك من هنا.',
 ];
 const TIPS_SETTINGS = [
@@ -171,18 +176,18 @@ const TIPS_SETTINGS = [
   'خد نص نهاية الحلقة من هنا وحطه في وصف فيديوهاتك على فيسبوك.',
 ];
 const FUN_MSGS = [
-  'عم أصلي بيشغّل الكاميرا… 🎥',
-  'بيظبط الإضاءة… 💡',
-  'بيقول للموديل: ابتسم! 😄',
-  'بيمسح العدسة… 🔍',
-  'بيحط اللمسات الأخيرة… ✨',
-  'بيراجع المشهد الأخير… 🎬',
-  'بيجهّز المفاجأة… 🎁',
+  'Lyra بتشغّل الكاميرا… 🎥',
+  'بتظبط الإضاءة… 💡',
+  'بتقول للموديل: ابتسم! 😄',
+  'بتمسح العدسة… 🔍',
+  'بتحط اللمسات الأخيرة… ✨',
+  'بتراجع المشهد الأخير… 🎬',
+  'بتجهّز المفاجأة… 🎁',
 ];
 const LEVELS = [
   [0, '🌱 مبتدئ'], [3, '🎬 صانع'], [10, '⭐ مبدع'], [25, '🌟 نجم'], [50, '👑 أسطورة'],
 ];
-const MILESTONES = { 3: 1, 7: 2, 14: 3, 30: 5 }; // سلسلة أيام → فيديوهات إضافية
+const MILESTONES = { 3: 1, 7: 2, 14: 3, 30: 5 }; // سلسلة أيام → وحدات مكافأة (كل وحدة = 25 نقطة فيديو مباشر)
 
 const LS = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
@@ -208,7 +213,7 @@ function toast(msg, ms = 4500) {
 // ملاحظة بأمانة: الفلتر قائمة كلمات + فحص تركيبات (طفل + محتوى جنسي/رومانسي).
 // يمنع معظم المحاولات الواضحة، لكنه لا يضمن 100%: التلميحات غير المباشرة أو
 // الكلمات الجديدة قد تفلت، وخدمة Pollinations نفسها قد ترفض أو تمرّر أحياناً.
-const REFUSAL = 'عذراً، الطلب ده مش مناسب لتطبيق أصلي 🙂';
+const REFUSAL = 'عذراً، الطلب ده مش مناسب لتطبيق Lyra 🙂';
 const BLOCKED = [
   // جنسي / إباحي / عري
   'جنس', 'جنسية', 'إباح', 'عاري', 'عارية', 'عريان', 'عري', 'سكس', 'بورن', 'شهوة',
@@ -282,12 +287,12 @@ function imagesRemaining() {
 }
 /* ---------------- برو (Pro) — تفعيل يدوي بكود من روني، بوابة واحدة ---------------- */
 // التفعيل الآن: المشترك يضغط «اشترك في برو» → واتساب لروني → يدفع → روني
-// يرسل له كوداً يبدأ بـ ASLY-PRO → يدخله في الإعدادات → برو مفعّل على جهازه.
+// يرسل له كوداً يبدأ بـ LYRA-PRO → يدخله في الإعدادات → برو مفعّل على جهازه.
 // عند النشر على Play لاحقاً تُستبدل هذه الخطوة بفوترة Play دون تغيير بوابات المزايا.
 function isPro() { return LS.get('asly_pro', false) === true; }
 function proWhatsAppLink() {
   const n = advertiseNumber(); // من sponsors.json أولاً، ثم CONFIG — '' إن كان لا يزال placeholder
-  return n ? `https://wa.me/${n}?text=${encodeURIComponent('عاوز أشترك في برو — تطبيق أصلي')}` : null;
+  return n ? `https://wa.me/${n}?text=${encodeURIComponent('عاوز أشترك في برو — تطبيق Lyra')}` : null;
 }
 function activatePro(code) {
   const c = (code || '').trim().toUpperCase();
@@ -317,7 +322,7 @@ function renderPro() {
   const state = $('#proState');
   if (state) state.textContent = pro
     ? '⭐ برو مفعّل على هذا الجهاز — محادثة بلا حدود، معاينات بلا حدود، بلا إعلانات، تنزيل HD، وأنماط وأصوات إضافية.'
-    : `مجاني: فيديوهات (3 إعلانات = فيديو)، محادثة ${CONFIG.caps.chatPerDay} رسائل/يوم، 5 معاينات برومبت/يوم، بانر إعلاني. برو (~${CONFIG.pro.priceEgp} ج/شهر): كل شيء بلا حدود وبلا إعلانات + Veo عند توفره + تنزيل HD + أنماط وأصوات إضافية + وصول مبكر للبرومبتات الجديدة.`;
+    : `مجاني: 50 فيديو/يوم، محادثة ${CONFIG.caps.chatPerDay} رسائل/يوم، 5 معاينات برومبت/يوم، بانر إعلاني. برو (~${CONFIG.pro.priceEgp} ج/شهر): كل شيء بلا حدود وبلا إعلانات + فيديو سينمائي مباشر عند توفره + تنزيل HD + أنماط وأصوات إضافية + وصول مبكر للبرومبتات الجديدة.`;
   const subBtn = $('#proSubscribeBtn');
   if (subBtn) {
     subBtn.classList.toggle('hidden', pro);
@@ -346,8 +351,11 @@ if (_proBtnHeader) _proBtnHeader.addEventListener('click', () => {
   document.querySelector('[data-tab="settings"]').click();
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
-/* ---------------- نقاط Veo (إعلان = نقطة، دخول يومي = 5) ---------------- */
-const VEO_COSTS = { lite: 200, fast: 480 }; // نقطة = إعلان واحد (0.002$ تقريباً)
+/* ---------------- نقاط الفيديو المباشر (إعلان = نقطة، دخول يومي = 5) ---------------- */
+// الأسعار من مستندات Google الرسمية (ai.google.dev/gemini-api/docs/pricing):
+// Omni 720p ‏~0.07$/ثانية (كليب 8 ثوانٍ ≈ 0.56$ ≈ 280 إعلاناً)، 1080p ‏~0.104$/ثانية (≈ 0.83$ ≈ 415 إعلاناً).
+const VEO_COSTS = { hd720: 280, hd1080: 415 }; // نقطة = إعلان واحد (0.002$ تقريباً)
+const VEO_COST_USD = { hd720: 0.56, hd1080: 0.83 }; // تكلفة الكليب بالدولار (للوحة الرصيد)
 function veoCredits() { return (LS.get('asly_credits', { balance: 0 }).balance) || 0; }
 function addVeoCredits(n, why) {
   const c = LS.get('asly_credits', { balance: 0, earned: 0 });
@@ -355,7 +363,7 @@ function addVeoCredits(n, why) {
   c.earned = (c.earned || 0) + n;
   LS.set('asly_credits', c);
   renderVeoCard();
-  if (why) toast(`⭐ +${n} نقطة Veo — ${why}`);
+  if (why) toast(`⭐ +${n} نقطة للفيديو السينمائي — ${why}`);
 }
 function spendVeoCredits(n) {
   const c = LS.get('asly_credits', { balance: 0, earned: 0 });
@@ -366,7 +374,7 @@ function spendVeoCredits(n) {
   return true;
 }
 /* ---------------- لوحة الرصيد — عدّادات محلية (تقديرات فقط) ---------------- */
-// كل الأرقام تقديرية: إعلان واحد ≈ 0.002$، وVeo Lite 0.40$ / Fast 0.96$.
+// كل الأرقام تقديرية: إعلان واحد ≈ 0.002$، وOmni 720p ‏~0.56$ / 1080p ~0.83$.
 // لا يوجد تحويل تلقائي من AdMob إلى Google Cloud — روني يشحن بنفسه.
 function monthKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
 function moneyStats() {
@@ -386,40 +394,69 @@ function bumpMoneyAd() {
 function bumpMoneyVeo(quality) {
   const m = moneyStats();
   m.veoMonthClips = (m.veoMonthClips || 0) + 1;
-  m.veoMonthUsd = +((m.veoMonthUsd || 0) + (VEO_COSTS[quality] || 0.40)).toFixed(2);
+  m.veoMonthUsd = +((m.veoMonthUsd || 0) + (VEO_COST_USD[quality] || 0.56)).toFixed(2);
   LS.set('asly_money', m);
 }
 function touchDailyVeoBonus() {
-  // مكافأة الدخول اليومي: 5 نقاط Veo مرة واحدة في اليوم
+  // مكافأة الدخول اليومي: 5 نقاط للفيديو السينمائي مرة واحدة في اليوم
   const last = LS.get('asly_credits_daily', null);
   if (last === todayKey()) return;
   LS.set('asly_credits_daily', todayKey());
   addVeoCredits(5, 'مكافأة الدخول اليومي 🎁');
 }
+// مكافآت (دعوة/مشاركة/عجلة/سلسلة أيام): الفيديوهات العادية أصبحت مجانية حتى
+// 50/يوم، فالمكافأة الآن نقاط للفيديو السينمائي المباشر: كل وحدة = 25 نقطة
+// (كليب 720p = 280 نقطة). رصيد asly_bonus القديم متروك كأرشيف ولا يُستخدم.
+const BONUS_POINTS = 25;
 function addBonus(n, why) {
-  const b = LS.get('asly_bonus', { balance: 0, earned: 0 });
-  b.balance = (b.balance || 0) + n;
-  b.earned = (b.earned || 0) + n;
-  LS.set('asly_bonus', b);
+  const pts = n * BONUS_POINTS;
+  addVeoCredits(pts, why || 'مكافأة');
   updateCapsBadge();
-  if (why) toast(`🎁 +${n} فيديو إضافي — ${why}`);
+  if (why) toast(`🎁 +${pts} نقطة للفيديو السينمائي — ${why}`);
 }
 function videosRemaining() {
-  if (isPro()) return Infinity; // برو: فيديوهات بلا إعلانات وبلا حد يومي
-  // رصيد فيديوهاتك = نقاط الفيديو المكتسبة (إعلانات/دعوات/مشاركات/عجلة) — بحد أقصى 3 توليدات في اليوم
-  return Math.max(0, Math.min(bonusBalance(), CONFIG.caps.videosPerDay - usageToday().videos));
+  if (isPro()) return Infinity; // برو: فيديوهات بلا حدود
+  // الفيديوهات العادية المجانية: 50 في اليوم لكل مستخدم، تُحسب من التوليدات
+  // المكتملة فقط (usageToday().videos يزداد عند اكتمال التصدير — لا على الفشل).
+  // بلا إعلانات وبلا رصيد مكافآت — القفل عند 50 نهائي حتى منتصف الليل.
+  return Math.max(0, CONFIG.caps.videosPerDay - (usageToday().videos || 0));
 }
 function consumeVideoSlot() {
-  // كل فيديو يستهلك نقطة فيديو واحدة
+  // يُستدعى فقط عند اكتمال توليد الفيديو (لا على المحاولات الفاشلة)
   bumpUsage('videos');
-  const b = LS.get('asly_bonus', { balance: 0, earned: 0 });
-  b.balance = Math.max(0, (b.balance || 0) - 1);
-  LS.set('asly_bonus', b);
   updateCapsBadge();
+  updateFreeVideoUI();
+}
+function freeVideoCountdown() {
+  const now = new Date();
+  const mid = new Date(now); mid.setHours(24, 0, 0, 0);
+  const ms = mid - now;
+  return `${Math.floor(ms / 3.6e6)} ساعة و${Math.floor(ms % 3.6e6 / 6e4)} دقيقة`;
+}
+function updateFreeVideoUI() {
+  const rem = videosRemaining();
+  const el = $('#freeVideoCount');
+  if (el) el.textContent = isPro()
+    ? 'برو: فيديوهات بلا حدود ⭐'
+    : `فيديوهاتك المجانية النهاردة: ${rem}/${CONFIG.caps.videosPerDay}`;
+  const bar = $('#freeVideoBar');
+  if (bar) bar.style.width = (isPro() ? 100 : Math.round(rem / CONFIG.caps.videosPerDay * 100)) + '%';
+  const lock = $('#freeVideoLock');
+  if (lock) {
+    if (!isPro() && rem <= 0) {
+      lock.classList.remove('hidden');
+      lock.innerHTML = `خلصت فيديوهات النهاردة المجانية — ارجع بكرة 🌙<br><small>العدّاد يتصفّر بعد ${freeVideoCountdown()} (منتصف الليل بتوقيت جهازك). لا يوجد تجاوز بالإعلانات — القفل نهائي لليوم.</small>`;
+    } else lock.classList.add('hidden');
+  }
+  const gen = $('#generateBtn');
+  if (gen) gen.disabled = !isPro() && rem <= 0;
+  const ref = $('#refVideoBtn');
+  if (ref) ref.disabled = !isPro() && rem <= 0;
 }
 function updateCapsBadge() {
   const u = usageToday();
-  $('#capVideos').textContent = isPro() ? '∞' : videosRemaining();
+  $('#capVideos').textContent = isPro() ? '∞' : videosRemaining() + '/' + CONFIG.caps.videosPerDay;
+  updateFreeVideoUI();
   const cr2 = chatRemaining();
   $('#capChat').textContent = isPro() ? '∞' : `${cr2}/${CONFIG.caps.chatPerDay}`;
   const cr = $('#chatRemaining');
@@ -502,13 +539,14 @@ let dbPromise = null;
 function openDB() {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open('asly_db', 3);
+    const req = indexedDB.open('asly_db', 4);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains('videos')) db.createObjectStore('videos', { keyPath: 'id' });
       if (!db.objectStoreNames.contains('reports')) db.createObjectStore('reports', { keyPath: 'id' });
       if (!db.objectStoreNames.contains('images')) db.createObjectStore('images', { keyPath: 'id' });
       if (!db.objectStoreNames.contains('previews')) db.createObjectStore('previews', { keyPath: 'id' }); // معاينات برومبتات المكتبة (blob صورة + تاريخ)
+      if (!db.objectStoreNames.contains('refimages')) db.createObjectStore('refimages', { keyPath: 'id' }); // الصورة المرجعية الحالية (v1.10)
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -567,9 +605,10 @@ function loadSettings() {
     const r = document.querySelector(`input[name="chatProvider"][value="${s.chatProvider}"]`);
     if (r) r.checked = true;
   }
-  if (s.admobAppId) $('#admobAppId').value = s.admobAppId;
-  if (s.admobRewardedId) $('#admobRewardedId').value = s.admobRewardedId;
-  if (s.admobBannerId) $('#admobBannerId').value = s.admobBannerId;
+  const realOrCfg = (v, d) => (v && !/X{4,}/.test(v) ? v : d);
+  $('#admobAppId').value = realOrCfg(s.admobAppId, CONFIG.admob.appId);
+  $('#admobRewardedId').value = realOrCfg(s.admobRewardedId, CONFIG.admob.rewardedUnitId);
+  $('#admobBannerId').value = realOrCfg(s.admobBannerId, CONFIG.admob.bannerUnitId);
   if (s.adsenseClientId) $('#adsenseClientId').value = s.adsenseClientId;
   if (s.adsenseSlotId) $('#adsenseSlotId').value = s.adsenseSlotId;
   if (s.veoWorkerUrl) $('#veoWorkerUrl').value = s.veoWorkerUrl;
@@ -597,11 +636,22 @@ function saveSettings(showMsg = true) {
   if (showMsg) toast('✅ تم حفظ الإعدادات على جهازك');
 }
 $('#saveSettings').addEventListener('click', () => saveSettings());
-function settings() { return LS.get('asly_settings', {}); }
+function settings() {
+  // معرّفات AdMob: المحفوظة أولاً، وإلا الافتراضي الحقيقي من CONFIG
+  // (فور وصول معرّف البانر الحقيقي ووضعه في CONFIG يصبح hasRealAds() صحيحاً للجميع دون أي حفظ يدوي).
+  const s = LS.get('asly_settings', {});
+  return { ...s,
+    admobAppId: s.admobAppId || CONFIG.admob.appId,
+    admobRewardedId: s.admobRewardedId || CONFIG.admob.rewardedUnitId,
+    admobBannerId: s.admobBannerId || CONFIG.admob.bannerUnitId };
+}
 
-/* ---------------- Ads visibility: no placeholders shown to users ---------------- */
-// البانر وزر "شاهد إعلاناً" يظهران فقط بعد حفظ معرّفات AdMob حقيقية.
-// قبل ذلك لا يرى المستخدم أي صندوق إعلاني فارغ — التطبيق يبدو مكتملاً.
+/* ---------------- Ads visibility: زر المشاهدة ظاهر دائماً (v1.10) ---------------- */
+// خطأ كان يخفي حلقة الإعلانات كلها: الزر والبانر كانا يظهران فقط بعد حفظ
+// معرّفات AdMob حقيقية — والمستخدم بلا معرّفات لا يجد أي إعلان أصلاً.
+// الإصلاح: زر «شاهد إعلاناً» ظاهر دائماً (إلا لمشتركي برو)، والإعلانات
+// المعروضة بلا معرّفات موسومة بوضوح «إعلان تجريبي» داخل النافذة.
+// البانر يبقى مخفياً حتى معرّف حقيقي (لا صندوق فارغ).
 function hasRealAds() {
   const s = settings();
   const bad = v => !v || /X{4,}/.test(v);
@@ -609,11 +659,10 @@ function hasRealAds() {
 }
 function applyAdsVisibility() {
   // برو: بلا إعلانات إطلاقاً — البانر وزر مشاهدة الإعلان يختفيان
-  const show = hasRealAds() && !isPro();
   const banner = $('#bannerAd');
-  if (banner) banner.classList.toggle('hidden', !show);
+  if (banner) banner.classList.toggle('hidden', !hasRealAds() || isPro());
   const watch = $('#watchAdBtn');
-  if (watch) watch.classList.toggle('hidden', !show);
+  if (watch) watch.classList.toggle('hidden', isPro());
 }
 
 /* ---------------- إعلانات الويب (AdSense) — خانة واحدة أسفل «الرائج الآن» ---------------- */
@@ -674,7 +723,7 @@ async function installApp() {
     deferredInstallPrompt = null;
     if (choice && choice.outcome === 'accepted') {
       hideInstallCard();
-      toast('✅ تم تثبيت «أصلي» على شاشتك 🎉');
+      toast('✅ تم تثبيت Lyra على شاشتك 🎉');
     }
     return;
   }
@@ -724,12 +773,16 @@ async function pollinationsFetch(url, opts, kind) {
 }
 
 /* ---------------- Video generation ---------------- */
-const QUALITY_SUFFIX = 'professional quality, sharp details, good lighting, clean composition, balanced colors, polished result';
+// تحسين الجودة: وصف تفصيلي يُلحق بكل برومبت صورة — إضاءة وتكوين وحدة ووضوح،
+// لأن الوصف القصير وحده يعطي نتائج عادية. (v1.10: معزّز بقوة بعد شكوى روني من جودة الصور)
+const QUALITY_SUFFIX = 'ultra-detailed professional quality, sharp focus, high dynamic range, balanced composition, accurate natural colors, clean uncluttered background, crisp details, no blur, no watermark, no text, no distortion, no extra limbs';
 const STYLE_PROMPTS = {
-  cinematic: 'cinematic film still, dramatic lighting, shallow depth of field, movie quality',
-  cartoon: 'colorful 3D cartoon style, Pixar-like, cheerful, smooth shapes',
-  realistic: 'photorealistic, natural light, detailed, real photography',
-  anime: 'anime style, vibrant colors, detailed anime illustration',
+  cinematic: 'cinematic film still, dramatic lighting, shallow depth of field, movie quality, rich color grading',
+  cartoon: 'colorful 3D cartoon style, Pixar-like, cheerful, smooth shapes, expressive characters',
+  realistic: 'photorealistic, shot on DSLR, 85mm lens, natural light, detailed skin and textures, real photography, true-to-life colors',
+  anime: 'anime style, vibrant colors, detailed anime illustration, clean line art',
+  product: 'professional commercial product photography, studio lighting, soft shadows, clean background, product centered, advertising quality',
+  portrait: 'professional portrait photography, soft window light, sharp eyes, beautiful bokeh background, flattering composition',
   noir: 'film noir style, high contrast black and white, dramatic shadows, moody atmosphere', // برو فقط
   watercolor: 'soft watercolor painting style, gentle brush strokes, dreamy pastel colors', // برو فقط
 };
@@ -739,11 +792,7 @@ const SCENE_SUFFIX = [
   'dramatic final scene, emotional climax',
 ];
 let selectedStyle = 'cinematic';
-$$('#styleChips .chip').forEach(c => c.addEventListener('click', () => {
-  $$('#styleChips .chip').forEach(x => x.classList.remove('active'));
-  c.classList.add('active');
-  selectedStyle = c.dataset.style;
-}));
+$$('#styleChips .chip').forEach(c => c.addEventListener('click', () => setStyle(c.dataset.style)));
 $('#prompt').addEventListener('input', e => { $('#promptCount').textContent = `${e.target.value.length}/300`; });
 
 function setQueueStep(i, state, text) {
@@ -765,12 +814,25 @@ function imageUrlFor(prompt, style, scene, seed) {
   const full = `${STYLE_PROMPTS[style]}, ${prompt}, ${SCENE_SUFFIX[scene]}, ${QUALITY_SUFFIX}, vertical 9:16 portrait`;
   return `${CONFIG.imageBase}/${encodeURIComponent(full)}?width=${CONFIG.imageSize.w}&height=${CONFIG.imageSize.h}&seed=${seed}&safe=true`;
 }
-function imageUrlForSingle(prompt, style, aspect, seed) {
-  // صور التبويب المخصص: safe=true دائماً + تحسين الجودة تلقائياً
+// أسماء محركات الصور الظاهرة للمستخدم (نمط Tinker: اسم النموذج على كل أداة)
+const IMAGE_ENGINE_LABELS = {
+  flux: 'Flux — مجاني',
+  turbo: 'Turbo — سريع مجاني',
+  gemini: 'Nano Banana (Gemini) — أعلى جودة',
+  pollinations: 'Pollinations — مجاني',
+};
+function imageUrlForSingle(prompt, style, aspect, seed, model) {
+  // صور التبويب المخصص: safe=true دائماً + تحسين الجودة تلقائياً.
+  // model=flux هو نفس عائلة Flux التي يستخدمها Tinker؛ turbo بديل أسرع.
   const size = aspect === 'square' ? { w: 768, h: 768 } : { w: 576, h: 1024 };
   const orient = aspect === 'square' ? 'square 1:1' : 'vertical 9:16 portrait';
   const full = `${STYLE_PROMPTS[style]}, ${prompt}, ${QUALITY_SUFFIX}, ${orient}`;
-  return `${CONFIG.imageBase}/${encodeURIComponent(full)}?width=${size.w}&height=${size.h}&seed=${seed}&safe=true`;
+  const m = (model === 'turbo') ? 'turbo' : 'flux';
+  return `${CONFIG.imageBase}/${encodeURIComponent(full)}?width=${size.w}&height=${size.h}&seed=${seed}&safe=true&nologo=true&model=${m}`;
+}
+function imagePromptFor(prompt, style) {
+  // البرومبت الكامل المُرسَل فعلياً — يُعرض للمستخدم (شفافية Tinker: كل إخراج يُظهر برومبته)
+  return `${STYLE_PROMPTS[style] || ''}, ${prompt}, ${QUALITY_SUFFIX}`;
 }
 async function loadImageBlob(url) {
   const res = await pollinationsFetch(url, {}, 'image');
@@ -1059,13 +1121,13 @@ async function renderVideo(images, durationSec, narration, voiceMode, opts = {})
         ctx.fillStyle = '#fff';
         lines.forEach((ln, li) => ctx.fillText(ln, W / 2, boxY + 18 + lineH * (li + 1) - 8));
       }
-      // علامة «صُنع بتطبيق أصلي» — تُحرَق في كل إطار (إعلان مجاني للتطبيق مع كل مشاركة)
+      // علامة «صُنع بـ Lyra» — تُحرَق في كل إطار (إعلان مجاني للتطبيق مع كل مشاركة)
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.fillRect(0, H - labelH - 18, W, labelH);
       ctx.fillStyle = '#fff';
       ctx.font = `bold ${Math.round(24 * (W / 720))}px system-ui, sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText('صُنع بتطبيق أصلي • AI generated', W / 2, H - 18 - Math.round(labelH * 0.32));
+      ctx.fillText('صُنع بـ Lyra • AI', W / 2, H - 18 - Math.round(labelH * 0.32));
       // حارس التلوث (taint): لو رُسمت صورة من مصدر خارجي بدون CORS يتلوث
       // الـ canvas فيُصدَّر الفيديو فارغاً بصمت — نكشف ذلك من أول إطار
       // ونفشل بصوت عالٍ بدل ملف 0 بايت. (الصور الحقيقية تأتي كـ blob: نظيفة.)
@@ -1118,34 +1180,30 @@ function showAdGate(adIndex = 1, adTotal = 1) {
   });
 }
 
-/* ---------------- نموذج التمويل: 3 إعلانات متتالية = فيديو واحد ---------------- */
-// كل إعلان مشاهَد = +1 نقطة Veo؛ كل 3 إعلانات متتالية = +1 نقطة فيديو.
-// التقدّم يُحفظ لليوم نفسه (إعلان 1 من 3، ثم 2 من 3…) — ويتصفّر عند اكتمال
-// المجموعة أو عند توليد فيديو. حد مجموعات الإعلانات: 3 مجموعات/يوم (9 إعلانات).
-const ADS_PER_VIDEO = 3;
-const AD_SETS_PER_DAY = 3;
-function adProgress() {
-  const p = LS.get('asly_ad_progress', { count: 0, date: null });
-  if (p.date !== todayKey()) return { count: 0, date: todayKey() };
-  return p;
-}
-function adSetsToday() {
-  const s = LS.get('asly_ad_sets', {});
-  return s[todayKey()] || 0;
-}
+/* ---------------- نموذج التمويل: كل إعلان = +1 نقطة للفيديو السينمائي المباشر ---------------- */
+// الفيديوهات العادية مجانية حتى 50 في اليوم ولا تحتاج إعلانات إطلاقاً.
+// الإعلانات (اختيارية) تموّل الفيديو السينمائي المباشر فقط: كل مشاهدة = +1 نقطة.
 function updateAdProgressNote() {
   const el = $('#adProgressNote');
   if (!el) return;
-  const c = adProgress().count;
-  el.textContent = c === 0
-    ? '🎬 كل فيديو يحتاج مشاهدة 3 إعلانات ورا بعض (أو مكافأة من دعوة/مشاركة/عجلة).'
-    : `🎬 تقدّمك: شاهدت إعلان ${c} من 3 — باقي ${ADS_PER_VIDEO - c} إعلان للفيديو الجاي.`;
+  el.textContent = 'الفيديوهات العادية مجانية حتى 50 في اليوم — كل إعلان تشاهده يضيف +1 نقطة لصندوق الفيديو السينمائي المباشر للجميع.';
 }
+async function watchAdsForVideo() {
+  // إعلان واحد (تجريبي موسوم على الويب، حقيقي في نسخة أندرويد) = +1 نقطة للفيديو المباشر
+  const watched = await showAdGate(1, 1);
+  if (!watched) return false;
+  addVeoCredits(1, 'شاهدت إعلاناً ⭐');
+  bumpMoneyAd(); // عدّاد لوحة الرصيد (تقدير: إعلان ≈ 0.002$)
+  pingAdToWorker(); // بلاغ لمحاسبة صندوق الفيديو المباشر (فقط مع AdMob حقيقي + الميزة مفعّلة)
+  updateAdProgressNote();
+  return true;
+}
+
 /* ---------------- إعلان واحد (فتح معاينات / رسائل محادثة) ---------------- */
 // كل مشاهدة إعلان — من أي مكان في التطبيق — تدخل الصندوق المشترك نفسه
-// (bumpMoneyAd + pingAdToWorker)، فتقرّب فتح Veo للجميع. سطر ودود يذكّر
+// (bumpMoneyAd + pingAdToWorker)، فتقرّب فتح الفيديو المباشر للجميع. سطر ودود يذكّر
 // المستخدم بذلك حيث يظهر زر الإعلان.
-const POOL_LINE = '💚 مشاهدتك دي بتساعد تفتح فيديوهات فيو للكل — وإعلاناتكم بتطوّر التطبيق وتسرّع الفيديوهات';
+const POOL_LINE = '💚 مشاهدتك دي بتساعد تفتح الفيديوهات السينمائية المباشرة للكل — وإعلاناتكم بتطوّر التطبيق وتسرّع الفيديوهات';
 async function watchSingleAd(reason) {
   const watched = await showAdGate(1, 1);
   if (!watched) return false;
@@ -1173,50 +1231,23 @@ if (_chatUnlockBtn) _chatUnlockBtn.addEventListener('click', async () => {
   try { await watchSingleAd('chat'); } finally { _chatUnlockBtn.disabled = false; }
 });
 
-async function watchAdsForVideo() {
-  // يشاهد المستخدم 3 إعلانات ورا بعض؛ كل إعلان = +1 نقطة Veo، والمجموعة = +1 فيديو
-  for (let i = adProgress().count; i < ADS_PER_VIDEO; i++) {
-    const watched = await showAdGate(i + 1, ADS_PER_VIDEO);
-    if (!watched) { updateAdProgressNote(); return false; }
-    addVeoCredits(1, 'شاهدت إعلاناً ⭐');
-    bumpMoneyAd(); // عدّاد لوحة الرصيد (تقدير: إعلان ≈ 0.002$)
-    pingAdToWorker(); // بلاغ لمحاسبة صندوق فيو (فقط مع AdMob حقيقي + Veo مفعّل)
-    const p = adProgress();
-    p.count = i + 1; p.date = todayKey();
-    LS.set('asly_ad_progress', p);
-    updateAdProgressNote();
-  }
-  // اكتملت المجموعة
-  LS.set('asly_ad_progress', { count: 0, date: todayKey() });
-  if (adSetsToday() < AD_SETS_PER_DAY) {
-    const s = LS.get('asly_ad_sets', {});
-    s[todayKey()] = (s[todayKey()] || 0) + 1;
-    LS.set('asly_ad_sets', s);
-    addBonus(1, 'شاهدت 3 إعلانات متتالية 🎬');
-  } else {
-    toast('⭐ وصلت لحد فيديوهات الإعلانات اليوم (3) — لكن نقاط Veo بتتحفظ');
-  }
-  updateAdProgressNote();
-  return true;
-}
-
-/* ---------------- صندوق فيو المشترك (طابور مخفي + احتياطي ربح 3$) ---------------- */
-// الصندوق يموّل فيديوهات Veo بالترتيب (FIFO) من إيراد الإعلانات المقدَّر
+/* ---------------- صندوق الفيديو المباشر المشترك (طابور مخفي + احتياطي ربح 3$) ---------------- */
+// الصندوق يموّل الفيديوهات المباشرة بالترتيب (FIFO) من إيراد الإعلانات المقدَّر
 // (إعلان واحد ≈ 0.002$). أول 3$ من كل يوم ربح لصاحب التطبيق ولا تُنفَق
-// على Veo أبداً. المستخدم لا يرى أي أرقام طابور أو مواقع أو مواعيد —
-// فقط حالة صادقة بسيطة. الأرقام الفعلية تأتي من الـ Worker عند تفعيل Veo.
+// على الفيديو المباشر أبداً. المستخدم لا يرى أي أرقام طابور أو مواقع أو مواعيد —
+// فقط حالة صادقة بسيطة. الأرقام الفعلية تأتي من الـ Worker عند تفعيل الفيديو المباشر.
 async function renderPoolStatus() {
   const el = $('#poolStatus');
   if (!el) return;
   const reserve = CONFIG.pool.profitReserveUsd;
-  const fallback = `📦 صندوق فيو: إعلاناتكم تموّل فيديوهات Veo السينمائية — أول ${reserve}$ يومياً ربح لصاحب التطبيق، والباقي يموّل الفيديوهات بالترتيب. تُفعّل الميزة مع مفتاح Gemini.`;
+  const fallback = `📦 صندوق الفيديو السينمائي: إعلاناتكم تموّل الفيديوهات المباشرة — أول ${reserve}$ يومياً ربح لصاحب التطبيق، والباقي يموّل الفيديوهات بالترتيب. تُفعّل الميزة مع مفتاح Gemini.`;
   if (!veoEnabled()) { el.textContent = fallback; return; }
   try {
     const res = await fetch(veoWorkerUrl().replace(/\/$/, '') + '/pool');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const d = await res.json();
     const poolUsd = (d.poolUsd != null ? d.poolUsd : 0).toFixed(2);
-    el.textContent = `📦 صندوق فيو اليوم: إيراد مقدَّر ~$${poolUsd} من الإعلانات (منها ${reserve}$ احتياطي الربح) — والفيديوهات السينمائية تُجهَّز بالترتيب.`;
+    el.textContent = `📦 صندوق الفيديو السينمائي اليوم: إيراد مقدَّر ~$${poolUsd} من الإعلانات (منها ${reserve}$ احتياطي الربح) — والفيديوهات السينمائية تُجهَّز بالترتيب.`;
   } catch (e) {
     el.textContent = fallback;
   }
@@ -1244,7 +1275,7 @@ async function renderMoneyDashboard() {
   const poolUsd = adsMonth * CONFIG.pool.adValueUsd;
   const dayOfMonth = new Date().getDate();
   const profit = Math.min(poolUsd, CONFIG.pool.profitReserveUsd * dayOfMonth);
-  // حلقة الدخل: الإيراد → ربح روني (3$/يوم) → المتبقي ينقسم: 50% سعة Veo + 50% تطوير مزايا
+  // حلقة الدخل: الإيراد → ربح روني (3$/يوم) → المتبقي ينقسم: 50% سعة الفيديو المباشر + 50% تطوير مزايا
   const rest = Math.max(0, poolUsd - profit - veoUsd);
   const veoShare = rest * (100 - CONFIG.poolSplit.improvementsPct) / 100;
   const improveShare = rest * CONFIG.poolSplit.improvementsPct / 100;
@@ -1253,15 +1284,15 @@ async function renderMoneyDashboard() {
   spendEl.textContent = `~$${(+veoUsd).toFixed(2)} (${veoClips} مقطع)`;
   profitEl.textContent = `~$${profit.toFixed(2)}`;
   const veoRow = $('#moneyVeoShare'), impRow = $('#moneyImproveShare');
-  if (veoRow) veoRow.textContent = `~$${veoShare.toFixed(2)} — سعة Veo إضافية`;
+  if (veoRow) veoRow.textContent = `~$${veoShare.toFixed(2)} — سعة فيديو مباشر إضافية`;
   if (impRow) impRow.textContent = `~$${improveShare.toFixed(2)} — تطوير مزايا أسرع`;
   const loopEl = $('#moneyLoop');
-  if (loopEl) loopEl.textContent = `🔄 حلقة الدخل: إيراد ~$${poolUsd.toFixed(2)} → ربحك ~$${profit.toFixed(2)} → سعة Veo ~$${veoShare.toFixed(2)} + تطوير المزايا ~$${improveShare.toFixed(2)} — كل إعلان يطوّر التطبيق ويسرّع الفيديوهات.`;
+  if (loopEl) loopEl.textContent = `🔄 حلقة الدخل: إيراد ~$${poolUsd.toFixed(2)} → ربحك ~$${profit.toFixed(2)} → سعة الفيديو المباشر ~$${veoShare.toFixed(2)} + تطوير المزايا ~$${improveShare.toFixed(2)} — كل إعلان يطوّر التطبيق ويسرّع الفيديوهات.`;
   const modeRow = $('#moneyVeoMode'), balRow = $('#moneyBalance');
   const info = veoModeInfo();
   if (modeRow) modeRow.textContent = veoMode() === 'free' ? '🎉 مجاني للجميع' : '⭐ اشتراك';
   if (balRow) balRow.textContent = `~$${(info.balanceUsd || 0).toFixed(2)} / ~$${(info.thresholdUsd || 0).toFixed(2)}`;
-  if (noteEl) noteEl.textContent = `⏳ تقديرات من ${source} — إعلان ≈ 0.002$، وVeo Lite 0.40$ / Fast 0.96$. الأرقام الحقيقية في لوحتي AdMob وGoogle Cloud فقط.`;
+  if (noteEl) noteEl.textContent = `⏳ تقديرات من ${source} — إعلان ≈ 0.002$، وOmni 720p ‏~0.56$ / 1080p ~0.83$. الأرقام الحقيقية في لوحتي AdMob وGoogle Cloud فقط.`;
 }
 
 /* بلاغ إكمال إعلان إلى الـ Worker (لمحاسبة الصندوق) — فقط عند وجود
@@ -1282,14 +1313,10 @@ async function generateVideo() {
   const f = filterCheck(prompt);
   if (!f.ok) { toast(REFUSAL); return; }
   if (videosRemaining() <= 0) {
-    if (usageToday().videos >= CONFIG.caps.videosPerDay) {
-      toast(`⏳ وصلت لحد الفيديوهات اليوم (${CONFIG.caps.videosPerDay}) — جرّب غداً`);
-      return;
-    }
-    // لا يوجد رصيد فيديو — شاهد 3 إعلانات ورا بعض للحصول على فيديو
-    toast('🎬 شاهد 3 إعلانات قصيرة ورا بعض — وفيديوك يبدأ بعدها مباشرة');
-    const got = await watchAdsForVideo();
-    if (!got || videosRemaining() <= 0) return;
+    // القفل نهائي لليوم — بلا تجاوز بالإعلانات (قرار روني)
+    toast('خلصت فيديوهات النهاردة المجانية — ارجع بكرة 🌙 (العدّاد يتصفّر منتصف الليل)');
+    updateFreeVideoUI();
+    return;
   }
 
   // الوضع السهل: التطبيق يختار النمط والمدة والصوت تلقائياً من الفكرة
@@ -1327,7 +1354,7 @@ async function generateVideo() {
     <li>🎬 تجميع الفيديو والحركة…</li>`;
   setQueueProgress(0.05);
   setQueueNote('الصور تُنشأ واحدة كل 45 ثانية تقريباً (حد النسخة المجانية) — لا تغلق الصفحة.');
-  // رسائل مرحة من عم أصلي أثناء الانتظار
+  // رسائل مرحة من Lyra أثناء الانتظار
   let funIdx = 0;
   const funTimer = setInterval(() => {
     const note = $('#queueNote').textContent || '';
@@ -1396,6 +1423,7 @@ async function generateVideo() {
     $('#resultBox').classList.remove('hidden');
     $('#downloadBtn').onclick = () => downloadBlob(blob, `asly-${id}.${record.ext}`);
     $('#shareBtn').onclick = () => shareVideo(blob, record);
+    $('#refineVideoBtn').onclick = () => refineVideo();
     $('#reportBtn').onclick = () => reportVideo(id);
     $('#shareWaBtn').onclick = () => shareToChannel('whatsapp', record);
     $('#shareFbBtn').onclick = () => shareToChannel('facebook', record);
@@ -1414,6 +1442,16 @@ async function generateVideo() {
     btn.disabled = false;
   }
 }
+/* تحسين الفيديو: نسخة جديدة من نفس الفكرة ببذرة مختلفة — تكرار على
+   نفس النتيجة بدل البدء من الصفر (نمط Tinker: Refine). */
+function refineVideo() {
+  const last = window.__asly.lastVideo;
+  if (!last) { toast('⚠️ لا يوجد فيديو لتحسينه — أنشئ فيديو أولاً'); return; }
+  $('#prompt').value = last.prompt || '';
+  $('#promptCount').textContent = `${($('#prompt').value.length)}/300`;
+  toast('جارٍ إنشاء نسخة محسّنة من نفس الفكرة…');
+  generateVideo();
+}
 $('#generateBtn').addEventListener('click', generateVideo);
 
 function downloadBlob(blob, filename) {
@@ -1423,7 +1461,7 @@ function downloadBlob(blob, filename) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
-/* علامة «صُنع بتطبيق أصلي» على الصور — تُحرَق في نسخة التحميل/المشاركة */
+/* علامة «صُنع بـ Lyra» على الصور — تُحرَق في نسخة التحميل/المشاركة */
 async function watermarkImageBlob(blob) {
   try {
     const img = await blobToImage(blob);
@@ -1437,7 +1475,7 @@ async function watermarkImageBlob(blob) {
     ctx.fillStyle = '#fff';
     ctx.font = `bold ${Math.round(barH * 0.5)}px system-ui, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('صُنع بتطبيق أصلي • AI generated', c.width / 2, c.height - barH * 0.28);
+    ctx.fillText('صُنع بـ Lyra • AI', c.width / 2, c.height - barH * 0.28);
     return new Promise(res => c.toBlob(b => res(b || blob), 'image/jpeg', 0.92));
   } catch (e) { return blob; }
 }
@@ -1447,7 +1485,7 @@ async function downloadWatermarkedImage(blob, filename) {
 async function shareVideo(blob, record) {
   const file = new File([blob], `asly-${record.id}.${record.ext}`, { type: blob.type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'فيديو أصلي', text: shareCaption(record.prompt) }); return; } catch (e) {}
+    try { await navigator.share({ files: [file], title: 'فيديو Lyra', text: shareCaption(record.prompt) }); return; } catch (e) {}
   }
   downloadBlob(blob, file.name);
   toast('📥 تم تحميل الفيديو — شاركه من معرض جهازك');
@@ -1541,7 +1579,7 @@ function shareToChannel(channel, record) {
   addBonus(1, 'شاركت الفيديو 🎁');
 }
 
-/* ---------------- إعلان اختياري: 3 إعلانات = فيديو + 3 نقاط Veo ---------------- */
+/* ---------------- إعلان اختياري: كل إعلان = +1 نقطة للفيديو السينمائي المباشر ---------------- */
 $('#watchAdBtn').addEventListener('click', async () => {
   await watchAdsForVideo();
 });
@@ -1588,10 +1626,10 @@ function wizardStep(n) {
   dots.forEach((d, i) => d.classList.toggle('active', i + 1 === n));
   if (n === 3) {
     const sum = $('#wizSummary');
-    if (sum) sum.innerHTML = `💡 فكرتك: <b>${escapeHtml(wiz.idea || '—')}</b><br>🎨 النمط: <b>${escapeHtml(STYLE_NAMES_AR[wiz.style] || wiz.style)}</b><br>🎬 الفيديو مجاني بالكامل — ستشاهد 3 إعلانات قصيرة ورا بعض أولاً، وهي اللي بتدفع ثمنه.`;
+    if (sum) sum.innerHTML = `💡 فكرتك: <b>${escapeHtml(wiz.idea || '—')}</b><br>🎨 النمط: <b>${escapeHtml(STYLE_NAMES_AR[wiz.style] || wiz.style)}</b><br>🎬 الفيديو مجاني بالكامل — لك 50 فيديو مجاني كل يوم، بلا إعلانات إجبارية.`;
   }
 }
-const STYLE_NAMES_AR = { cinematic: 'سينمائي 🎥', cartoon: 'كرتوني 🎨', realistic: 'واقعي 📷', anime: 'أنمي ✨' };
+const STYLE_NAMES_AR = { cinematic: 'سينمائي', cartoon: 'كرتوني', realistic: 'واقعي', anime: 'أنمي', product: 'صورة منتج', portrait: 'بورتريه' };
 function wizardApplyAndClose() {
   if (wiz.idea.trim()) applyPrompt(wiz.idea.trim(), wiz.style);
   LS.set('asly_wizard_done', true);
@@ -1620,7 +1658,7 @@ function initWizard() {
       const card = document.createElement('button');
       card.className = 'style-card' + (key === wiz.style ? ' active' : '');
       card.dataset.style = key;
-      card.innerHTML = `<span class="style-visual style-${key}">${{ cinematic: '🎥', cartoon: '🎨', realistic: '📷', anime: '✨' }[key]}</span><b>${label}</b>`;
+      card.innerHTML = `<span class="style-visual style-${key}">${{ cinematic: '🎥', cartoon: '🎨', realistic: '📷', anime: '✨', product: '🛍️', portrait: '👤' }[key] || '🎨'}</span><b>${label}</b>`;
       card.onclick = () => {
         wiz.style = key;
         $$('#wizStyles .style-card').forEach(x => x.classList.toggle('active', x.dataset.style === key));
@@ -1642,6 +1680,44 @@ function initWizard() {
   };
   $$('.wiz-skip').forEach(b => b.onclick = () => wizardApplyAndClose());
   $('#wizMic').onclick = (e) => toggleDictation(idea, e.currentTarget);
+}
+
+/* ---------------- منتقي نموذج الفيديو (Tinker: اسم النموذج ظاهر دائماً) ---------------- */
+// «حركة + تعليق صوتي» هو الوحيد الذي يولّد داخل التطبيق الآن.
+// Omni/Kling/Sora خيارات مقفلة صادقة: لا نولّد بها، بل نوجّه المستخدم للمسار الصحيح.
+let selectedVideoModel = 'motion';
+function setVideoModel(m) {
+  selectedVideoModel = m;
+  $$('#videoModelPicker .model-card').forEach(b => b.classList.toggle('active', b.dataset.vmodel === m));
+  const note = $('#videoModelNote');
+  if (note) {
+    note.textContent = m === 'motion'
+      ? 'النموذج الحالي: حركة + تعليق صوتي — مجاني الآن (50 فيديو/يوم).'
+      : m === 'omni'
+      ? 'Gemini Omni — فيديو سينمائي مباشر بصوت وصورة حقيقية، 280 نقطة للكليب 720p. يُفعَّل من بطاقة الفيديو المباشر بالأسفل عند توفر الرصيد.'
+      : m === 'kling'
+      ? 'Kling — توليد سينمائي من موقع Kling نفسه عبر جولة الفيديو المجاني اليومية بالأسفل (حصته المجانية ~3–6 كليبات/يوم).'
+      : 'Sora — توليد سينمائي من OpenAI، قريباً؛ يكلف لكل كليب ولا يوجد مسار مجاني داخل التطبيق حالياً.';
+  }
+}
+function initVideoModelPicker() {
+  const picker = $('#videoModelPicker');
+  if (!picker) return;
+  picker.addEventListener('click', (e) => {
+    const b = e.target.closest('.model-card');
+    if (!b) return;
+    const m = b.dataset.vmodel;
+    setVideoModel(m);
+    if (m === 'omni') {
+      toast('⭐ الفيديو المباشر يفتح من بطاقة «فيديو سينمائي مباشر» بالأسفل — 280 نقطة للكليب');
+      const card = $('#veoCard');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (m === 'kling') {
+      toast('جرّب Kling من جولة الفيديو المجاني اليومية بالأسفل — حصته المجانية ~3–6 كليبات/يوم');
+    } else if (m === 'sora') {
+      toast('Sora قريباً — لا يوجد مسار مجاني داخل التطبيق حالياً');
+    }
+  });
 }
 
 /* ---------------- الإدخال الصوتي (Web Speech API) ---------------- */
@@ -1729,9 +1805,12 @@ function applyPrompt(prompt, style) {
   $('#prompt').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function setStyle(style) {
+  // النمط الواحد يبقى ثابتاً عبر الفيديو والصور والصورة المرجعية (Always on brand):
+  // ما تختاره هنا يظهر في كل التبويبات، فتبقى أعمالك على نفس الهوية.
   selectedStyle = style;
-  LS.set('asly_fav_style', style); // عم أصلي يفتكر النمط اللي بتحبه
+  LS.set('asly_fav_style', style); // Lyra تفتكر النمط اللي بتحبه
   $$('#styleChips .chip').forEach(x => x.classList.toggle('active', x.dataset.style === style));
+  $$('#imageStyleChips .chip').forEach(x => x.classList.toggle('active', x.dataset.istyle === style));
 }
 /* ---------------- الإعلانات المباشرة (رعاة — ملف sponsors.json) ---------------- */
 // مكانان فقط كحد أقصى، وبذوق: (أ) بطاقة «برعاية» على الرئيسية، (ب) قالب
@@ -1748,7 +1827,7 @@ function advertiseNumber() {
 function advertiseLink() {
   const num = advertiseNumber();
   if (!num) return '';
-  return `https://wa.me/${num}?text=${encodeURIComponent('عاوز أعلن في تطبيق أصلي')}`;
+  return `https://wa.me/${num}?text=${encodeURIComponent('عاوز أعلن في تطبيق Lyra')}`;
 }
 function openAdvertise() {
   const link = advertiseLink();
@@ -1773,9 +1852,9 @@ function renderSponsorCard(list) {
   const s = act[0];
   card.classList.remove('hidden');
   const img = $('#sponsorImg');
-  if (img) { img.src = s.image || 'asly.png'; img.alt = s.name; }
+  if (img) { img.src = s.image || 'icon-192.png'; img.alt = s.name; }
   const nm = $('#sponsorName'); if (nm) nm.textContent = s.name;
-  const ds = $('#sponsorDesc'); if (ds) ds.textContent = s.tagline || 'راعٍ رسمي لتطبيق أصلي';
+  const ds = $('#sponsorDesc'); if (ds) ds.textContent = s.tagline || 'راعٍ رسمي لتطبيق Lyra';
   card.onclick = () => { if (s.link) window.open(s.link, '_blank', 'noopener'); };
 }
 async function loadSponsors() {
@@ -2110,7 +2189,7 @@ function playMotionPreview(box, p, blob) {
       ctx.fillRect(0, cv.height - 34, cv.width, 34);
       ctx.fillStyle = '#fff'; ctx.font = 'bold 15px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText('صُنع بتطبيق أصلي • AI', cv.width / 2, cv.height - 13);
+      ctx.fillText('صُنع بـ Lyra • AI', cv.width / 2, cv.height - 13);
     }, 42);
   };
   img.src = URL.createObjectURL(blob);
@@ -2351,9 +2430,9 @@ async function renderFeatured() {
     const card = document.createElement('div');
     card.className = 'featured-card';
     card.innerHTML = `
-      <img src="${escapeHtml(f.img || 'asly.png')}" alt="${escapeHtml(f.title || '')}" loading="lazy">
+      <img src="${escapeHtml(f.img || 'icon-192.png')}" alt="${escapeHtml(f.title || '')}" loading="lazy">
       <div class="feat-body"><b>${escapeHtml(f.title || '')}</b>
-      <small>👤 ${escapeHtml(f.creator || 'فريق أصلي')} • ${escapeHtml(f.theme || '')}</small>
+      <small>👤 ${escapeHtml(f.creator || 'فريق Lyra')} • ${escapeHtml(f.theme || '')}</small>
       <button class="btn small">🔁 ريمكس</button></div>`;
     card.querySelector('button').onclick = () => {
       if (f.prompt) applyPrompt(f.prompt, null);
@@ -2368,13 +2447,13 @@ async function renderFeatured() {
     for (const f of list.slice(0, 3)) {
       const b = document.createElement('button');
       b.className = 'hero-example';
-      b.innerHTML = `<img src="${escapeHtml(f.img || 'asly.png')}" alt="${escapeHtml(f.title || '')}" loading="lazy"><span>${escapeHtml(f.title || '')}</span>`;
+      b.innerHTML = `<img src="${escapeHtml(f.img || 'icon-192.png')}" alt="${escapeHtml(f.title || '')}" loading="lazy"><span>${escapeHtml(f.title || '')}</span>`;
       b.onclick = () => { if (f.prompt) applyPrompt(f.prompt, null); document.querySelector('#prompt').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
       heroEx.appendChild(b);
     }
   }
   const note = $('#featuredNote');
-  if (note) note.textContent = '✨ أعمال مميزة من مجتمع «أصلي» — اضغط «ريمكس» لتأخذ أي عمل كبداية وتعمل نسختك. لتحديث القائمة، عدّل ملف featured.json في مجلد التطبيق. (ملاحظة صادقة: بلا خادم، لا توجد قائمة رائجة عامة من فيديوهات كل المستخدمين — القائمة هنا مختارات روني + فيديوهاتك أنت.)';
+  if (note) note.textContent = '✨ أعمال مميزة من مجتمع Lyra — اضغط «ريمكس» لتأخذ أي عمل كبداية وتعمل نسختك. لتحديث القائمة، عدّل ملف featured.json في مجلد التطبيق. (ملاحظة صادقة: بلا خادم، لا توجد قائمة رائجة عامة من فيديوهات كل المستخدمين — القائمة هنا مختارات روني + فيديوهاتك أنت.)';
   // «الرائج الآن» — فيديوهاتك الأخيرة تظهر هنا أولاً (محلياً على جهازك)
   const mine = $('#trendingMine');
   if (mine) {
@@ -2433,21 +2512,21 @@ function spinWheel() {
   }, 4200);
 }
 
-/* ---------------- Veo السينمائي (مدفوع بالإعلانات — متوقف حتى يفعّله روني) ---------------- */
-// الحساب بأمانة: إعلان واحد ≈ 0.002$، فيديو Veo Lite (8 ثوانٍ 720p) = 0.40$
-// أي 200 إعلان، وفيديو Veo Fast (8 ثوانٍ 1080p) = 0.96$ أي 480 إعلاناً.
-// لا نعد أبداً بـ«إعلان واحد = فيديو Veo». المفتاح لا يوجد في التطبيق أبداً:
-// الطلبات تمر عبر Cloudflare Worker (worker/veo-proxy.js) يحمل المفتاح في
+/* ---------------- الفيديو السينمائي المباشر — Gemini Omni (مدفوع بالإعلانات — متوقف حتى يفعّله روني) ---------------- */
+// الحساب بأمانة: إعلان واحد ≈ 0.002$، كليب Omni 720p (8 ثوانٍ) ≈ 0.56$
+// أي 280 إعلاناً، وكليب Omni 1080p (8 ثوانٍ) ≈ 0.83$ أي 415 إعلاناً.
+// لا نعد أبداً بـ«إعلان واحد = فيديو سينمائي». المفتاح لا يوجد في التطبيق أبداً:
+// الطلبات تمر عبر Cloudflare Worker (worker/direct-video-proxy.js) يحمل المفتاح في
 // متغيرات البيئة ويفرض سقفاً يومياً عاماً وسقفاً لكل جهاز حتى لا تتضخم فاتورة Google.
 function veoWorkerUrl() {
   return (settings().veoWorkerUrl || '').trim() || CONFIG.veo.workerUrl || '';
 }
-// Veo لا تعمل إلا بشرطين معاً: رابط Worker + تفعيل يدوي من روني بعد أن
+// الفيديو المباشر لا يعمل إلا بشرطين معاً: رابط Worker + تفعيل يدوي من روني بعد أن
 // يشحن رصيد Google Cloud بنفسه من أرباح الإعلانات. لا خصم تلقائي أبداً.
 function veoEnabled() { return !!veoWorkerUrl() && !!settings().veoManualOn; }
-/* ---------------- وضع Veo: اشتراك ↔ مجاني (تبديل تلقائي من الـ Worker) ---------------- */
-// الوضع يُحسب في الـ Worker من الرصيد المقدَّر (إعلانات + اشتراكات − إنفاق Veo):
-// عند بلوغ الحد (30 يوم فيو + احتياطي 3$/يوم + هامش أمان 20%) يفتح مجاناً
+/* ---------------- وضع الفيديو المباشر: اشتراك ↔ مجاني (تبديل تلقائي من الـ Worker) ---------------- */
+// الوضع يُحسب في الـ Worker من الرصيد المقدَّر (إعلانات + اشتراكات − إنفاق الفيديو المباشر):
+// عند بلوغ الحد (30 يوم فيديو مباشر + احتياطي 3$/يوم + هامش أمان 20%) يفتح مجاناً
 // للجميع تلقائياً، ويرجع للاشتراك إن نزل الرصيد. التطبيق يحفظ آخر وضع معروف
 // محلياً ليبقى مستقراً بلا إنترنت. الافتراضي: اشتراك.
 function veoMode() {
@@ -2478,7 +2557,7 @@ async function refreshVeoMode() {
 // بدون Play Developer API + service account (خطوة مستقبلية)؛ عدّاد
 // الاشتراكات فيه تقديري من بلاغات التطبيق بعد تأكيد الدفع على الجهاز.
 function startSubscription() {
-  toast(`⭐ اشتراك Veo (${CONFIG.veo.subscription.priceEgp} ج/شهر) خطوة لاحقة — بعد نشر التطبيق على Google Play. التطبيق حالياً ويب + PWA، وVeo متوقفة حتى ذلك الحين.`);
+  toast(`⭐ اشتراك الفيديو السينمائي (${CONFIG.veo.subscription.priceEgp} ج/شهر) خطوة لاحقة — بعد نشر التطبيق على Google Play. التطبيق حالياً ويب + PWA، والفيديو المباشر متوقف حتى ذلك الحين.`);
 }
 function setSubscribed(on) {
   const s = settings();
@@ -2498,33 +2577,33 @@ async function pingSubToWorker() {
 }
 function renderVeoCard() {
   const bal = $('#veoCredits'); if (bal) bal.textContent = veoCredits();
-  const bar = $('#veoProgress'); if (bar) bar.style.width = Math.min(100, veoCredits() / VEO_COSTS.lite * 100) + '%';
+  const bar = $('#veoProgress'); if (bar) bar.style.width = Math.min(100, veoCredits() / VEO_COSTS.hd720 * 100) + '%';
   const need = $('#veoNeed');
   const mode = veoMode();
-  const sub = isVeoSubscribed() || isPro(); // برو يشمل Veo عند توفره (تفعيل يدوي الآن، Play لاحقاً)
+  const sub = isVeoSubscribed() || isPro(); // برو يشمل الفيديو المباشر عند توفره (تفعيل يدوي الآن، Play لاحقاً)
   if (need) {
-    const left = Math.max(0, VEO_COSTS.lite - veoCredits());
+    const left = Math.max(0, VEO_COSTS.hd720 - veoCredits());
     if (!veoEnabled()) {
-      need.textContent = `باقي لك ${left} إعلان عشان فيديو Veo Lite — والميزة نفسها قادمة قريباً (روني يفعّلها بعد شحن رصيد Google Cloud من أرباح الإعلانات).`;
+      need.textContent = `باقي لك ${left} إعلان عشان فيديو مباشر 720p — والميزة نفسها قادمة قريباً (روني يفعّلها بعد شحن رصيد Google Cloud من أرباح الإعلانات).`;
     } else if (mode === 'free') {
-      need.textContent = left === 0 ? '✅ معاك نقاط كافية لفيديو Veo Lite!' : `باقي لك ${left} إعلان عشان فيديو Veo Lite (200 نقطة)`;
+      need.textContent = left === 0 ? '✅ معاك نقاط كافية لفيديو مباشر 720p!' : `باقي لك ${left} إعلان عشان فيديو مباشر 720p (280 نقطة)`;
     } else {
       need.textContent = sub
-        ? (left === 0 ? '✅ معاك نقاط كافية لفيديو Veo Lite!' : `باقي لك ${left} إعلان عشان فيديو Veo Lite (200 نقطة)`)
-        : `⭐ فيو للمشتركين — الاشتراك خطوة لاحقة بعد النشر على Google Play (${CONFIG.veo.subscription.priceEgp} ج/شهر)، أو استنى لما تتفتح مجاناً.`;
+        ? (left === 0 ? '✅ معاك نقاط كافية لفيديو مباشر 720p!' : `باقي لك ${left} إعلان عشان فيديو مباشر 720p (280 نقطة)`)
+        : `⭐ الفيديو المباشر للمشتركين — الاشتراك خطوة لاحقة بعد النشر على Google Play (${CONFIG.veo.subscription.priceEgp} ج/شهر)، أو استنى لما يتفتح مجاناً.`;
     }
   }
   const modeEl = $('#veoModeStatus');
   if (modeEl) {
     if (!veoEnabled()) {
-      modeEl.textContent = '🔒 فيو قادمة قريباً ⏳';
+      modeEl.textContent = '🔒 الفيديو المباشر قادم قريباً ⏳';
     } else if (mode === 'free') {
-      modeEl.textContent = '🎉 فيديوهات فيو مجانية دلوقتي — بدون اشتراك، استمتع!';
+      modeEl.textContent = '🎉 الفيديو المباشر مجاني دلوقتي — بدون اشتراك، استمتع!';
     } else {
       const info = veoModeInfo();
       modeEl.textContent = sub
-        ? '⭐ اشتراكك مفعّل — فيديوهات فيو متاحة لك 🎬'
-        : `⏳ جاري تجهيز فيديوك — فيو هتتفتح مجاناً لما يكمل الصندوق (الرصيد المقدَّر ~$${(info.balanceUsd || 0).toFixed(2)} من حد ~$${(info.thresholdUsd || 0).toFixed(2)}).`;
+        ? '⭐ اشتراكك مفعّل — الفيديو المباشر متاح لك 🎬'
+        : `⏳ جاري تجهيز فيديوك — الفيديو المباشر هيتفتح مجاناً لما يكمل الصندوق (الرصيد المقدَّر ~$${(info.balanceUsd || 0).toFixed(2)} من حد ~$${(info.thresholdUsd || 0).toFixed(2)}).`;
     }
   }
   const off = $('#veoOffNote');
@@ -2533,15 +2612,15 @@ function renderVeoCard() {
   if (subBtn) subBtn.classList.toggle('hidden', !veoEnabled() || mode === 'free' || sub);
   const liteBtn = $('#veoLiteBtn'), fastBtn = $('#veoFastBtn');
   const canUse = veoEnabled() && (mode === 'free' || sub);
-  if (liteBtn) liteBtn.disabled = !canUse || veoCredits() < VEO_COSTS.lite;
-  if (fastBtn) fastBtn.disabled = !canUse || veoCredits() < VEO_COSTS.fast;
+  if (liteBtn) liteBtn.disabled = !canUse || veoCredits() < VEO_COSTS.hd720;
+  if (fastBtn) fastBtn.disabled = !canUse || veoCredits() < VEO_COSTS.hd1080;
 }
 /* ---------------- طابور Veo الخفي (المستخدم لا يرى إلا «جاري تجهيز فيديوك») ---------------- */
 // خلف الكواليس: FIFO + احتياطي ربح 3$/يوم (يُدار في الـ Worker). المستخدم لا
 // يرى أبداً رقماً في الطابور أو موقعاً أو موعداً — فقط حالة «جاري تجهيز
 // فيديوك» برسائل مرحة، وإشعار عند الجاهزية. إن كان الصندوق فاضياً، يُحفظ
 // الطلب معلّقاً محلياً ويُعاد تلقائياً عند فتح التطبيق (دون أن يُرفَض أحد).
-const VEO_FUN = ['عم أصلي بيجهّز الكاميرا السينمائية… 🎥', 'بنظبط الإضاءة زي الأفلام… 💡', 'المخرج بيقول: أكشن! 🎬', 'بنركّب المشاهد… ✨', 'شوية صبر يا باشا، الفيلم بيستوي… 🍿'];
+const VEO_FUN = ['Lyra بتجهّز الكاميرا السينمائية… 🎥', 'بنظبط الإضاءة زي الأفلام… 💡', 'المخرج بيقول: أكشن! 🎬', 'بنركّب المشاهد… ✨', 'شوية صبر، الفيلم بيستوي… 🍿'];
 async function waitVeoDone(base, op, note) {
   // استطلاع الحالة كل 10 ثوانٍ (حتى 6 دقائق) — بلا عدّاد وبلا موعد ظاهر
   for (let i = 0; i < 36; i++) {
@@ -2555,20 +2634,20 @@ async function waitVeoDone(base, op, note) {
       if (!vb.ok) throw new Error('تعذّر تحميل الفيديو من الـ Worker');
       return vb.blob();
     }
-    if (s.status === 'failed') throw new Error(s.error || 'فشل توليد Veo');
+    if (s.status === 'failed') throw new Error(s.error || 'فشل توليد الفيديو المباشر');
   }
   throw new Error('veo_timeout');
 }
 async function saveVeoVideo(blob, prompt, quality) {
   bumpMoneyVeo(quality); // عدّاد إنفاق Veo المقدَّر في لوحة الرصيد
   const id = uid();
-  const record = { id, prompt, style: 'veo-' + quality, duration: 8, mime: 'video/mp4', ext: 'mp4', createdAt: new Date().toISOString(), blob };
+  const record = { id, prompt, style: 'omni-' + quality, duration: 8, mime: 'video/mp4', ext: 'mp4', createdAt: new Date().toISOString(), blob };
   await idbPut('videos', record);
   const st2 = stats(); st2.totalVideos = (st2.totalVideos || 0) + 1; saveStats(st2);
   touchStreak();
   const v = $('#resultVideo'); v.src = URL.createObjectURL(blob);
   $('#resultBox').classList.remove('hidden');
-  $('#downloadBtn').onclick = () => downloadBlob(blob, `asly-veo-${id}.mp4`);
+  $('#downloadBtn').onclick = () => downloadBlob(blob, `lyra-omni-${id}.mp4`);
   $('#shareBtn').onclick = () => shareVideo(blob, record);
   $('#reportBtn').onclick = () => reportVideo(id);
   $('#shareWaBtn').onclick = () => shareToChannel('whatsapp', record);
@@ -2599,7 +2678,7 @@ async function processPendingVeo() {
     const blob = await waitVeoDone(base, op, null);
     LS.set('asly_veo_pending', null);
     await saveVeoVideo(blob, p.prompt, p.quality);
-    toast('⭐ فيديو Veo السينمائي جاهز! لقيناه في معرضك 🎬');
+    toast('⭐ الفيديو السينمائي المباشر جاهز! لقيناه في معرضك 🎬');
     renderVeoCard();
   } catch (e) {
     if (String(e.message || '') === 'veo_timeout') return; // العملية مستمرة — نحاول لاحقاً
@@ -2607,21 +2686,21 @@ async function processPendingVeo() {
   }
 }
 async function requestVeo(quality) {
-  if (!veoEnabled()) { toast('⭐ ميزة Veo قادمة قريباً ⏳ — روني يفعّلها يدوياً بعد شحن رصيد Google Cloud من أرباح الإعلانات.'); return; }
+  if (!veoEnabled()) { toast('⭐ ميزة الفيديو المباشر قادمة قريباً ⏳ — روني يفعّلها يدوياً بعد شحن رصيد Google Cloud من أرباح الإعلانات.'); return; }
   const note = $('#veoStatus');
   if (veoMode() === 'subscription' && !isVeoSubscribed()) {
-    toast('⭐ فيو للمشتركين حالياً — اشترك من الزر فوق، أو استنى لما تتفتح مجاناً ⏳');
-    if (note) note.textContent = '⏳ جاري تجهيز فيديوك — فيو هتتفتح مجاناً لما يكمل الصندوق ✨';
+    toast('⭐ الفيديو المباشر للمشتركين حالياً — اشترك من الزر فوق، أو استنى لما يتفتح مجاناً ⏳');
+    if (note) note.textContent = '⏳ جاري تجهيز فيديوك — الفيديو المباشر هيتفتح مجاناً لما يكمل الصندوق ✨';
     return;
   }
   const url = veoWorkerUrl();
   const cost = VEO_COSTS[quality];
-  if (veoCredits() < cost) { toast(`⭐ تحتاج ${cost} نقطة لفيديو Veo ${quality === 'lite' ? 'Lite' : 'Fast'} — معاك ${veoCredits()} نقطة. شاهد إعلانات لتجميع النقاط.`); return; }
+  if (veoCredits() < cost) { toast(`⭐ تحتاج ${cost} نقطة لفيديو مباشر ${quality === 'hd720' ? '720p' : '1080p'} — معاك ${veoCredits()} نقطة. شاهد إعلانات لتجميع النقاط.`); return; }
   const prompt = $('#prompt').value.trim();
   if (!prompt) { toast('✏️ اكتب فكرة الفيديو أولاً'); return; }
   if (!filterCheck(prompt).ok) { toast(REFUSAL); return; }
   if (!spendVeoCredits(cost)) return;
-  const btn = quality === 'lite' ? $('#veoLiteBtn') : $('#veoFastBtn');
+  const btn = quality === 'hd720' ? $('#veoLiteBtn') : $('#veoFastBtn');
   if (btn) btn.disabled = true;
   try {
     if (note) note.textContent = '⏳ جاري تجهيز فيديوك… ' + VEO_FUN[0];
@@ -2639,8 +2718,8 @@ async function requestVeo(quality) {
     if (!data.operation) throw new Error('رد غير متوقع من الـ Worker');
     const blob = await waitVeoDone(base, data.operation, note);
     await saveVeoVideo(blob, prompt, quality);
-    if (note) note.textContent = '✅ فيديو Veo جاهز! ⭐';
-    toast('⭐ فيديو Veo السينمائي جاهز!');
+    if (note) note.textContent = '✅ الفيديو المباشر جاهز! ⭐';
+    toast('⭐ الفيديو السينمائي المباشر جاهز!');
     renderVeoCard();
   } catch (err) {
     console.error(err);
@@ -2660,9 +2739,9 @@ async function requestVeo(quality) {
       return;
     }
     // فشل حقيقي — استرجاع النقاط
-    addVeoCredits(cost, 'استرجاع نقاط بعد فشل Veo');
-    if (note) note.textContent = '❌ ' + (err.message || 'تعذّر توليد Veo');
-    toast('❌ ' + (err.message || 'تعذّر توليد Veo'));
+    addVeoCredits(cost, 'استرجاع نقاط بعد فشل الفيديو المباشر');
+    if (note) note.textContent = '❌ ' + (err.message || 'تعذّر توليد الفيديو المباشر');
+    toast('❌ ' + (err.message || 'تعذّر توليد الفيديو المباشر'));
   } finally {
     renderVeoCard();
   }
@@ -2722,7 +2801,7 @@ function renderTips() {
 function fillEndCard() {
   const el = $('#endCardText');
   if (!el) return;
-  el.value = `🎬 جرّب تطبيق «أصلي» — اعمل فيديو بالذكاء الاصطناعي ببلاش:\n${getAppLink()}\n📘 وتابع صفحة «أصلى مش مضروب» على فيسبوك:\nhttps://facebook.com/people/أصلى-مش-مضروب/61571405720824/`;
+  el.value = `🎬 جرّب تطبيق Lyra — اعمل فيديو بالذكاء الاصطناعي ببلاش:\n${getAppLink()}\n📘 وتابع صفحة «أصلى مش مضروب» على فيسبوك:\nhttps://facebook.com/people/أصلى-مش-مضروب/61571405720824/`;
 }
 $('#copyEndCard').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($('#endCardText').value); toast('📋 تم نسخ نص نهاية الحلقة'); }
@@ -2735,12 +2814,8 @@ const TIPS_IMAGES = [
   'جرّب النمط الواقعي للصور الطبيعية، والكرتوني للصور المضحكة.',
   'أي صورة تعجبك اضغط «استخدمها في فيديو» وهتبقى أول مشهد 🎬',
 ];
-let selectedImageStyle = 'cinematic';
-$$('#imageStyleChips .chip').forEach(c => c.addEventListener('click', () => {
-  $$('#imageStyleChips .chip').forEach(x => x.classList.remove('active'));
-  c.classList.add('active');
-  selectedImageStyle = c.dataset.istyle;
-}));
+/* نمط واحد مشترك لكل التبويبات (Always on brand) — يُدار من setStyle أعلاه */
+$$('#imageStyleChips .chip').forEach(c => c.addEventListener('click', () => setStyle(c.dataset.istyle)));
 $('#imagePrompt').addEventListener('input', e => { $('#imagePromptCount').textContent = `${e.target.value.length}/300`; });
 function updateImagesRemaining() {
   const el = $('#imagesRemaining');
@@ -2756,8 +2831,43 @@ $('#clearFirstScene').addEventListener('click', () => {
   renderFirstSceneNote();
   toast('تم إلغاء الصورة المختارة كمشهد أول');
 });
-async function generateImage() {
-  const prompt = $('#imagePrompt').value.trim();
+/* ---------------- توليد الصور عبر Gemini (Nano Banana — جودة أعلى، اختياري) ---------------- */
+// يحتاج مفتاح Gemini المجاني من المستخدم (يُحفظ على جهازه فقط). بدون مفتاح
+// يبقى المحرك المجاني Pollinations هو الافتراضي. الرد يحتوي الصورة كـ inlineData.
+async function generateImageGemini(apiPrompt) {
+  const key = (settings().geminiKey || '').trim();
+  if (!key) throw new Error('لم تضف مفتاح Gemini بعد — أضفه من الإعدادات (مجاني من Google AI Studio)');
+  const res = await fetch(CONFIG.geminiUrl(CONFIG.geminiImageModel) + '?key=' + encodeURIComponent(key), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: apiPrompt }] }],
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => '');
+    if (res.status === 400) throw new Error('مفتاح Gemini غير صحيح — تأكد من نسخه كاملاً من AI Studio');
+    if (res.status === 429) throw new Error('وصلت لحد Gemini المجاني مؤقتاً — جرّب بعد دقيقة');
+    throw new Error('Gemini: HTTP ' + res.status + ' ' + t.slice(0, 120));
+  }
+  const data = await res.json();
+  const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+  const imgPart = parts.find(p => p.inlineData && p.inlineData.data);
+  if (!imgPart) throw new Error('Gemini لم يُرجع صورة — جرّب وصفاً آخر');
+  const bin = atob(imgPart.inlineData.data);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: imgPart.inlineData.mimeType || 'image/png' });
+}
+function showImagePromptPreview(sentPrompt, engineLabel) {
+  const t = $('#imagePromptPreviewText');
+  if (t) t.textContent = sentPrompt;
+  const l = $('#imageEngineLabel');
+  if (l) { l.innerHTML = `المحرك: <span class="engine-badge${engineLabel.includes('Gemini') ? ' gemini' : ''}">${escapeHtml(engineLabel)}</span>`; }
+}
+async function generateImage(opts = {}) {
+  const prompt = ($('#imagePrompt').value || '').trim();
   if (!prompt) { toast('✏️ اكتب وصف الصورة أولاً'); return; }
   const f = filterCheck(prompt);
   if (!f.ok) { toast(REFUSAL); return; }
@@ -2766,28 +2876,41 @@ async function generateImage() {
     return;
   }
   const aspect = $('#imageAspect').value;
+  const engine = (opts.engine || $('#imageEngine')?.value || 'flux');
   const btn = $('#generateImageBtn');
   btn.disabled = true;
   $('#imageResult').classList.add('hidden');
   $('#imageQueue').classList.remove('hidden');
   setQueueProgress(0.05);
-  setQueueNote('الصور تُنشأ واحدة كل 45 ثانية تقريباً (حد النسخة المجانية) — لا تغلق الصفحة.');
+  setQueueNote(engine === 'gemini'
+    ? 'جارٍ توليد الصورة عبر Gemini — جودة أعلى…'
+    : 'الصور تُنشأ واحدة كل 45 ثانية تقريباً (حد النسخة المجانية) — لا تغلق الصفحة.');
   try {
     const seed = Math.floor(Math.random() * 100000);
     const apiPrompt = await translatePromptToEnglish(prompt);
-    const url = imageUrlForSingle(apiPrompt, selectedImageStyle, aspect, seed);
-    const blob = await loadImageBlob(url);
+    const sentPrompt = imagePromptFor(apiPrompt, selectedStyle);
+    let blob, engineLabel;
+    if (engine === 'gemini') {
+      blob = await generateImageGemini(sentPrompt + (aspect === 'square' ? ', square 1:1 composition' : ', vertical 9:16 portrait composition'));
+      engineLabel = IMAGE_ENGINE_LABELS.gemini;
+    } else {
+      const url = imageUrlForSingle(apiPrompt, selectedStyle, aspect, seed, engine);
+      blob = await loadImageBlob(url);
+      engineLabel = IMAGE_ENGINE_LABELS[engine] || IMAGE_ENGINE_LABELS.flux;
+    }
     const id = uid();
-    const record = { id, prompt, style: selectedImageStyle, aspect, createdAt: new Date().toISOString(), blob };
+    const record = { id, prompt, style: selectedStyle, aspect, engine, sentPrompt, createdAt: new Date().toISOString(), blob };
     await idbPut('images', record);
     bumpUsage('images');
     updateImagesRemaining();
     setQueueProgress(1);
     setQueueNote('');
     $('#resultImage').src = URL.createObjectURL(blob);
+    showImagePromptPreview(sentPrompt, engineLabel);
     $('#imageResult').classList.remove('hidden');
     $('#imageDownloadBtn').onclick = () => downloadWatermarkedImage(blob, `asly-img-${id}.jpg`);
     $('#imageShareBtn').onclick = () => shareImage(blob, record);
+    $('#refineImageBtn').onclick = () => refineImage();
     $('#useInVideoBtn').onclick = () => useImageInVideo(id);
     $('#imageReportBtn').onclick = () => reportImage(id);
     window.__asly.lastImage = record;
@@ -2798,6 +2921,52 @@ async function generateImage() {
     setQueueNote('❌ ' + (err.message || 'حدث خطأ'));
   } finally {
     btn.disabled = false;
+  }
+}
+/* تحسين الصورة: نسخة جديدة من نفس الوصف ببذرة مختلفة وتعزيز أقوى للجودة —
+   تكرار على نفس النتيجة بدل البدء من الصفر (نمط Tinker: Refine). */
+async function refineImage() {
+  const last = window.__asly.lastImage;
+  if (!last) { toast('⚠️ لا توجد صورة لتحسينها — أنشئ صورة أولاً'); return; }
+  const btn = $('#refineImageBtn');
+  if (btn) btn.disabled = true;
+  $('#imageQueue').classList.remove('hidden');
+  setQueueProgress(0.05);
+  setQueueNote('جارٍ تحسين الصورة — نسخة جديدة بنفس الفكرة…');
+  try {
+    const seed = Math.floor(Math.random() * 100000);
+    const apiPrompt = await translatePromptToEnglish(last.prompt);
+    const sentPrompt = imagePromptFor(apiPrompt, last.style || selectedStyle) + ', refined version, even more detailed, improved lighting and composition, award-winning photography';
+    let blob, engineLabel;
+    if (last.engine === 'gemini') {
+      blob = await generateImageGemini(sentPrompt);
+      engineLabel = IMAGE_ENGINE_LABELS.gemini;
+    } else {
+      blob = await loadImageBlob(imageUrlForSingle(apiPrompt, last.style || selectedStyle, last.aspect || 'portrait', seed, last.engine));
+      engineLabel = IMAGE_ENGINE_LABELS[last.engine] || IMAGE_ENGINE_LABELS.flux;
+    }
+    const id = uid();
+    const record = { id, prompt: last.prompt, style: last.style || selectedStyle, aspect: last.aspect || 'portrait', engine: last.engine || 'flux', sentPrompt, refinedFrom: last.id, createdAt: new Date().toISOString(), blob };
+    await idbPut('images', record);
+    bumpUsage('images');
+    updateImagesRemaining();
+    setQueueProgress(1);
+    setQueueNote('');
+    $('#resultImage').src = URL.createObjectURL(blob);
+    showImagePromptPreview(sentPrompt, engineLabel);
+    $('#imageDownloadBtn').onclick = () => downloadWatermarkedImage(blob, `asly-img-${id}.jpg`);
+    $('#imageShareBtn').onclick = () => shareImage(blob, record);
+    $('#useInVideoBtn').onclick = () => useImageInVideo(id);
+    $('#imageReportBtn').onclick = () => reportImage(id);
+    window.__asly.lastImage = record;
+    renderImages();
+    toast('تم إنشاء نسخة محسّنة — النسخة القديمة محفوظة في «صوري المحفوظة»');
+  } catch (err) {
+    console.error(err);
+    toast('❌ ' + (err.message || 'حدث خطأ — جرّب مرة أخرى'));
+    setQueueNote('❌ ' + (err.message || 'حدث خطأ'));
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 $('#generateImageBtn').addEventListener('click', generateImage);
@@ -2813,7 +2982,7 @@ async function renderImages() {
     const url = URL.createObjectURL(v.blob);
     card.innerHTML = `
       <img src="${url}" alt="صورة مولّدة بالذكاء الاصطناعي">
-      <div class="meta">🤖 AI generated<br>📝 ${escapeHtml(v.prompt.slice(0, 60))}<br>🕐 ${new Date(v.createdAt).toLocaleString('ar-EG')}</div>
+      <div class="meta"><b>${escapeHtml(v.prompt.slice(0, 40))}</b><br>🤖 AI generated • ${escapeHtml(IMAGE_ENGINE_LABELS[v.engine] || IMAGE_ENGINE_LABELS.pollinations)}<br>🕐 ${new Date(v.createdAt).toLocaleString('ar-EG')}</div>
       <div class="actions">
         <button data-act="dl">⬇️ تحميل</button>
         <button data-act="share">🔗 مشاركة</button>
@@ -2845,7 +3014,7 @@ async function shareImage(blob, record) {
   const marked = await watermarkImageBlob(blob);
   const file = new File([marked], `asly-img-${record.id}.jpg`, { type: 'image/jpeg' });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'صورة أصلي', text: shareCaption(record.prompt) }); return; } catch (e) {}
+    try { await navigator.share({ files: [file], title: 'صورة Lyra', text: shareCaption(record.prompt) }); return; } catch (e) {}
   }
   downloadBlob(marked, file.name);
   toast('📥 تم تحميل الصورة — شاركها من معرض جهازك');
@@ -2856,11 +3025,250 @@ async function reportImage(id) {
   toast('🚩 تم إرسال البلاغ — شكراً لك');
 }
 
+/* ---------------- الصورة المرجعية (v1.10): ارفع صورة → عدّلها أو اعمل منها فيديو ---------------- */
+// الصورة تبقى على جهاز المستخدم (IndexedDB محلي) ولا تُرفع لأي خادم —
+// إلا لمزوّد الذكاء الاصطناعي الذي يختاره بنفسه (Google عند التعديل بـ Gemini).
+// التعديل يحتاج مفتاح Gemini المجاني؛ الفيديو من الصورة يعمل بدون أي مفتاح.
+let refImage = null; // { blob, url, name, width, height }
+function downscaleImageBlob(blob, maxDim = 1024) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.max(1, Math.round(img.naturalWidth * scale));
+      const h = Math.max(1, Math.round(img.naturalHeight * scale));
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => b ? resolve(b) : reject(new Error('تعذّر تجهيز الصورة')), 'image/jpeg', 0.92);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('تعذّر قراءة الصورة')); };
+    img.src = url;
+  });
+}
+async function setRefImage(blob, name) {
+  const small = await downscaleImageBlob(blob, 1024);
+  const img = await blobToImage(small);
+  refImage = { blob: small, url: URL.createObjectURL(small), name: name || 'صورة مرجعية', width: img.naturalWidth, height: img.naturalHeight };
+  try { await idbPut('refimages', { id: 'current', blob: small, name: refImage.name, createdAt: new Date().toISOString() }); } catch (e) {}
+  const wrap = $('#refPreviewWrap');
+  if (wrap) wrap.classList.remove('hidden');
+  const pv = $('#refPreview');
+  if (pv) pv.src = refImage.url;
+  const meta = $('#refMeta');
+  if (meta) meta.textContent = `${refImage.name} • ${refImage.width}×${refImage.height}`;
+  const guide = $('#refKeyGuide');
+  if (guide) guide.classList.add('hidden');
+  window.__asly.lastRefImage = refImage;
+  return refImage;
+}
+async function setRefImageFromUrl(url) {
+  // خطاف اختبار: حمّل صورة محلية (مثلاً featured-1.jpg) كصورة مرجعية
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('تعذّر تحميل الصورة المرجعية (HTTP ' + res.status + ')');
+  const blob = await res.blob();
+  return setRefImage(blob, url.split('/').pop());
+}
+async function loadRefImageFile(file) {
+  if (!file) return;
+  if (!file.type || !file.type.startsWith('image/')) { toast('⚠️ اختار ملف صورة (JPG أو PNG)'); return; }
+  try {
+    await setRefImage(file, file.name);
+    toast('تم رفع الصورة — اختار: تعديل بالذكاء الاصطناعي أو فيديو منها');
+  } catch (e) {
+    console.error(e);
+    toast('❌ ' + (e.message || 'تعذّر رفع الصورة'));
+  }
+}
+const _refCam = $('#refFileCamera');
+if (_refCam) _refCam.addEventListener('change', e => loadRefImageFile(e.target.files[0]));
+const _refGal = $('#refFileGallery');
+if (_refGal) _refGal.addEventListener('change', e => loadRefImageFile(e.target.files[0]));
+const _refClear = $('#refClear');
+if (_refClear) _refClear.addEventListener('click', async () => {
+  refImage = null;
+  window.__asly.lastRefImage = null;
+  try { await idbDelete('refimages', 'current'); } catch (e) {}
+  const wrap = $('#refPreviewWrap');
+  if (wrap) wrap.classList.add('hidden');
+  const pv = $('#refPreview');
+  if (pv) pv.src = '';
+  toast('تمت إزالة الصورة المرجعية');
+});
+/* تعديل الصورة بـ Gemini (Nano Banana): الصورة + تعليمات نصية → صورة معدّلة.
+   بدون مفتاح يظهر دليل الحصول على المفتاح المجاني بدل الفشل الصامت. */
+async function editRefImage() {
+  if (!refImage) { toast('✏️ ارفع صورة أولاً من الخطوة 1'); return; }
+  const instruction = ($('#refInstruction').value || '').trim();
+  if (!instruction) { toast('✏️ اكتب ماذا تريد تغييره في الصورة'); return; }
+  const f = filterCheck(instruction);
+  if (!f.ok) { toast(REFUSAL); return; }
+  const key = (settings().geminiKey || '').trim();
+  const guide = $('#refKeyGuide');
+  if (!key) {
+    if (guide) guide.classList.remove('hidden');
+    toast('التعديل يحتاج مفتاح Gemini المجاني — الخطوات في البطاقة بالأسفل');
+    return;
+  }
+  if (guide) guide.classList.add('hidden');
+  const btn = $('#refEditBtn');
+  btn.disabled = true;
+  $('#refEditResult').classList.add('hidden');
+  $('#refEditQueue').classList.remove('hidden');
+  const prog = $('#refEditQueueProgress');
+  if (prog) prog.style.width = '30%';
+  const note = $('#refEditQueueNote');
+  if (note) note.textContent = 'جارٍ إرسال الصورة والتعليمات إلى Gemini…';
+  try {
+    const b64 = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result).split(',')[1]);
+      r.onerror = () => reject(new Error('تعذّر قراءة الصورة'));
+      r.readAsDataURL(refImage.blob);
+    });
+    const res = await fetch(CONFIG.geminiUrl(CONFIG.geminiImageModel) + '?key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [
+          { text: `Edit this image: ${instruction}. Keep the main subject recognizable and preserve the original photo identity. Professional quality, natural result.` },
+          { inlineData: { mimeType: refImage.blob.type || 'image/jpeg', data: b64 } },
+        ] }],
+        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+      }),
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => '');
+      if (res.status === 400) throw new Error('مفتاح Gemini غير صحيح — تأكد من نسخه كاملاً من AI Studio');
+      if (res.status === 429) throw new Error('وصلت لحد Gemini المجاني مؤقتاً — جرّب بعد دقيقة');
+      throw new Error('Gemini: HTTP ' + res.status + ' ' + t.slice(0, 120));
+    }
+    const data = await res.json();
+    const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+    const imgPart = parts.find(p => p.inlineData && p.inlineData.data);
+    if (!imgPart) throw new Error('Gemini لم يُرجع صورة معدّلة — جرّب تعليمات أخرى');
+    const bin = atob(imgPart.inlineData.data);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], { type: imgPart.inlineData.mimeType || 'image/png' });
+    const id = uid();
+    const record = { id, prompt: `تعديل صورة: ${instruction}`, style: selectedStyle, aspect: 'portrait', engine: 'gemini', sentPrompt: instruction, editedFromRef: true, createdAt: new Date().toISOString(), blob };
+    await idbPut('images', record);
+    if (prog) prog.style.width = '100%';
+    if (note) note.textContent = '';
+    $('#refEditImage').src = URL.createObjectURL(blob);
+    const lbl = $('#refEditEngineLabel');
+    if (lbl) lbl.innerHTML = 'المحرك: <span class="engine-badge gemini">Gemini 2.5 Flash Image — تعديل من صورتك</span>';
+    $('#refEditResult').classList.remove('hidden');
+    $('#refEditDownloadBtn').onclick = () => downloadWatermarkedImage(blob, `asly-ref-edit-${id}.jpg`);
+    $('#refEditShareBtn').onclick = () => shareImage(blob, record);
+    $('#refEditUseBtn').onclick = () => useImageInVideo(id);
+    window.__asly.lastImage = record;
+    window.__asly.lastRefEdit = record;
+    renderImages();
+    toast('تم تعديل الصورة — حُفظت أيضاً في «صوري المحفوظة»');
+  } catch (err) {
+    console.error(err);
+    toast('❌ ' + (err.message || 'حدث خطأ — جرّب مرة أخرى'));
+    if (note) note.textContent = '❌ ' + (err.message || 'حدث خطأ');
+  } finally {
+    btn.disabled = false;
+    $('#refEditQueue').classList.add('hidden');
+  }
+}
+const _refEditBtn = $('#refEditBtn');
+if (_refEditBtn) _refEditBtn.addEventListener('click', editRefImage);
+const _refGoSettings = $('#refGoSettings');
+if (_refGoSettings) _refGoSettings.addEventListener('click', () => document.querySelector('[data-tab="settings"]').click());
+/* فيديو من الصورة المرجعية: صورتك الحقيقية هي المشاهد نفسها (3 حركات Ken Burns
+   مختلفة عليها) + تعليق صوتي + موسيقى — بدون أي مفتاح. اختيارياً: مشهدان
+   مولّدان بنفس الفكرة من وصفك (Pollinations) فيصبح الفيديو [صورتك، مشهد، مشهد]. */
+async function generateRefVideo() {
+  if (!refImage) { toast('✏️ ارفع صورة أولاً من الخطوة 1'); return; }
+  const narration = ($('#refNarration').value || '').trim() || 'فيديو من صورتي — صُنع بـ Lyra';
+  const f = filterCheck(narration);
+  if (!f.ok) { toast(REFUSAL); return; }
+  if (videosRemaining() <= 0) {
+    toast('خلصت فيديوهات النهاردة المجانية — ارجع بكرة 🌙 (العدّاد يتصفّر منتصف الليل)');
+    updateFreeVideoUI();
+    return;
+  }
+  const aspect = ($('#refAspect') ? $('#refAspect').value : 'portrait');
+  const music = ($('#refMusic') ? $('#refMusic').value : 'calm');
+  const ASPECT_SIZES = { portrait: { w: 720, h: 1280 }, square: { w: 720, h: 720 }, wide: { w: 1280, h: 720 } };
+  const size = ASPECT_SIZES[aspect] || ASPECT_SIZES.portrait;
+  const btn = $('#refVideoBtn');
+  btn.disabled = true;
+  $('#refVideoResult').classList.add('hidden');
+  $('#refQueue').classList.remove('hidden');
+  const prog = $('#refQueueProgress');
+  const note = $('#refQueueNote');
+  if (prog) prog.style.width = '10%';
+  if (note) note.textContent = 'جارٍ تجهيز صورتك…';
+  try {
+    const photo = await blobToImage(refImage.blob);
+    const images = [photo, photo, photo]; // نفس الصورة 3 مرات — Ken Burns يختلف باختلاف المشهد
+    const addScenes = $('#refAddScenes') && $('#refAddScenes').checked;
+    const sceneDesc = ($('#refSceneDesc').value || '').trim();
+    if (addScenes && sceneDesc) {
+      if (prog) prog.style.width = '25%';
+      if (note) note.textContent = 'جارٍ توليد مشهدين إضافيين بنفس الفكرة…';
+      try {
+        const apiDesc = await translatePromptToEnglish(sceneDesc);
+        const seed = Math.floor(Math.random() * 100000);
+        for (let i = 0; i < 2; i++) {
+          const blob = await loadImageBlob(imageUrlFor(apiDesc, selectedStyle, i, seed + i * 7919));
+          images[i + 1] = await blobToImage(blob);
+        }
+      } catch (e) {
+        console.warn('تعذّر توليد المشاهد الإضافية — الفيديو من صورتك فقط', e);
+        toast('المشاهد الإضافية تعذّرت — الفيديو من صورتك فقط');
+      }
+    }
+    if (prog) prog.style.width = '60%';
+    if (note) note.textContent = 'جارٍ تسجيل الفيديو…';
+    const { blob, mime, musicIncluded } = await renderVideo(images, 8, narration, 'live', { w: size.w, h: size.h, captions: true, music });
+    const id = uid();
+    const record = { id, prompt: narration, style: selectedStyle, duration: 8, mime, aspect, music, musicInVideo: !!musicIncluded, fromRefImage: true, ext: mimeExt(mime), createdAt: new Date().toISOString(), blob };
+    await idbPut('videos', record);
+    consumeVideoSlot();
+    touchStreak();
+    const st = stats();
+    st.totalVideos = (st.totalVideos || 0) + 1;
+    saveStats(st);
+    if (prog) prog.style.width = '100%';
+    if (note) note.textContent = '';
+    const url = URL.createObjectURL(blob);
+    $('#refResultVideo').src = url;
+    $('#refVideoResult').classList.remove('hidden');
+    $('#refVideoDownloadBtn').onclick = () => downloadBlob(blob, `asly-ref-${id}.${record.ext}`);
+    $('#refVideoShareBtn').onclick = () => shareVideo(blob, record);
+    window.__asly.lastVideo = record;
+    window.__asly.lastRefVideo = record;
+    renderGallery();
+    updateHeroStats();
+    toast('فيديو صورتك جاهز — حُفظ أيضاً في «مشاريعي»');
+  } catch (err) {
+    console.error(err);
+    toast('❌ ' + (err.message || 'حدث خطأ — جرّب مرة أخرى'));
+    if (note) note.textContent = '❌ ' + (err.message || 'حدث خطأ');
+  } finally {
+    btn.disabled = false;
+    $('#refQueue').classList.add('hidden');
+  }
+}
+const _refVideoBtn = $('#refVideoBtn');
+if (_refVideoBtn) _refVideoBtn.addEventListener('click', generateRefVideo);
+
 /* ---------------- Gallery ---------------- */
 async function renderGallery() {
   const grid = $('#galleryGrid');
   const list = (await idbAll('videos')).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   $('#galleryEmpty').classList.toggle('hidden', list.length > 0);
+  const gc = $('#galleryCount');
+  if (gc) gc.textContent = list.length ? `${list.length} ${list.length === 1 ? 'فيديو' : 'فيديوهات'} محفوظة على جهازك — حمّلها أو شاركها أو أعد استخدامها` : '';
   grid.innerHTML = '';
   for (const v of list) {
     const card = document.createElement('div');
@@ -2868,7 +3276,7 @@ async function renderGallery() {
     const url = URL.createObjectURL(v.blob);
     card.innerHTML = `
       <video src="${url}" controls playsinline preload="metadata"></video>
-      <div class="meta">🤖 AI generated<br>📝 ${escapeHtml(v.prompt.slice(0, 60))}<br>🕐 ${new Date(v.createdAt).toLocaleString('ar-EG')} • ${v.duration} ث</div>
+      <div class="meta"><b>${escapeHtml((v.prompt || '').slice(0, 40))}</b><br>🤖 AI generated<br>🕐 ${new Date(v.createdAt).toLocaleString('ar-EG')} • ${v.duration} ث</div>
       <div class="actions">
         <button data-act="dl">⬇️ تحميل</button>
         <button data-act="share">🔗 مشاركة</button>
@@ -2902,21 +3310,162 @@ function escapeHtml(s) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-/* ---------------- Chat ---------------- */
-function chatHistory() { return LS.get('asly_chat', []); }
-function saveChatHistory(h) { LS.set('asly_chat', h.slice(-50)); }
+/* ---------------- Chat v2 — ChatGPT-style ---------------- */
+/* محادثات متعددة (localStorage) + بث حي + ماركداون + نسخ/إعادة/تعديل.
+   المحرك الافتراضي المجاني Pollinations (بلا مفتاح)؛ الوضع الذكي الأعلى
+   بمفتاح Gemini المجاني من Google AI Studio (Gemini 2.5 Flash).
+   بصراحة: لا ذاكرة بين المحادثات، ولا بحث حي على الإنترنت، ولا تحليل
+   ملفات — الإجابات من النموذج وسياق المحادثة الحالية فقط. */
+const CHAT_SYSTEM = `أنت «Lyra»، مساعدة ذكية خبيرة تتحدث العربية بلهجة مصرية خفيفة وواضحة (وبالفصحى المبسطة عندما يُطلب ذلك).
+أسلوبك:
+- إجابات منظمة وخطوة بخطوة: عناوين قصيرة، قوائم مرقّمة، وخلاصة في النهاية عند الحاجة.
+- إن كان الطلب غامضاً، اسأل سؤالاً توضيحياً واحداً محدداً بدل التخمين.
+- إن أخطأ المستخدم في معلومة، صحّحه بلطف واذكر الصحيح.
+- ركّز على المطلوب فقط — بلا حشو ولا مقدمات طويلة.
+- عند كتابة سكربت فيديو: قسّمه إلى 3 مشاهد بوصف بصري لكل مشهد، ثم نص تعليق جاهز للقراءة.
+- عند تحسين برومبت: أعطِ النسخة المحسّنة بالإنجليزية (لأن مولّد الصور يفهم الإنجليزية أفضل) مع شرح موجز بالعربية لما غيّرته.
+- التزم بالمحتوى المحترم فقط: ارفض بلطف أي طلب جنسي أو عنيف أو مسيء أو متعلق بالأطفال بشكل غير لائق.
+- تذكّر سياق المحادثة وابنِ عليه؛ إن طلب المستخدم تعديلاً على إجابة سابقة، عدّلها ولا تبدأ من الصفر.
+- أجب بالعربية دائماً ما لم يطلب المستخدم لغة أخرى.
+حدودك (قلها بصراحة إن سُئلت): لا ذاكرة بين المحادثات، ولا بحث حي على الإنترنت، ولا تحليل ملفات.`;
+const CHAT_CONTEXT_MSGS = 20; // آخر 20 رسالة تُرسَل للنموذج (سياق أطول لمتابعة «وكمل» و«اشرح أكتر»)
+const CHAT_EXAMPLES = [
+  'اكتبلي سكربت فيديو عن قط بيطبخ كشري',
+  'حسّن البرومبت ده: غروب شمس على النيل',
+  'اكتبلي كابشن تسويقي لفيديو عن باور بانك أصلي',
+  'خطط لي أسبوع محتوى لقناة عن الأكل المصري',
+];
+
+/* ----- مخزن المحادثات المتعددة ----- */
+function chatStore() {
+  let s = LS.get('lyra_chats', null);
+  if (!s || !Array.isArray(s.chats)) {
+    s = { chats: [], activeId: null };
+    const legacy = LS.get('asly_chat', []);
+    if (Array.isArray(legacy) && legacy.length) {
+      const firstUser = legacy.find(m => m.role === 'user');
+      s.chats.push({ id: uid(), title: firstUser ? chatTitleFor(firstUser.text) : 'محادثة قديمة', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), messages: legacy.slice(-100) });
+    }
+    if (!s.chats.length) s.chats.push({ id: uid(), title: 'محادثة جديدة', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), messages: [] });
+    s.activeId = s.chats[0].id;
+    LS.set('lyra_chats', s);
+  }
+  return s;
+}
+function saveChatStore(s) { LS.set('lyra_chats', s); }
+function activeChat() {
+  const s = chatStore();
+  let c = s.chats.find(x => x.id === s.activeId);
+  if (!c) { c = s.chats[0]; if (c) s.activeId = c.id; }
+  return c || null;
+}
+function chatTitleFor(text) { const t = String(text || '').trim().replace(/\s+/g, ' '); return t.length > 28 ? t.slice(0, 28) + '…' : (t || 'محادثة جديدة'); }
+/* توافقية: chatHistory/saveChatHistory تعملان على المحادثة النشطة،
+   وتُبقي مفتاح asly_chat القديم متزامناً (تستخدمه الفحوصات والإحصاءات). */
+function chatHistory() { const c = activeChat(); return c ? c.messages : []; }
+function saveChatHistory(h) {
+  const s = chatStore();
+  const c = s.chats.find(x => x.id === s.activeId) || s.chats[0];
+  if (c) { c.messages = h.slice(-100); c.updatedAt = new Date().toISOString(); saveChatStore(s); }
+  LS.set('asly_chat', h.slice(-50));
+}
+function newChat() {
+  const s = chatStore();
+  const c = { id: uid(), title: 'محادثة جديدة', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), messages: [] };
+  s.chats.unshift(c); s.activeId = c.id; saveChatStore(s);
+  renderChatList(); renderChat(); renderChatEngine();
+  return c;
+}
+function switchChat(id) {
+  const s = chatStore();
+  if (!s.chats.some(x => x.id === id)) return false;
+  s.activeId = id; saveChatStore(s);
+  renderChatList(); renderChat();
+  return true;
+}
+function renameChat(id, title) {
+  const s = chatStore();
+  const c = s.chats.find(x => x.id === id);
+  if (!c) return false;
+  const t = String(title || '').trim();
+  if (!t) return false;
+  c.title = t.slice(0, 60); c.updatedAt = new Date().toISOString();
+  saveChatStore(s); renderChatList();
+  return true;
+}
+function deleteChat(id) {
+  const s = chatStore();
+  if (s.chats.length <= 1) { toast('⚠️ لا يمكن حذف آخر محادثة — أنشئ واحدة جديدة أولاً'); return false; }
+  s.chats = s.chats.filter(x => x.id !== id);
+  if (s.activeId === id) s.activeId = s.chats[0].id;
+  saveChatStore(s); renderChatList(); renderChat();
+  return true;
+}
+function clearActiveChat() {
+  const c = activeChat(); if (!c) return;
+  c.messages = []; c.title = 'محادثة جديدة'; c.updatedAt = new Date().toISOString();
+  saveChatHistory([]);
+  renderChatList(); renderChat();
+}
+
+/* ----- ماركداون آمن (هروب HTML أولاً، ثم تنسيق) ----- */
+const _codeRegistry = [];
+function mdRender(text) {
+  const src = String(text || '');
+  _codeRegistry.length = 0;
+  // 1) كتل الكود ```lang ... ```
+  const parts = src.split(/```(\w*)\n?([\s\S]*?)```/g);
+  let html = '';
+  for (let i = 0; i < parts.length; i += 3) {
+    html += mdInlineBlock(parts[i] || '');
+    if (i + 2 < parts.length) {
+      const lang = (parts[i + 1] || '').trim();
+      const code = parts[i + 2] || '';
+      const idx = _codeRegistry.push(code) - 1;
+      html += `<pre class="code-block"><code>${escapeHtml(code)}</code><button class="copy-code" data-code-idx="${idx}" type="button">📋 نسخ الكود</button>${lang ? `<span class="code-lang">${escapeHtml(lang)}</span>` : ''}</pre>`;
+    }
+  }
+  return html;
+}
+function mdInlineBlock(seg) {
+  const lines = escapeHtml(seg).split('\n');
+  let out = '', inList = false, para = [];
+  const flushPara = () => { if (para.length) { out += `<p>${para.join('<br>')}</p>`; para = []; } };
+  const flushList = () => { if (inList) { out += '</ul>'; inList = false; } };
+  for (const raw of lines) {
+    const line = raw.trim();
+    const h = line.match(/^(#{1,3})\s+(.+)$/);
+    const li = line.match(/^[-*•]\s+(.+)$/);
+    const oli = line.match(/^\d+[.)]\s+(.+)$/);
+    if (h) { flushPara(); flushList(); out += `<h${h[1].length + 2}>${mdInline(h[2])}</h${h[1].length + 2}>`; }
+    else if (li || oli) { flushPara(); if (!inList) { out += '<ul>'; inList = true; } out += `<li>${mdInline((li || oli)[1])}</li>`; }
+    else if (!line) { flushPara(); flushList(); }
+    else { flushList(); para.push(mdInline(line)); }
+  }
+  flushPara(); flushList();
+  return out;
+}
+function mdInline(s) {
+  return s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+
+/* ----- عرض المحادثة النشطة ----- */
 function renderChat() {
   const log = $('#chatLog');
+  if (!log) return;
   log.innerHTML = '';
   const hist = chatHistory();
-  // ترحيب شخصي باسم المستخدم عندما تكون المحادثة فارغة (ذاكرة محلية فقط)
   if (!hist.length) {
     const name = (settings().userName || '').trim();
     const greet = document.createElement('div');
     greet.className = 'msg sys';
     greet.textContent = name
-      ? `أهلاً يا ${name}! 👋 أنا عم أصلي — شريكك الإبداعي. أقدر أكتبلك سكربت فيديو كامل، أحسّن برومبت، أكتب كابشن تسويقي، أخطط معاك، ألخّص، وأترجم. جرّب واحد من دول:`
-      : 'أهلاً بيك! 👋 أنا عم أصلي — شريكك الإبداعي. أقدر أكتبلك سكربت فيديو كامل، أحسّن برومبت، أكتب كابشن تسويقي، أخطط معاك، ألخّص، وأترجم. جرّب واحد من دول:';
+      ? `أهلاً يا ${name}! 👋 أنا Lyra — مساعدتك الذكية. أقدر أكتبلك سكربت فيديو كامل، أحسّن برومبت، أكتب كابشن تسويقي، أخطط معاك، ألخّص، وأترجم. جرّب واحد من دول:`
+      : 'أهلاً بيك! 👋 أنا Lyra — مساعدتك الذكية. أقدر أكتبلك سكربت فيديو كامل، أحسّن برومبت، أكتب كابشن تسويقي، أخطط معاك، ألخّص، وأترجم. جرّب واحد من دول:';
     log.appendChild(greet);
     const ex = document.createElement('div');
     ex.className = 'chat-examples';
@@ -2929,30 +3478,178 @@ function renderChat() {
     }
     log.appendChild(ex);
   }
-  for (const m of hist) {
+  hist.forEach((m, idx) => {
     const div = document.createElement('div');
     div.className = 'msg ' + (m.role === 'user' ? 'user' : m.role === 'sys' ? 'sys' : 'bot');
-    div.textContent = m.text;
+    div.dataset.idx = idx;
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+    if (m.role === 'assistant') body.innerHTML = mdRender(m.text);
+    else body.textContent = m.text;
+    div.appendChild(body);
+    const acts = document.createElement('div');
+    acts.className = 'msg-actions';
+    if (m.role === 'user') {
+      acts.innerHTML = `<button data-act="edit" type="button">✏️ تعديل</button><button data-act="copy" type="button">📋 نسخ</button>`;
+    } else if (m.role === 'assistant' && m.text) {
+      acts.innerHTML = `<button data-act="copy" type="button">📋 نسخ</button><button data-act="regen" type="button">🔄 إعادة الإجابة</button>`;
+    }
+    if (acts.children.length) div.appendChild(acts);
     log.appendChild(div);
-  }
+  });
   log.scrollTop = log.scrollHeight;
   updateCapsBadge();
 }
-const CHAT_EXAMPLES = [
-  'اكتبلي سكربت فيديو عن قط بيطبخ كشري',
-  'حسّن البرومبت ده: غروب شمس على النيل',
-  'اكتبلي كابشن تسويقي لفيديو عن باور بانك أصلي',
-  'خطط لي أسبوع محتوى لقناة عن الأكل المصري',
-];
-const CHAT_SYSTEM = `أنت «عم أصلي»، شريك إبداعي خبير يتحدث العربية بلهجة مصرية خفيفة وواضحة.
-قدراتك: تكتب سكربتات فيديو كاملة (مشاهد + تعليق صوتي)، تحسّن برومبتات الصور والفيديو، تكتب كابشنات وأفكار تسويقية، تجيب عن الأسئلة، تخطط وتلخّص وتترجم، وتتابع الطلبات متعددة الخطوات خطوة بخطوة.
-قواعدك:
-- أعطِ إجابات كاملة ومفيدة فعلاً، لا سطراً واحداً مختصراً عندما يطلب المستخدم عملاً (سكربت، خطة، تحسين). استخدم عناوين وقوائم مرقّمة عند الحاجة.
-- عند كتابة سكربت فيديو: قسّمه إلى 3 مشاهد بوصف بصري لكل مشهد، ثم نص تعليق جاهز للقراءة.
-- عند تحسين برومبت: أعطِ النسخة المحسّنة بالإنجليزية (لأن مولّد الصور يفهم الإنجليزية أفضل) مع شرح موجز بالعربية لما غيّرته.
-- التزم بالمحتوى المحترم فقط: ارفض بلطف أي طلب جنسي أو عنيف أو مسيء أو متعلق بالأطفال بشكل غير لائق.
-- تذكّر سياق المحادثة وابنِ عليه؛ إن طلب المستخدم تعديلاً على إجابة سابقة، عدّلها ولا تبدأ من الصفر.
-- أجب بالعربية دائماً ما لم يطلب المستخدم لغة أخرى.`;
+function renderChatList(filter) {
+  const list = $('#chatList');
+  if (!list) return;
+  const q = String(filter || $('#chatSearch')?.value || '').trim().toLowerCase();
+  const s = chatStore();
+  list.innerHTML = '';
+  const shown = s.chats.filter(c => !q || c.title.toLowerCase().includes(q) || c.messages.some(m => (m.text || '').toLowerCase().includes(q)));
+  if (!shown.length) { list.innerHTML = '<div class="chat-list-empty">لا توجد محادثات مطابقة</div>'; return; }
+  for (const c of shown) {
+    const item = document.createElement('div');
+    item.className = 'chat-item' + (c.id === s.activeId ? ' active' : '');
+    const firstUser = c.messages.find(m => m.role === 'user');
+    item.innerHTML = `<div class="chat-item-title">${escapeHtml(c.title)}</div><div class="chat-item-sub">${escapeHtml(firstUser ? (firstUser.text || '').slice(0, 40) : 'محادثة جديدة')}</div>`;
+    const row = document.createElement('div');
+    row.className = 'chat-item-acts';
+    const rn = document.createElement('button'); rn.type = 'button'; rn.textContent = '✏️'; rn.title = 'إعادة تسمية';
+    rn.onclick = (e) => { e.stopPropagation(); const t = prompt('اسم جديد للمحادثة:', c.title); if (t != null) renameChat(c.id, t); };
+    const del = document.createElement('button'); del.type = 'button'; del.textContent = '🗑️'; del.title = 'حذف';
+    del.onclick = (e) => { e.stopPropagation(); if (confirm('حذف هذه المحادثة؟')) deleteChat(c.id); };
+    row.appendChild(rn); row.appendChild(del);
+    item.appendChild(row);
+    item.onclick = () => switchChat(c.id);
+    list.appendChild(item);
+  }
+}
+function chatEngineLabel() {
+  const p = settings().chatProvider || 'pollinations';
+  return p === 'gemini' ? 'Gemini 2.5 Flash — الوضع الذكي الأعلى' : 'Pollinations المجاني';
+}
+function renderChatEngine() {
+  const name = $('#chatEngineName');
+  if (name) name.textContent = chatEngineLabel();
+  const card = $('#chatSmartCard');
+  const p = settings().chatProvider || 'pollinations';
+  const toggle = $('#chatEngineToggle');
+  if (toggle) toggle.textContent = p === 'gemini' ? '⭐ الوضع الذكي مفعّل — رجوع للمجاني' : '⭐ الوضع الذكي الأعلى';
+  if (card && p === 'gemini') card.classList.add('hidden');
+}
+function setChatProvider(p) {
+  const s = settings();
+  s.chatProvider = p === 'gemini' ? 'gemini' : 'pollinations';
+  LS.set('asly_settings', s);
+  renderChatEngine();
+}
+
+/* ----- البث الحي (streaming) مع إيقاف ----- */
+let chatAbort = null;
+let chatStreaming = false;
+function showChatTyping(show) {
+  const log = $('#chatLog');
+  if (!log) return;
+  let t = log.querySelector('.msg.typing');
+  if (show && !t) {
+    t = document.createElement('div');
+    t.className = 'msg bot typing';
+    t.innerHTML = '<div class="msg-body"><span class="typing-dots"><i></i><i></i><i></i></span> Lyra بتكتب…</div>';
+    log.appendChild(t);
+    log.scrollTop = log.scrollHeight;
+  } else if (!show && t) t.remove();
+}
+function updateLastBubble(partial) {
+  const log = $('#chatLog');
+  if (!log) return;
+  const bots = log.querySelectorAll('.msg.bot:not(.typing)');
+  const last = bots[bots.length - 1];
+  if (last) {
+    const body = last.querySelector('.msg-body');
+    if (body) body.innerHTML = mdRender(partial);
+    log.scrollTop = log.scrollHeight;
+  }
+}
+async function chatPollinationsStream(messages, onToken, signal) {
+  const res = await pollinationsFetch(CONFIG.textUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal,
+    body: JSON.stringify({
+      model: CONFIG.chatModel,
+      messages: [{ role: 'system', content: CHAT_SYSTEM }, ...messages],
+      temperature: 0.7, max_tokens: 1200, stream: true,
+    }),
+  }, 'text');
+  if (!res.ok || !res.body) throw new Error('stream-unavailable');
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '', out = '', sawStream = false;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith('data:')) continue;
+      const d = t.slice(5).trim();
+      if (!d || d === '[DONE]') continue;
+      try {
+        const j = JSON.parse(d);
+        const c = (j.choices && j.choices[0] && (j.choices[0].delta?.content || j.choices[0].message?.content)) || '';
+        if (c) { sawStream = true; out += c; onToken(out); }
+      } catch (e) { /* سطر غير JSON — تجاهل */ }
+    }
+  }
+  if (!sawStream) throw new Error('stream-unavailable');
+  return out.trim();
+}
+async function chatGeminiStream(messages, onToken, signal) {
+  const key = (settings().geminiKey || '').trim();
+  if (!key) throw new Error('لم تضف مفتاح Gemini بعد — أضفه من الإعدادات (مجاني من Google AI Studio)');
+  const contents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.geminiModel}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
+  const res = await fetch(url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, signal,
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: CHAT_SYSTEM }] },
+      contents,
+      generationConfig: { maxOutputTokens: 1200, temperature: 0.7 },
+    }),
+  });
+  if (!res.ok || !res.body) throw new Error('stream-unavailable');
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '', out = '', sawStream = false;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith('data:')) continue;
+      const d = t.slice(5).trim();
+      if (!d || d === '[DONE]') continue;
+      try {
+        const j = JSON.parse(d);
+        const parts = j.candidates?.[0]?.content?.parts || [];
+        const c = parts.map(p => p.text || '').join('');
+        if (c) { sawStream = true; out += c; onToken(out); }
+      } catch (e) { /* تجاهل */ }
+    }
+  }
+  if (!sawStream) throw new Error('stream-unavailable');
+  return out.trim();
+}
+// رد كامل مرة واحدة (بدون بث) — يستخدمه كاتب السيناريو ورجوع البث عند الفشل.
 async function chatPollinations(messages) {
   const res = await pollinationsFetch(CONFIG.textUrl, {
     method: 'POST',
@@ -2963,14 +3660,11 @@ async function chatPollinations(messages) {
       temperature: 0.7, max_tokens: 1200,
     }),
   }, 'text');
-  if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error('تعذّر الاتصال بالمحادثة (HTTP ' + res.status + ') ' + (t ? '— ' + t.slice(0, 120) : ''));
-  }
-  const data = await res.json();
-  const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-  if (!text) throw new Error('رد فارغ من النموذج');
-  return String(text).trim();
+  if (!res.ok) throw new Error('تعذّر الاتصال بنموذج المحادثة (HTTP ' + res.status + ')');
+  const j = await res.json();
+  const text = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
+  if (!text.trim()) throw new Error('رد فارغ من نموذج المحادثة');
+  return text.trim();
 }
 async function chatGemini(messages) {
   const key = (settings().geminiKey || '').trim();
@@ -2980,28 +3674,95 @@ async function chatGemini(messages) {
     parts: [{ text: m.content }],
   }));
   const res = await fetch(CONFIG.geminiUrl(CONFIG.geminiModel) + '?key=' + encodeURIComponent(key), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: CHAT_SYSTEM }] },
       contents,
       generationConfig: { maxOutputTokens: 1200, temperature: 0.7 },
     }),
   });
-  if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error('Gemini: HTTP ' + res.status + ' ' + t.slice(0, 150));
+  if (!res.ok) throw new Error('تعذّر الاتصال بـ Gemini (HTTP ' + res.status + ')');
+  const j = await res.json();
+  const parts = j.candidates?.[0]?.content?.parts || [];
+  const text = parts.map(p => p.text || '').join('');
+  if (!text.trim()) throw new Error('رد فارغ من Gemini');
+  return text.trim();
+}
+async function streamChatReply(messages, onToken, signal) {
+  const provider = settings().chatProvider || 'pollinations';
+  try {
+    return provider === 'gemini'
+      ? await chatGeminiStream(messages, onToken, signal)
+      : await chatPollinationsStream(messages, onToken, signal);
+  } catch (e) {
+    if (e && (e.name === 'AbortError' || (signal && signal.aborted))) throw e;
+    // البث غير مدعوم هنا — رجوع للرد الكامل مرة واحدة
+    return provider === 'gemini' ? await chatGemini(messages) : await chatPollinations(messages);
   }
-  const data = await res.json();
-  const text = data && data.candidates && data.candidates[0] && data.candidates[0].content &&
-    data.candidates[0].content.parts && data.candidates[0].content.parts.map(p => p.text || '').join('');
-  if (!text) throw new Error('رد فارغ من Gemini');
-  return String(text).trim();
+}
+
+/* ----- إرسال + إعادة + تعديل ----- */
+async function streamReply(countUsage) {
+  const hist = chatHistory();
+  const msgs = hist.filter(m => m.role !== 'sys').slice(-CHAT_CONTEXT_MSGS).map(m => ({ role: m.role, content: m.text }));
+  const h2 = chatHistory();
+  h2.push({ role: 'assistant', text: '' });
+  saveChatHistory(h2);
+  renderChat();
+  showChatTyping(true);
+  const stopBtn = $('#chatStop');
+  if (stopBtn) stopBtn.classList.remove('hidden');
+  const sendBtn = $('#chatSend');
+  if (sendBtn) sendBtn.disabled = true;
+  chatStreaming = true;
+  const ctrl = new AbortController();
+  chatAbort = ctrl;
+  let full = '';
+  let aborted = false;
+  try {
+    full = await streamChatReply(msgs, (partial) => { full = partial; showChatTyping(false); updateLastBubble(partial); }, ctrl.signal);
+  } catch (err) {
+    if (err && (err.name === 'AbortError' || ctrl.signal.aborted)) {
+      aborted = true;
+    } else {
+      console.error(err);
+      const h3 = chatHistory();
+      if (h3.length && h3[h3.length - 1].role === 'assistant' && !h3[h3.length - 1].text) h3.pop();
+      h3.push({ role: 'sys', text: '⚠️ ' + (err.message || 'تعذّر الاتصال — جرّب لاحقاً') });
+      saveChatHistory(h3);
+      renderChat();
+      return null;
+    }
+  } finally {
+    chatStreaming = false;
+    chatAbort = null;
+    showChatTyping(false);
+    if (stopBtn) stopBtn.classList.add('hidden');
+    if (sendBtn) sendBtn.disabled = false;
+  }
+  const h3 = chatHistory();
+  const last = h3[h3.length - 1];
+  if (last && last.role === 'assistant') {
+    last.text = (full || last.text || '').trim();
+    if (aborted && last.text) last.text += '\n\n(تم الإيقاف — الإجابة غير مكتملة)';
+    if (!last.text) h3.pop();
+  }
+  saveChatHistory(h3);
+  if (countUsage && last && last.text) {
+    bumpUsage('chat');
+    const st = stats();
+    st.totalChats = (st.totalChats || 0) + 1;
+    saveStats(st);
+    if (st.totalChats === 1) awardBadge('firstChat', '💬 أول محادثة');
+  }
+  renderChat();
+  return last ? last.text : null;
 }
 async function sendChat() {
   const input = $('#chatInput');
+  if (!input) return;
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || chatStreaming) return;
   const f = filterCheck(text);
   if (!f.ok) {
     const h = chatHistory();
@@ -3011,7 +3772,6 @@ async function sendChat() {
     return;
   }
   if (chatRemaining() <= 0) {
-    // الحد اليومي خلص — إعلان واحد = حزمة رسائل إضافية (أحياناً مكافأة مضاعفة)
     const btn = $('#chatUnlockBtn');
     if (btn) btn.classList.remove('hidden');
     toast(`⏳ خلصت رسايلك المجانية النهاردة (${CONFIG.caps.chatPerDay}) — شاهد إعلاناً واحداً واحصل على ${CONFIG.caps.chatAdBundle} رسائل إضافية 🎁`);
@@ -3020,37 +3780,100 @@ async function sendChat() {
   input.value = '';
   const hist = chatHistory();
   hist.push({ role: 'user', text });
+  const c = activeChat();
+  if (c && c.title === 'محادثة جديدة') { c.title = chatTitleFor(text); saveChatStore(chatStore()); renderChatList(); }
   saveChatHistory(hist);
   renderChat();
-  const btn = $('#chatSend');
-  btn.disabled = true;
-  try {
-    const provider = (settings().chatProvider || 'pollinations');
-    const msgs = hist.filter(m => m.role !== 'sys').slice(-16).map(m => ({ role: m.role, content: m.text }));
-    const reply = provider === 'gemini' ? await chatGemini(msgs) : await chatPollinations(msgs);
-    const h2 = chatHistory();
-    h2.push({ role: 'assistant', text: reply });
-    saveChatHistory(h2);
-    bumpUsage('chat');
-    const st = stats();
-    st.totalChats = (st.totalChats || 0) + 1;
-    saveStats(st);
-    if (st.totalChats === 1) awardBadge('firstChat', '💬 أول محادثة');
-    renderChat();
-  } catch (err) {
-    console.error(err);
-    const h2 = chatHistory();
-    h2.push({ role: 'sys', text: '⚠️ ' + (err.message || 'تعذّر الاتصال — جرّب لاحقاً') });
-    saveChatHistory(h2);
-    renderChat();
-  } finally {
-    btn.disabled = false;
-  }
+  await streamReply(true);
+}
+async function regenerateMessage(idx) {
+  if (chatStreaming) return null;
+  const hist = chatHistory();
+  if (idx == null) idx = hist.length - 1;
+  if (idx < 0 || hist[idx].role !== 'assistant') return null;
+  const kept = hist.slice(0, idx);
+  saveChatHistory(kept);
+  renderChat();
+  return streamReply(false); // الإعادة لا تستهلك من الحد اليومي
+}
+async function editUserMessage(idx, newText) {
+  if (chatStreaming) return null;
+  const hist = chatHistory();
+  if (idx < 0 || hist[idx].role !== 'user') return null;
+  const t = String(newText || '').trim();
+  if (!t) return null;
+  const f = filterCheck(t);
+  if (!f.ok) { toast(REFUSAL); return null; }
+  const kept = hist.slice(0, idx);
+  kept.push({ role: 'user', text: t });
+  saveChatHistory(kept);
+  renderChat();
+  return streamReply(false);
 }
 $('#chatSend').addEventListener('click', sendChat);
 $('#chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+$('#chatStop').addEventListener('click', () => { if (chatAbort) chatAbort.abort(); });
 $('#chatClear').addEventListener('click', () => {
-  if (confirm('مسح كل المحادثة؟')) { saveChatHistory([]); renderChat(); }
+  if (confirm('مسح هذه المحادثة؟')) clearActiveChat();
+});
+$('#chatNewBtn').addEventListener('click', () => newChat());
+$('#chatSearch').addEventListener('input', () => renderChatList());
+$('#chatEngineToggle').addEventListener('click', () => {
+  const p = settings().chatProvider || 'pollinations';
+  if (p === 'gemini') { setChatProvider('pollinations'); toast('رجعت للمحرك المجاني (Pollinations)'); return; }
+  const card = $('#chatSmartCard');
+  if (card) card.classList.toggle('hidden');
+});
+$('#chatSmartSave').addEventListener('click', () => {
+  const key = ($('#chatGeminiKeyInline').value || '').trim();
+  if (!key || key.length < 10) { toast('⚠️ الصق مفتاح Gemini المجاني أولاً — من Google AI Studio'); return; }
+  const s = settings();
+  s.geminiKey = key; s.chatProvider = 'gemini';
+  LS.set('asly_settings', s);
+  renderChatEngine();
+  toast('⭐ الوضع الذكي الأعلى مفعّل — إجابات أقوى من Gemini 2.5 Flash');
+});
+$('#chatSmartCancel').addEventListener('click', () => { const card = $('#chatSmartCard'); if (card) card.classList.add('hidden'); });
+/* أفعال الرسائل (نسخ / إعادة / تعديل) — تفويض نقر واحد على السجل */
+$('#chatLog').addEventListener('click', async (e) => {
+  const copyCode = e.target.closest('.copy-code');
+  if (copyCode) {
+    const code = _codeRegistry[Number(copyCode.dataset.codeIdx)] || '';
+    try { await navigator.clipboard.writeText(code); toast('📋 تم نسخ الكود'); }
+    catch (err) { toast('⚠️ تعذّر النسخ في هذا المتصفح'); }
+    return;
+  }
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const msgEl = btn.closest('.msg');
+  if (!msgEl) return;
+  const idx = Number(msgEl.dataset.idx);
+  const hist = chatHistory();
+  const m = hist[idx];
+  if (!m) return;
+  const act = btn.dataset.act;
+  if (act === 'copy') {
+    try { await navigator.clipboard.writeText(m.text); toast('📋 تم النسخ'); }
+    catch (err) { toast('⚠️ تعذّر النسخ في هذا المتصفح'); }
+  } else if (act === 'regen') {
+    await regenerateMessage(idx);
+  } else if (act === 'edit') {
+    const body = msgEl.querySelector('.msg-body');
+    if (!body || msgEl.querySelector('.msg-edit')) return;
+    const ta = document.createElement('textarea');
+    ta.className = 'msg-edit';
+    ta.value = m.text;
+    ta.rows = 3;
+    const row = document.createElement('div');
+    row.className = 'msg-edit-row';
+    row.innerHTML = `<button class="btn-primary small" data-edit-save type="button">إرسال التعديل</button><button class="btn small" data-edit-cancel type="button">إلغاء</button>`;
+    body.textContent = '';
+    body.appendChild(ta);
+    body.appendChild(row);
+    ta.focus();
+    row.querySelector('[data-edit-save]').onclick = async () => { await editUserMessage(idx, ta.value); };
+    row.querySelector('[data-edit-cancel]').onclick = () => renderChat();
+  }
 });
 
 /* ---------------- Voice list note (speechSynthesis) ---------------- */
@@ -3061,6 +3884,217 @@ function listArabicVoices() {
       .map(v => `${v.name} (${v.lang})`);
   } catch (e) { return []; }
 }
+/* ---------------- جولة الفيديو المجاني اليومية (تدوير النماذج) ---------------- */
+// لا يوجد API مجاني لفيديو بجودة Veo داخل التطبيق — كل خدمة مجانية تعمل
+// على موقعها بحساب المستخدم. الجولة ترتّبها: افتح واحداً داخل Lyra (متصفح
+// مدمج ظاهر — المستخدم يسجّل دخوله ويضغط «توليد» بنفسه؛ لا نقر تلقائي
+// ولا قبول شروط بالنيابة عنه أبداً)، ثم ارفع الكليب هنا. الخدمات التي
+// تمنع التضمين (X-Frame-Options / frame-ancestors) تُفتح في المتصفح مع
+// تذكير بالرجوع ورفع الكليب.
+// تحقق التضمين 2026-11-20 (ترويسات فعلية): Flow وKling بلا حاجب تضمين،
+// AI Studio ‏XFO: DENY، Dreamina ‏XFO: SAMEORIGIN، Hailuo ‏frame-ancestors
+// مقيّد، Hugging Face ‏XFO: SAMEORIGIN. رابط Wan هو مساحة TI2V-5B الرسمية
+// من بطاقة نموذج Wan-AI (huggingface.co لم تُفحص مباشرة من هذه الشبكة).
+const TOUR_MODELS = [
+  {
+    id: 'veo', name: 'Google Veo 3.1 — عبر Flow', short: 'Veo 3.1',
+    quota: 'حوالي 5 كليبات 8 ثوانٍ في اليوم',
+    note: 'أقوى جودة مجانية؛ باقة يومية ~50 نقطة (الكليب 10 نقط). الوصول المجاني غير مضمون — Google قد تطلب خطة AI مدفوعة.',
+    url: 'https://flow.google.com/', embed: 'iframe',
+    steps: ['افتح Flow بحساب Google (أو AI Studio)', 'اكتب وصفك وولّد الكليب', 'حمّل الكليب ثم ارفعه هنا'],
+  },
+  {
+    id: 'kling', name: 'Kling 3.0', short: 'Kling',
+    quota: 'حوالي 3–6 كليبات في اليوم',
+    note: 'جودة عالية 720p مع علامة مائية على الباقة المجانية؛ ~66 نقطة يومياً.',
+    url: 'https://kling.ai/', embed: 'iframe',
+    steps: ['سجّل دخولك بحساب مجاني', 'اكتب وصفك وولّد الكليب', 'حمّل الكليب ثم ارفعه هنا'],
+  },
+  {
+    id: 'seedance', name: 'Seedance 2.0 — عبر Dreamina', short: 'Seedance',
+    quota: 'حوالي 5–10 كليبات قصيرة في اليوم',
+    note: 'من ByteDance؛ حتى 1080p وبدون علامة مائية؛ ~100 نقطة يومياً. المنصة الرسمية الدولية هي Dreamina.',
+    url: 'https://dreamina.capcut.com/', embed: 'external',
+    steps: ['افتح Dreamina بحساب مجاني', 'اكتب وصفك وولّد الكليب', 'حمّل الكليب ثم ارفعه هنا'],
+  },
+  {
+    id: 'hailuo', name: 'Hailuo (MiniMax)', short: 'Hailuo',
+    quota: 'حوالي 3–5 كليبات في اليوم',
+    note: '720p مع علامة مائية على الباقة المجانية؛ باقة يومية صغيرة.',
+    url: 'https://hailuoai.video/', embed: 'external',
+    steps: ['سجّل دخولك بحساب مجاني', 'اكتب وصفك وولّد الكليب', 'حمّل الكليب ثم ارفعه هنا'],
+  },
+  {
+    id: 'wan', name: 'Wan 2.2 — عبر Hugging Face', short: 'Wan 2.2',
+    quota: 'مجاني بالدور — بلا حد يومي معلن',
+    note: 'مفتوح المصدر ومجاني تماماً، لكن بالدور وبطيء ومحتاج صبر؛ الجودة أقل من Veo.',
+    url: 'https://huggingface.co/spaces/Wan-AI/Wan2.2-TI2V-5B', embed: 'external',
+    steps: ['افتح المساحة (قد تحتاج حساب Hugging Face)', 'اكتب وصفك واستنى دورك', 'حمّل الكليب ثم ارفعه هنا'],
+  },
+];
+function tourStore() {
+  const today = todayKey();
+  let s = LS.get('lyra_tour_used', null);
+  if (!s || s.date !== today || !Array.isArray(s.used)) s = { date: today, used: [] };
+  return s;
+}
+function tourUsedIds() { return tourStore().used || []; }
+function markTourUsed(id) {
+  const s = tourStore();
+  if (!s.used.includes(id)) { s.used.push(id); LS.set('lyra_tour_used', s); }
+  renderTour();
+  updateFreeVideoUI();
+}
+function tourNextModel() { return TOUR_MODELS.find(m => !tourUsedIds().includes(m.id)) || null; }
+function renderTour() {
+  const list = $('#tourList');
+  if (!list) return;
+  const used = tourUsedIds();
+  const next = tourNextModel();
+  const nextEl = $('#tourNext');
+  if (nextEl) {
+    if (next) nextEl.innerHTML = `<b>المحطة الجاية: ${escapeHtml(next.name)}</b> — ${escapeHtml(next.quota)} <button class="btn-primary small" data-tour-open="${next.id}">افتحها دلوقتي</button>`;
+    else nextEl.innerHTML = '<b>🎉 خلصت جولة النهاردة كلها!</b> — كل النماذج اتستخدمت؛ الجولة بتبدأ من جديد بكرة.';
+  }
+  list.innerHTML = '';
+  TOUR_MODELS.forEach((m, i) => {
+    const isUsed = used.includes(m.id);
+    const card = document.createElement('div');
+    card.dataset.model = m.id;
+    card.className = 'tour-card' + (isUsed ? ' tour-used' : '') + (next && next.id === m.id ? ' tour-next-card' : '');
+    card.innerHTML = `
+      <div class="tour-num">${i + 1}</div>
+      <div class="tour-body">
+        <div class="tour-name">${escapeHtml(m.name)} ${next && next.id === m.id ? '<span class="tour-badge-next">المحطة الجاية</span>' : ''} ${isUsed ? '<span class="tour-badge-done">خلص النهاردة — يرجع بكرة</span>' : '<span class="tour-badge-open">مفتوح الآن</span>'}</div>
+        <div class="tour-quota">${escapeHtml(m.quota)}</div>
+        <div class="tour-note">${escapeHtml(m.note)}</div>
+        <ol class="tour-steps">${m.steps.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
+        <div class="row btns tour-btns">
+          ${m.embed === 'iframe'
+            ? `<button class="btn-primary" data-tour-open="${m.id}">▶️ افتح داخل Lyra</button><button class="btn" data-tour-external="${m.id}">🌐 فتح في المتصفح</button>`
+            : `<button class="btn-primary" data-tour-external="${m.id}">🌐 افتح في المتصفح</button><span class="hint">الموقع ده بيمنع العرض داخل التطبيقات — هيتفتح في المتصفح.</span>`}
+          <button class="btn" data-tour-import="${m.id}">⬆️ ارفع الكليب هنا</button>
+          ${isUsed ? '' : `<button class="btn" data-tour-done="${m.id}">✅ تم — افتح اللي بعده</button>`}
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+  const note = $('#tourNote');
+  if (note) note.textContent = `استخدمت النهاردة: ${used.length} من ${TOUR_MODELS.length} — الاستخدام يتصفّر كل يوم عند منتصف الليل (توقيت جهازك). الكليبات المرفوعة تُحفظ على جهازك فقط، وتظهر في «مشاريعي».`;
+}
+let tourFrameTimer = null;
+let tourCurrentModel = null;
+let tourPendingImport = null;
+function tourOpenExternal(url) { window.open(url, '_blank', 'noopener'); }
+function openTourModel(id, via) {
+  const m = TOUR_MODELS.find(x => x.id === id);
+  if (!m) return false;
+  tourCurrentModel = m;
+  if ((via === 'iframe' || via === undefined) && m.embed === 'iframe') {
+    const ov = $('#webviewOverlay');
+    const frame = $('#tourFrame');
+    const wait = $('#webviewWait');
+    const fb = $('#webviewFallback');
+    if (!ov || !frame) return false;
+    $('#webviewModelName').textContent = m.name;
+    if (wait) wait.classList.remove('hidden');
+    if (fb) fb.classList.add('hidden');
+    ov.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    clearTimeout(tourFrameTimer);
+    tourFrameTimer = setTimeout(() => { if (fb) fb.classList.remove('hidden'); }, 15000);
+    frame.onload = () => { if (wait) wait.classList.add('hidden'); };
+    frame.src = m.url;
+    return true;
+  }
+  tourOpenExternal(m.url);
+  toast('🌐 اتفتح في المتصفح — اعمل كليبك هناك، وارجع هنا ارفع الكليب ⬆️');
+  return true;
+}
+function closeTourWebview() {
+  const ov = $('#webviewOverlay');
+  if (ov) ov.classList.add('hidden');
+  document.body.style.overflow = '';
+  clearTimeout(tourFrameTimer);
+  const frame = $('#tourFrame');
+  if (frame) frame.src = 'about:blank';
+  tourCurrentModel = null;
+}
+function videoBlobDuration(blob) {
+  return new Promise((res, rej) => {
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.onloadedmetadata = () => res(v.duration || 8);
+    v.onerror = rej;
+    v.src = URL.createObjectURL(blob);
+  });
+}
+async function importVideoFile(file, modelId) {
+  if (!file) return null;
+  const m = modelId ? TOUR_MODELS.find(x => x.id === modelId) : null;
+  const blob = file instanceof Blob ? file : new Blob([file]);
+  const duration = await videoBlobDuration(blob).catch(() => 8);
+  const id = uid();
+  const record = {
+    id,
+    prompt: m ? `كليب مستورد — ${m.name}` : 'كليب مستورد من جهازك',
+    style: 'imported',
+    duration: Math.round(duration) || 8,
+    mime: file.type || 'video/mp4',
+    aspect: 'portrait',
+    music: 'none',
+    musicInVideo: false,
+    ext: (file.name && file.name.split('.').pop()) || 'mp4',
+    createdAt: new Date().toISOString(),
+    blob,
+    importedFrom: modelId || 'device',
+  };
+  await idbPut('videos', record);
+  if (modelId) markTourUsed(modelId);
+  const st = stats();
+  st.totalVideos = (st.totalVideos || 0) + 1;
+  saveStats(st);
+  touchStreak();
+  renderGallery();
+  renderFeatured();
+  updateHeroStats();
+  toast('✅ الكليب اترفع وبقى في «مشاريعي» — تقدر تحمّله أو تشاركه');
+  return record;
+}
+async function importTestTourVideo() {
+  const res = await fetch('verify/test-video.mp4');
+  if (!res.ok) throw new Error('test video missing');
+  const blob = await res.blob();
+  const file = new File([blob], 'test-video.mp4', { type: 'video/mp4' });
+  return importVideoFile(file, 'kling');
+}
+/* ربط أزرار الجولة والمتصفح المدمج والاستيراد */
+document.addEventListener('click', (e) => {
+  const openBtn = e.target.closest('[data-tour-open]');
+  if (openBtn) { openTourModel(openBtn.dataset.tourOpen, 'iframe'); return; }
+  const extBtn = e.target.closest('[data-tour-external]');
+  if (extBtn) { openTourModel(extBtn.dataset.tourExternal, 'external'); return; }
+  const doneBtn = e.target.closest('[data-tour-done]');
+  if (doneBtn) { markTourUsed(doneBtn.dataset.tourDone); toast('✅ تمام — المحطة اللي بعدها مفتوحة دلوقتي'); return; }
+  const impBtn = e.target.closest('[data-tour-import]');
+  if (impBtn) { tourPendingImport = impBtn.dataset.tourImport; const inp = $('#importVideoInput'); if (inp) inp.click(); return; }
+});
+$('#webviewClose').addEventListener('click', closeTourWebview);
+$('#webviewExternal').addEventListener('click', () => { if (tourCurrentModel) tourOpenExternal(tourCurrentModel.url); });
+$('#webviewImport').addEventListener('click', () => {
+  tourPendingImport = tourCurrentModel ? tourCurrentModel.id : null;
+  closeTourWebview();
+  const inp = $('#importVideoInput');
+  if (inp) inp.click();
+});
+$('#importVideoBtn').addEventListener('click', () => { tourPendingImport = null; const inp = $('#importVideoInput'); if (inp) inp.click(); });
+$('#importVideoInput').addEventListener('change', async (e) => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try { await importVideoFile(f, tourPendingImport); } catch (err) { console.error(err); toast('❌ تعذّر رفع الكليب — جرّب ملف فيديو آخر'); }
+  tourPendingImport = null;
+});
 
 /* ---------------- Init ---------------- */
 loadSettings();
@@ -3081,7 +4115,7 @@ renderVeoCard();
 renderPoolStatus();
 renderMoneyDashboard();
 renderPro(); // شارة برو + مقارنة مجاني/برو + عناصر برو فقط
-refreshVeoMode(); // مزامنة وضع فيو (اشتراك/مجاني) من الـ Worker
+refreshVeoMode(); // مزامنة وضع الفيديو المباشر (اشتراك/مجاني) من الـ Worker
 loadSponsors();
 loadPrompts(); // مكتبة البرومبتات اليومية (prompts.json)
 loadAffiliates(); // روابط «اشتري الأصلي» + زر يوتيوب (مخفيان حتى تُوضع معرّفات حقيقية)
@@ -3096,6 +4130,11 @@ applyAdsVisibility();
 applyAdsenseVisibility();
 updateCapsBadge();
 renderChat();
+renderChatList();
+renderChatEngine();
+renderTour();
+initVideoModelPicker();
+updateFreeVideoUI();
 renderGallery();
 populateVoicePicker();
 initWizard();
@@ -3120,6 +4159,22 @@ if (heroCta) heroCta.onclick = () => {
 };
 const heroInstallBtn = $('#heroInstallBtn');
 if (heroInstallBtn) heroInstallBtn.onclick = () => installApp();
+// بطاقات الأدوات حسب الهدف (نمط Tinker): كل بطاقة تفتح أداتها مباشرة
+$$('#toolsGrid .tool-card').forEach(card => {
+  const go = () => {
+    const tool = card.dataset.tool;
+    const tabFor = { video: 'video', 'ref-video': 'ref', 'ref-edit': 'ref', image: 'images', prompts: 'prompts', chat: 'chat' }[tool] || 'video';
+    document.querySelector(`[data-tab="${tabFor}"]`).click();
+    setTimeout(() => {
+      if (tool === 'video') { const p = $('#prompt'); if (p) { p.scrollIntoView({ behavior: 'smooth', block: 'center' }); p.focus({ preventScroll: true }); } }
+      if (tool === 'ref-video') { const el = $('#refVideoBtn'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      if (tool === 'ref-edit') { const el = $('#refInstruction'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus({ preventScroll: true }); } }
+      if (tool === 'image') { const p = $('#imagePrompt'); if (p) { p.scrollIntoView({ behavior: 'smooth', block: 'center' }); p.focus({ preventScroll: true }); } }
+      if (tool === 'chat') { const p = $('#chatInput'); if (p) p.focus({ preventScroll: true }); }
+    }, 350);
+  };
+  card.addEventListener('click', go);
+});
 // مكتبة البرومبتات: تبويبا النوع + زر عرض الكل/مجموعة اليوم
 const libKv = $('#libKindVideo');
 if (libKv) libKv.onclick = () => { libKind = 'video'; libShowAll = false; renderPromptLibrary(); };
@@ -3142,11 +4197,11 @@ const installLater = $('#installLaterBtn');
 if (installLater) installLater.addEventListener('click', () => { LS.set('asly_install_dismissed', true); hideInstallCard(); });
 const installAppBtn = $('#installAppBtn');
 if (installAppBtn) installAppBtn.addEventListener('click', () => { LS.set('asly_install_dismissed', false); installApp(); });
-// أزرار Veo
+// أزرار الفيديو المباشر
 const liteBtn = $('#veoLiteBtn');
-if (liteBtn) liteBtn.addEventListener('click', () => requestVeo('lite'));
+if (liteBtn) liteBtn.addEventListener('click', () => requestVeo('hd720'));
 const fastBtn = $('#veoFastBtn');
-if (fastBtn) fastBtn.addEventListener('click', () => requestVeo('fast'));
+if (fastBtn) fastBtn.addEventListener('click', () => requestVeo('hd1080'));
 // إعادة جولة التعريف من الإعدادات
 const wizAgain = $('#showWizardAgain');
 if (wizAgain) wizAgain.addEventListener('click', () => showWizard());
@@ -3154,7 +4209,7 @@ if (wizAgain) wizAgain.addEventListener('click', () => showWizard());
 /* Test hooks for automated verification (not part of the UI) */
 window.__asly = {
   config: CONFIG,
-  version: '1.9.1-asly',
+  version: '1.12.0-lyra',
   state: () => ({ caps: usageToday(), bonus: bonusBalance(), remaining: videosRemaining(), streak: currentStreak(), level: levelFor(stats().totalVideos), chatCount: chatHistory().length, device: deviceId(), refCode: myRefCode(), credits: veoCredits(), mode: appMode(), wheelCanSpin: canSpinWheel(), badges: stats().badges || [], pro: isPro(), chatRemaining: chatRemaining(), previewsRemaining: previewsRemaining() }),
   applyAdsVisibility,
   hasRealAds,
@@ -3202,6 +4257,15 @@ window.__asly = {
   processPendingVeo,
   remixVideo,
   renderChat,
+  renderChatList, renderChatEngine, newChat, renameChat, deleteChat, switchChat,
+  chatStore, chatEngineLabel, setChatProvider, mdRender, regenerateMessage, editUserMessage,
+  chatSendTest: async (text) => { const inp = $('#chatInput'); if (inp) inp.value = text; await sendChat(); return chatHistory(); },
+  stopChat: () => { if (chatAbort) chatAbort.abort(); },
+  isChatStreaming: () => chatStreaming,
+  // خطافات جولة الفيديو المجاني (v1.12)
+  TOUR_MODELS, tourState: () => ({ used: tourUsedIds(), next: (tourNextModel() || {}).id || null, date: tourStore().date }),
+  markTourUsed, renderTour, openTourModel, closeTourWebview, tourOpenExternal,
+  importVideoFile, importTestTourVideo, setVideoModel, selectedVideoModel: () => selectedVideoModel, updateFreeVideoUI, freeVideoCountdown,
   renderVideo,
   // خطافات لوحة الرصيد (v1.4)
   moneyStats,
@@ -3225,7 +4289,7 @@ window.__asly = {
   renderResultAffiliate,
   setAffiliatesForTest: (d) => { AFFILIATES_DATA = d; renderAffiliates(); renderYoutubeBtn(); },
   generateTestVideo: async (opts) => {
-    const prompt = (opts && opts.prompt) || 'رجل خشبي صغير يفتح باور بانك';
+    const prompt = (opts && opts.prompt) || 'مقدّم يفتح باور بانك مضروب';
     const apiPrompt = await translatePromptToEnglish(prompt);
     const duration = (opts && opts.duration) || 8;
     const aspect = (opts && opts.aspect) || 'portrait';
@@ -3251,5 +4315,26 @@ window.__asly = {
     const blob = await loadImageBlob(imageUrlForSingle(apiPrompt, 'cinematic', 'portrait', 777));
     return { blob, size: blob.size, type: blob.type };
   },
+  // خطافات الصورة المرجعية (v1.10)
+  setRefImageFromUrl,
+  refState: () => (refImage ? { name: refImage.name, width: refImage.width, height: refImage.height } : null),
+  editRefImage,
+  generateRefVideo,
+  generateTestRefVideo: async (opts) => {
+    // فيديو من صورة مرجعية محلية (بدون مفتاح وبدون استدعاءات صور خارجية)
+    const src = (opts && opts.src) || 'featured-1.jpg';
+    await setRefImageFromUrl(src);
+    const narration = (opts && opts.narration) || 'فيديو تجريبي من صورة مرجعية';
+    const photo = await blobToImage(refImage.blob);
+    const out = await renderVideo([photo, photo, photo], 8, narration, 'none', { w: 720, h: 1280, captions: true, music: 'none' });
+    const rec = { id: uid(), prompt: narration, style: selectedStyle, duration: 8, mime: out.mime, aspect: 'portrait', music: 'none', musicInVideo: false, fromRefImage: true, ext: mimeExt(out.mime), createdAt: new Date().toISOString(), blob: out.blob };
+    window.__asly.lastVideo = rec;
+    window.__asly.lastRefVideo = rec;
+    return { ...out, width: 720, height: 1280, record: rec };
+  },
+  refineImage,
+  refineVideo,
+  generateImageGemini,
+  imagePromptFor,
   listArabicVoices,
 };

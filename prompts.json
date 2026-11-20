@@ -23,7 +23,7 @@
     },
     {
       "icon": "❓",
-      "id": "ask-asly",
+      "id": "ask-lyra",
       "label": "❓ اسأل أصلي"
     },
     {
@@ -235,12 +235,12 @@
       "preview": "auto",
       "season": "evergreen",
       "tags": [
-        "عم أصلي",
+        "كشف المضروب",
         "باور بانك",
         "تعليم"
       ],
-      "text_ar": "عم أصلي يشرح لطفل كيف يعرف الباور بانك الأصلي من المضروب",
-      "text_en": "Uncle Asly explains to a child how to tell a genuine power bank from a fake one",
+      "text_ar": "مقدّم يشرح لطفل كيف يعرف الباور بانك الأصلي من المضروب",
+      "text_en": "A presenter explains to a child how to tell a genuine power bank from a fake one",
       "trend": null
     },
     {
@@ -628,51 +628,51 @@
       "trend": null
     },
     {
-      "category": "ask-asly",
+      "category": "ask-lyra",
       "date": null,
       "id": "v31",
       "kind": "video",
       "preview": "auto",
       "season": "evergreen",
       "tags": [
-        "عم أصلي",
+        "كشف المضروب",
         "شاحن",
         "أصلي"
       ],
-      "text_ar": "عم أصلي يشرح الفرق بين الشاحن الأصلي والمضروب",
-      "text_en": "Uncle Asly explains the difference between a genuine charger and a fake one",
+      "text_ar": "مقدّم يشرح الفرق بين الشاحن الأصلي والمضروب",
+      "text_en": "A presenter explains the difference between a genuine charger and a fake one",
       "trend": null
     },
     {
-      "category": "ask-asly",
+      "category": "ask-lyra",
       "date": null,
       "id": "v32",
       "kind": "video",
       "preview": "auto",
       "season": "evergreen",
       "tags": [
-        "عم أصلي",
+        "كشف المضروب",
         "نظارة",
         "شمس"
       ],
-      "text_ar": "عم أصلي يشرح كيف تختار نظارة شمس أصلية",
-      "text_en": "Uncle Asly explains how to choose genuine sunglasses",
+      "text_ar": "مقدّم يشرح كيف تختار نظارة شمس أصلية",
+      "text_en": "A presenter explains how to choose genuine sunglasses",
       "trend": null
     },
     {
-      "category": "ask-asly",
+      "category": "ask-lyra",
       "date": null,
       "id": "v33",
       "kind": "video",
       "preview": "auto",
       "season": "evergreen",
       "tags": [
-        "عم أصلي",
+        "كشف المضروب",
         "فلاشة",
         "أصلي"
       ],
-      "text_ar": "عم أصلي يشرح كيف تعرف الفلاشة الأصلية من المضروبة",
-      "text_en": "Uncle Asly explains how to tell a genuine flash drive from a fake one",
+      "text_ar": "مقدّم يشرح كيف تعرف الفلاشة الأصلية من المضروبة",
+      "text_en": "A presenter explains how to tell a genuine flash drive from a fake one",
       "trend": null
     },
     {
@@ -1204,67 +1204,67 @@
       "trend": null
     },
     {
-      "category": "ask-asly",
+      "category": "ask-lyra",
       "date": null,
       "id": "i29",
       "kind": "image",
       "preview": "auto",
       "season": "evergreen",
       "tags": [
-        "عم أصلي",
+        "كشف المضروب",
         "عدسة",
         "فحص"
       ],
-      "text_ar": "عم أصلي يمسك عدسة مكبّرة ويفحص شاحناً",
-      "text_en": "Uncle Asly holding a magnifying glass and inspecting a charger",
+      "text_ar": "مقدّم يمسك عدسة مكبّرة ويفحص شاحناً",
+      "text_en": "A presenter holding a magnifying glass and inspecting a charger",
       "trend": null
     },
     {
-      "category": "ask-asly",
+      "category": "ask-lyra",
       "date": null,
       "id": "i30",
       "kind": "image",
       "preview": "auto",
       "season": "evergreen",
       "tags": [
-        "عم أصلي",
+        "كشف المضروب",
         "جودة",
         "علامة"
       ],
-      "text_ar": "عم أصلي يشير إلى علامة الجودة على علبة منتج",
-      "text_en": "Uncle Asly pointing at the quality mark on a product box",
+      "text_ar": "مقدّم يشير إلى علامة الجودة على علبة منتج",
+      "text_en": "A presenter pointing at the quality mark on a product box",
       "trend": null
     },
     {
-      "category": "ask-asly",
+      "category": "ask-lyra",
       "date": null,
       "id": "i31",
       "kind": "image",
       "preview": "auto",
       "season": "evergreen",
       "tags": [
-        "عم أصلي",
+        "كشف المضروب",
         "مقارنة",
         "أصلي"
       ],
-      "text_ar": "عم أصلي يقارن بين منتج أصلي وآخر مضروب على طاولة",
-      "text_en": "Uncle Asly comparing a genuine product with a fake one on a table",
+      "text_ar": "مقدّم يقارن بين منتج أصلي وآخر مضروب على طاولة",
+      "text_en": "A presenter comparing a genuine product with a fake one on a table",
       "trend": null
     },
     {
-      "category": "ask-asly",
+      "category": "ask-lyra",
       "date": null,
       "id": "i32",
       "kind": "image",
       "preview": "auto",
       "season": "evergreen",
       "tags": [
-        "عم أصلي",
+        "كشف المضروب",
         "ابتسامة",
         "إبهام"
       ],
-      "text_ar": "عم أصلي يبتسم ويرفع إبهامه بعلامة الأصلي",
-      "text_en": "Uncle Asly smiling and giving a thumbs up for the genuine product",
+      "text_ar": "مقدّم يبتسم ويرفع إبهامه بعلامة الأصلي",
+      "text_en": "A presenter smiling and giving a thumbs up for the genuine product",
       "trend": null
     },
     {
