@@ -409,15 +409,14 @@
       <textarea id="refInstruction" rows="2" maxlength="300" placeholder="مثال: غيّر الخلفية إلى شاطئ عند الغروب، وحسّن الإضاءة…"></textarea>
       <button id="refEditBtn" class="btn-primary">عدّل الصورة</button>
       <div id="refKeyGuide" class="key-guide hidden">
-        <b>التعديل بالذكاء الاصطناعي يحتاج مفتاح Gemini المجاني</b>
-        <p>التعديل الحقيقي للصور لا يعمل بالمحرك المجاني — يحتاج مفتاح Gemini المجاني من Google:</p>
-        <ol>
-          <li>افتح <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> وسجّل بحساب Google.</li>
-          <li>اضغط <b>Get API key</b> ثم <b>Create API key</b> — مجاني وبدون بطاقة.</li>
-          <li>الصق المفتاح في تبويب <b>الإعدادات</b> ← «مفتاح Gemini المجاني».</li>
-        </ol>
-        <button id="refGoSettings" class="btn">فتح الإعدادات</button>
-        <p class="hint">بدون المفتاح يمكنك استخدام الخطوة 3 (فيديو من الصورة) — تعمل بالكامل بدون مفتاح.</p>
+        <b>التعديل بالذكاء الاصطناعي يحتاج تسجيل دخول بجوجل — مرة واحدة بس</b>
+        <p>التعديل الحقيقي للصور لا يعمل بالمحرك المجاني — سجّل دخولك بجوجل وعدّل على طول، من غير لصق أي مفتاح.</p>
+        <div class="row">
+          <button class="google-btn" data-google-signin><span class="g-mark">G</span> سجّل دخول بجوجل</button>
+        </div>
+        <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة).</div>
+        <div class="auth-quota-note">⚖️ بصراحة: الحصة المجانية مشتركة بين كل مستخدمي Lyra — لو خلصت النهاردة استخدم الخطوة 3 (فيديو من الصورة) — تعمل بالكامل بدون دخول.</div>
+        <p class="hint">بدون الدخول يمكنك استخدام الخطوة 3 (فيديو من الصورة) — تعمل بالكامل بدون دخول.</p>
       </div>
       <div id="refEditQueue" class="queue hidden">
         <div class="queue-title">جارٍ تعديل الصورة…</div>
@@ -516,11 +515,20 @@
         <select id="imageEngine">
           <option value="flux" selected>Flux — مجاني (الافتراضي)</option>
           <option value="turbo">Turbo — سريع مجاني</option>
-          <option value="gemini">Nano Banana (Gemini) — أعلى جودة، بمفتاح مجاني</option>
+          <option value="gemini">Nano Banana (Gemini) — أعلى جودة، بدخول Google</option>
         </select>
       </div>
     </div>
-    <div class="hint" id="imageEngineNote"><b>Flux</b> هو نفس عائلة النماذج التي يستخدمها Tinker للصور — مجاني هنا عبر Pollinations (~768px وبشعار صغير). <b>Nano Banana (Gemini)</b> هو نفس نموذج صور Google الذي يستخدمه Tinker — أعلى جودة، ويحتاج مفتاح Gemini المجاني من الإعدادات (Google AI Studio — بدون بطاقة). بدونه، اختار Flux أو Turbo.</div>
+    <div class="hint" id="imageEngineNote"><b>Flux</b> هو نفس عائلة النماذج التي يستخدمها Tinker للصور — مجاني هنا عبر Pollinations (~768px وبشعار صغير). <b>Nano Banana (Gemini)</b> هو نفس نموذج صور Google الذي يستخدمه Tinker — أعلى جودة، ويحتاج تسجيل دخول بجوجل (مرة واحدة، من غير لصق أي مفتاح). بدونه، اختار Flux أو Turbo.</div>
+    <div id="imageAuthCard" class="key-guide hidden">
+      <b>Nano Banana يحتاج تسجيل دخول بجوجل — مرة واحدة بس</b>
+      <p>دوس الزر وسجّل بحساب Google، وبعدها ولّد صور بأعلى جودة على طول — من غير لصق أي مفتاح.</p>
+      <div class="row">
+        <button class="google-btn" data-google-signin><span class="g-mark">G</span> سجّل دخول بجوجل</button>
+      </div>
+      <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة).</div>
+      <div class="auth-quota-note">⚖️ بصراحة: الحصة المجانية مشتركة بين كل مستخدمي Lyra — لو خلصت النهاردة جرّب Flux المجاني أو ارجع بكرة.</div>
+    </div>
 
     <button id="generateImageBtn" class="btn-primary">أنشئ الصورة مجاناً</button>
     </div>
@@ -587,18 +595,18 @@
       <button id="chatEngineToggle" class="btn small">⭐ الوضع الذكي الأعلى</button>
     </div>
     <div class="chat-smart hidden" id="chatSmartCard">
-      <b>⭐ الوضع الذكي الأعلى — إجابات أقوى، مجاناً</b>
-      <p class="hint">المحرك المجاني جيد، لكن بمفتاح Gemini المجاني تحصل على إجابات أقوى بكثير (Gemini 2.5 Flash) — نفس المفتاح يفعّل أيضاً تعديل الصور. المفتاح يُحفظ على جهازك فقط.</p>
-      <ol class="chat-smart-steps">
-        <li>افتح <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> بحساب Google — بدون بطاقة.</li>
-        <li>اضغط «Get API key» وانسخ المفتاح.</li>
-        <li>الصقه هنا واضغط «حفظ وتفعيل الوضع الذكي».</li>
-      </ol>
+      <b>⭐ الوضع الذكي الأعلى — إجابات أقوى، من غير أي مفتاح</b>
+      <p class="hint">سجّل دخولك بجوجل مرة واحدة، وبعدها الوضع الذكي يشتغل على طول — للشات (Gemini 2.5 Flash) ولتعديل الصور (Nano Banana). التوكن بيتحفظ على جهازك بس، ومفيش حاجة تنسخها.</p>
       <div class="row">
-        <input id="chatGeminiKeyInline" type="password" placeholder="AIza… — يُحفظ على جهازك فقط" autocomplete="off">
-        <button id="chatSmartSave" class="btn-primary small">حفظ وتفعيل الوضع الذكي</button>
+        <button class="google-btn" data-google-signin data-set-smart="1"><span class="g-mark">G</span> سجّل دخول بجوجل</button>
+        <button id="chatSmartActivate" class="btn-primary small hidden">✅ فعّل الوضع الذكي</button>
+        <button class="btn small" data-google-signout>تسجيل خروج</button>
         <button id="chatSmartCancel" class="btn small">ليس الآن</button>
       </div>
+      <div class="hint" data-google-account></div>
+      <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة).</div>
+      <div class="auth-quota-note">⚖️ بصراحة: الحصة المجانية دي مشتركة بين كل مستخدمي Lyra (حصة مشروع Google الخاص بصاحب التطبيق)، فلو خلصت في يوم هتستنى لبكرة — والوضع المجاني (Pollinations / Flux) يفضل شغال على طول.</div>
+      <p class="hint">عندك مفتاح Gemini أصلاً؟ هتلاقيه كخيار متقدم في الإعدادات.</p>
     </div>
     <div class="chat-layout">
       <aside class="chat-sidebar" id="chatSidebar">
@@ -663,15 +671,30 @@
     <a class="btn fb-btn" href="https://facebook.com/people/أصلى-مش-مضروب/61571405720824/" target="_blank" rel="noopener">👍 تابع صفحة «أصلى مش مضروب» على فيسبوك</a>
     <a id="youtubeBtn" class="btn yt-btn hidden" href="#" target="_blank" rel="noopener">📺 قناتنا على يوتيوب — شاهد الحلقات وفعّل الجرس</a>
 
+    <h3>🔐 تسجيل الدخول بجوجل — Nano Banana + الوضع الذكي</h3>
+    <div class="google-auth-box">
+      <div class="hint" id="googleAuthStatus"></div>
+      <div class="row">
+        <button class="google-btn" data-google-signin><span class="g-mark">G</span> سجّل دخول بجوجل</button>
+        <button class="btn small" data-google-signout>تسجيل خروج</button>
+      </div>
+      <div class="hint" data-google-account></div>
+      <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة، مجاناً).</div>
+      <div class="auth-quota-note">⚖️ بصراحة: تسجيل الدخول ده بيستخدم حصة Gemini المجانية الخاصة بمشروع Google بتاع صاحب التطبيق — يعني الحصة مشتركة بين كل المستخدمين. لو خلصت في يوم، التطبيق هيقولك «الحصة خلصت» والوضع المجاني (Pollinations / Flux) يفضل شغال. (الحصة الخاصة بكل مستخدم موجودة بس في «جولة الفيديو المجاني» لأنها على مواقع Google نفسها.)</div>
+    </div>
+
     <h3>💬 مصدر المحادثة</h3>
     <div class="setting-row">
-      <label><input type="radio" name="chatProvider" value="pollinations" checked> Pollinations مجاني (بدون مفتاح) — جودة عادية</label>
-      <label><input type="radio" name="chatProvider" value="gemini"> ⭐ جودة أعلى (مفتاح مجاني) — إجابات أفضل من النموذج المجاني</label>
+      <label><input type="radio" name="chatProvider" value="pollinations" checked> Pollinations مجاني (بدون دخول) — جودة عادية</label>
+      <label><input type="radio" name="chatProvider" value="gemini"> ⭐ جودة أعلى (تسجيل دخول بجوجل) — إجابات أفضل من النموذج المجاني</label>
     </div>
-    <div class="hint">بصراحة: النموذج المجاني ليس بمستوى ChatGPT؛ بمفتاح Gemini المجاني من Google AI Studio تحصل على إجابات أفضل. نفس المفتاح يفعّل أيضاً <b>تعديل الصور بالذكاء الاصطناعي</b> (Nano Banana) وتوليد صور بجودة أعلى من تبويب «صور». المفتاح يُحفظ على جهازك فقط ولا يُرسَل لأي خادم غير Google.</div>
-    <label class="field-label" for="geminiKey">مفتاح Gemini المجاني (من <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> — بدون بطاقة)</label>
-    <input id="geminiKey" type="password" placeholder="AIza… — يُحفظ على جهازك فقط" autocomplete="off">
-    <div class="hint">يُستخدم فقط إذا اخترت «جودة أعلى». يُرسَل إلى Google مباشرة ولا يُحفظ على أي خادم. اتركه فارغاً لاستخدام Pollinations المجاني.</div>
+    <div class="hint">بصراحة: النموذج المجاني ليس بمستوى ChatGPT؛ بتسجيل دخولك بجوجل تحصل على إجابات أفضل (Gemini 2.5 Flash). نفس الدخول يفعّل أيضاً <b>تعديل الصور بالذكاء الاصطناعي</b> (Nano Banana) وتوليد صور بجودة أعلى من تبويب «صور». التوكن يُحفظ على جهازك فقط ولا يُرسَل لأي خادم غير Google.</div>
+    <details class="advanced-key">
+      <summary>🔧 خيار متقدم: مفتاح Gemini يدوياً (للي عنده مفتاح أصلاً — مش لازم خالص)</summary>
+      <label class="field-label" for="geminiKey">مفتاح Gemini المجاني (من <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> — بدون بطاقة)</label>
+      <input id="geminiKey" type="password" placeholder="AIza… — يُحفظ على جهازك فقط" autocomplete="off">
+      <div class="hint">يُستخدم فقط إذا اخترت «جودة أعلى» ولم تسجّل دخولك بجوجل. يُرسَل إلى Google مباشرة ولا يُحفظ على أي خادم. اتركه فارغاً لاستخدام Pollinations المجاني أو الدخول بجوجل.</div>
+    </details>
 
     <h3>⭐ الفيديو السينمائي المباشر — Gemini Omni (للمطوّر فقط — متوقف افتراضياً)</h3>
     <label class="field-label" for="veoWorkerUrl">رابط Cloudflare Worker للفيديو المباشر</label>
@@ -740,13 +763,13 @@
 
     <h3>ℹ️ حدود النسخة المجانية — بصراحة</h3>
     <ul class="limits">
-      <li>الصور من Pollinations مجاناً: صورة كل 45 ثانية تقريباً، بحد أقصى 576×1024، وبشعار صغير في الزاوية — وجودة الصور جيدة لا ممتازة؛ لجودة أعلى استخدم محرك Gemini بمفتاحك المجاني.</li>
-      <li>تعديل صورة موجودة بالذكاء الاصطناعي لا يعمل بالمحرك المجاني — يحتاج مفتاح Gemini المجاني (تبويب «من صورة»).</li>
+      <li>الصور من Pollinations مجاناً: صورة كل 45 ثانية تقريباً، بحد أقصى 576×1024، وبشعار صغير في الزاوية — وجودة الصور جيدة لا ممتازة؛ لجودة أعلى سجّل دخولك بجوجل واختار Nano Banana.</li>
+      <li>تعديل صورة موجودة بالذكاء الاصطناعي لا يعمل بالمحرك المجاني — سجّل دخولك بجوجل أولاً (تبويب «من صورة»).</li>
       <li>الفيديو أسلوب «شرائح متحركة» (صور + حركة بطيئة)، وليس فيديو سينمائياً مباشراً مولّداً بالكامل.</li>
       <li>لا يوجد تعليق صوتي جاهز مجاناً من Pollinations — التعليق إما قراءة حيّة من جهازك أو تسجيل صوتك.</li>
       <li>🎤 الإدخال الصوتي (الميكروفون) يعمل في كروم على أندرويد/سطح المكتب حيث يدعمه المتصفح؛ في نسخة التطبيق (APK) يحتاج إضافة @capacitor-community/speech-recognition — والتسجيل الصوتي على هاتف روني لم يُختبر بعد، فلا نعد بنجاحه قبل التجربة.</li>
       <li>الخدمة المجانية بلا ضمان استمرارية وقد تتغير حدودها في أي وقت.</li>
-      <li>إذا توقف الوصول المجاني: ضع مفتاح Gemini المجاني أعلاه وستعمل المحادثة عبره.</li>
+      <li>إذا توقف الوصول المجاني: سجّل دخولك بجوجل وستعمل المحادثة عبر الوضع الذكي.</li>
     </ul>
   </section>
 </main>

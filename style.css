@@ -570,6 +570,16 @@ h3 { color: var(--text); font-size: 15px; }
 .chat-smart-steps { margin: 8px 0; padding-inline-start: 18px; line-height: 1.9; }
 .chat-smart .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .chat-smart input { flex: 1; min-width: 180px; }
+/* زرار «سجّل دخول بجوجل» (OAuth) — أبيض بحرف G، واضح ومألوف للمستخدم */
+.google-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: #1f2937; border: 1px solid #d1d5db; border-radius: 12px; padding: 12px 18px; font-weight: 700; font-size: 15px; cursor: pointer; min-height: 48px; flex: 1; min-width: 200px; }
+.google-btn:disabled { opacity: .55; cursor: not-allowed; }
+.google-btn .g-mark { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #4285f4; color: #fff; font-weight: 900; font-size: 15px; flex: none; }
+.google-auth-box { background: rgba(124, 58, 237, .08); border: 1px solid rgba(124, 58, 237, .35); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+.google-auth-box .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.auth-quota-note { background: rgba(252, 211, 77, .12); border: 1px solid rgba(252, 211, 77, .4); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.8; margin-top: 10px; }
+.advanced-key { margin-top: 10px; border: 1px dashed rgba(255, 255, 255, .25); border-radius: 10px; padding: 10px 12px; }
+.advanced-key summary { cursor: pointer; font-weight: 700; font-size: 13.5px; }
+.advanced-key input { margin-top: 8px; }
 .chat-layout { display: flex; gap: 12px; align-items: flex-start; }
 .chat-sidebar { width: 210px; flex-shrink: 0; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; position: sticky; top: 10px; }
 .chat-sidebar .btn-primary { width: 100%; margin-bottom: 8px; }

@@ -29,8 +29,20 @@ const CONFIG = {
     bannerUnitId: 'ca-app-pub-9117972626650086/9739261706', // وحدة Lyra Banner الحقيقية
   },
   geminiModel: 'gemini-2.5-flash',
-  geminiImageModel: 'gemini-2.5-flash-image', // Nano Banana — توليد وتعديل الصور (يحتاج مفتاحاً مجانياً من المستخدم)
+  geminiImageModel: 'gemini-2.5-flash-image', // Nano Banana — توليد وتعديل الصور (بتسجيل دخول Google — v1.13.0)
   geminiUrl: m => `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
+  // --- تسجيل الدخول بجوجل (OAuth 2.0) — بديل لصق مفتاح Gemini (v1.13.0) ---
+  // زرار «سجّل دخول بجوجل» يفتح موافقة Google مرة واحدة؛ التوكن يُحفظ على
+  // جهاز المستخدم فقط. القيمتان غير موجودتين بعد — أنشئهما روني مرة واحدة
+  // من حساب Google (دليل GOOGLE_OAUTH_SETUP.md — مجاني، بدون بطاقة) ثم
+  // ضعهما هنا. حتى ذلك الحين زر الدخول يظهر «بيتجهز» ولا يعمل دخولاً وهمياً.
+  // الصدق: حصة Gemini API «لكل مشروع» لا «لكل مستخدم» — كل مستخدمي Lyra
+  // يتشاركون حصة هذا المشروع؛ التطبيق يوضح ذلك للمستخدم ويوجّهه للوضع
+  // المجاني عند نفادها. لا يُشحَن أي سر داخل التطبيق أبداً.
+  googleOAuth: {
+    clientId: '', // مثال: 123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com
+    projectId: '', // مثال: lyra-app-123456 (معرّف مشروع Google Cloud)
+  },
   // صندوق الفيديو المباشر المشترك: كل الإعلانات تصب في صندوق واحد.
   // أول 3$ من كل يوم ربح لصاحب التطبيق، والباقي يموّل الفيديوهات المباشرة
   // بالترتيب (FIFO) — والطابور نفسه مخفي عن المستخدم تماماً.
@@ -55,6 +67,221 @@ const CONFIG = {
     subscription: { productId: 'veo_monthly', priceEgp: 50, playFeePct: 15, later: true },
   },
 };
+/* =====================================================================
+   تسجيل الدخول بجوجل (OAuth 2.0) — بديل لصق مفتاح Gemini (v1.13.0)
+   الفكرة: زرار «سجّل دخول بجوجل» → موافقة Google مرة واحدة → توكن وصول
+   قصير العمر يُحفظ على جهاز المستخدم فقط → كل طلبات Gemini تُرسَل به
+   (Authorization: Bearer + x-goog-user-project) بدل لصق مفتاح API.
+   الصدق أولاً (يُعرض في التطبيق نفسه): حصة Gemini API تُحسب «لكل مشروع»
+   لا «لكل مستخدم» — كل مستخدمي Lyra يتشاركون حصة مشروع Google Cloud
+   الخاص بروني. عند نفادها تظهر رسالة ودودة ويبقى الوضع المجاني يعمل.
+   لا ندّعي أبداً أن لكل مستخدم حصة خاصة في التوليد داخل التطبيق.
+   (الحصة الخاصة بكل مستخدم موجودة فقط في جولة الفيديو المجاني — لأنها
+   تتم على مواقع Google نفسها بحساب كل مستخدم.)
+   الإعداد: العميل (client ID) والمشروع (project ID) غير موجودين بعد —
+   يُنشئهما روني مرة واحدة من حساب Google (دليل GOOGLE_OAUTH_SETUP.md).
+   حتى ذلك الحين زر الدخول يظهر «بيتجهز» ولا يعمل دخولاً وهمياً أبداً.
+   الأمان: لا يُشحَن أي سر داخل التطبيق؛ التوكن قصير العمر ويُحفظ
+   على الجهاز فقط، ولا يُسجَّل في أي سجل (logs).
+   ===================================================================== */
+const GOOGLE_OAUTH_SCOPES = 'openid email profile https://www.googleapis.com/auth/cloud-platform';
+const GOOGLE_TOKEN_KEY = 'lyra_google_token';
+const GOOGLE_QUOTA_EXHAUSTED_MSG = '⏳ الحصة المشتركة من Google خلصت النهاردة — جرّب تاني بكرة، أو استخدم الوضع المجاني (Flux / Pollinations) دلوقتي';
+function googleOAuthConfigured() {
+  const c = CONFIG.googleOAuth || {};
+  const looksPlaceholder = v => !v || /PASTE|XXXX|example/i.test(v);
+  return !looksPlaceholder(c.clientId) && !looksPlaceholder(c.projectId);
+}
+function googleStoredToken() {
+  try { return LS.get(GOOGLE_TOKEN_KEY, null); } catch (e) { return null; }
+}
+function googleSignedIn() {
+  const t = googleStoredToken();
+  return !!(t && t.access_token && t.expires_at && t.expires_at - Date.now() > 5 * 60 * 1000);
+}
+function googleAccountLabel() {
+  const t = googleStoredToken();
+  if (!t) return '';
+  return t.name ? `${t.name}${t.email ? ' (' + t.email + ')' : ''}` : (t.email || 'حساب Google');
+}
+function clearGoogleToken() {
+  try { LS.set(GOOGLE_TOKEN_KEY, null); } catch (e) { /* تجاهل */ }
+  renderGoogleAuthUI();
+}
+/* تحميل مكتبة Google Identity Services عند الحاجة فقط (لا تُحمَّل لكل الزوار). */
+let _gisPromise = null;
+function loadGoogleIdentity() {
+  if (window.google && window.google.accounts && window.google.accounts.oauth2) return Promise.resolve();
+  if (_gisPromise) return _gisPromise;
+  _gisPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true; s.defer = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('تعذّر تحميل خدمة تسجيل دخول Google — تحقق من الإنترنت وحاول مجدداً'));
+    document.head.appendChild(s);
+  });
+  return _gisPromise;
+}
+let _googleTokenClient = null;
+function requestGoogleAccessToken(opts = {}) {
+  return loadGoogleIdentity().then(() => new Promise((resolve, reject) => {
+    if (!_googleTokenClient) {
+      _googleTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CONFIG.googleOAuth.clientId,
+        scope: GOOGLE_OAUTH_SCOPES,
+        callback: () => {},
+        error_callback: () => {},
+      });
+    }
+    const client = _googleTokenClient;
+    client.callback = (resp) => {
+      if (resp && resp.access_token) {
+        const rec = { access_token: resp.access_token, expires_at: Date.now() + (Number(resp.expires_in || 3600) * 1000), email: '', name: '' };
+        LS.set(GOOGLE_TOKEN_KEY, rec);
+        renderGoogleAuthUI();
+        fetchGoogleProfile(rec.access_token);
+        resolve(rec);
+      } else {
+        reject(new Error('لم يكتمل تسجيل الدخول — حاول مرة أخرى'));
+      }
+    };
+    client.error_callback = (err) => {
+      reject(new Error('تعذّر تسجيل الدخول بجوجل — ' + ((err && (err.message || err.error)) || 'حاول مرة أخرى')));
+    };
+    try { client.requestAccessToken({ prompt: opts.prompt || 'consent' }); }
+    catch (e) { reject(e); }
+  }));
+}
+/* اسم/إيميل الحساب للعرض فقط — فشلها لا يمنع الدخول. */
+async function fetchGoogleProfile(token) {
+  try {
+    const res = await fetch('https://openidconnect.googleapis.com/v1/userinfo', { headers: { Authorization: 'Bearer ' + token } });
+    if (!res.ok) return;
+    const j = await res.json();
+    const rec = googleStoredToken();
+    if (rec && rec.access_token === token) {
+      rec.email = j.email || ''; rec.name = j.name || '';
+      LS.set(GOOGLE_TOKEN_KEY, rec);
+      renderGoogleAuthUI();
+    }
+  } catch (e) { /* العرض فقط — تجاهل */ }
+}
+/* يرجع توكن صالحاً، أو null. interactive=true يفتح نافذة الموافقة (من نقرة فقط). */
+async function ensureGoogleToken(opts = {}) {
+  const stored = googleStoredToken();
+  if (stored && stored.access_token && stored.expires_at && stored.expires_at - Date.now() > 5 * 60 * 1000) return stored.access_token;
+  if (!googleOAuthConfigured()) return null;
+  if (stored && stored.access_token) {
+    try { const rec = await requestGoogleAccessToken({ prompt: '' }); return rec.access_token; }
+    catch (e) { return null; }
+  }
+  if (opts.interactive) {
+    const rec = await requestGoogleAccessToken({ prompt: 'consent' });
+    return rec.access_token;
+  }
+  return null;
+}
+async function googleSignIn() {
+  if (!googleOAuthConfigured()) { toast('⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة)'); return false; }
+  try {
+    await requestGoogleAccessToken({ prompt: 'consent' });
+    toast('✅ تم تسجيل دخولك بجوجل — Nano Banana والوضع الذكي مفعّلان');
+    return true;
+  } catch (err) {
+    console.warn('[google-auth]', err && err.message);
+    toast('⚠️ ' + (err.message || 'تعذّر تسجيل الدخول — حاول مرة أخرى'));
+    return false;
+  }
+}
+async function googleSignOut() {
+  const t = googleStoredToken();
+  try {
+    if (t && t.access_token && window.google && window.google.accounts && window.google.accounts.oauth2) {
+      google.accounts.oauth2.revoke(t.access_token, () => {});
+    }
+  } catch (e) { /* تجاهل */ }
+  clearGoogleToken();
+  toast('تم تسجيل خروجك من Google — رجعت للوضع المجاني');
+}
+/* مصادقة Gemini: توكن Google أولاً، ثم مفتاح متقدم، ثم خطأ ودود. */
+async function getGeminiAuth(opts = {}) {
+  const token = await ensureGoogleToken(opts);
+  if (token) return { via: 'oauth', token };
+  const key = (settings().geminiKey || '').trim();
+  if (key) return { via: 'key', key };
+  const err = new Error('سجّل دخولك بجوجل أولاً من زر «سجّل دخول بجوجل» — بدون لصق أي مفتاح');
+  err.code = 'NO_GEMINI_AUTH';
+  throw err;
+}
+/* طلب Gemini واحد بالمصادقة الصحيحة + ترجمة أخطاء HTTP لرسائل عربية ودودة. */
+async function geminiFetch(url, options = {}, authOpts = {}) {
+  const auth = await getGeminiAuth(authOpts);
+  const headers = { ...(options.headers || {}) };
+  let fullUrl = url;
+  if (auth.via === 'oauth') {
+    headers.Authorization = 'Bearer ' + auth.token;
+    headers['x-goog-user-project'] = CONFIG.googleOAuth.projectId;
+  } else {
+    fullUrl = url + (url.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(auth.key);
+  }
+  let res = await fetch(fullUrl, { ...options, headers });
+  if (res.status === 401 && auth.via === 'oauth') {
+    clearGoogleToken();
+    const token2 = await ensureGoogleToken({ interactive: false });
+    if (token2) {
+      headers.Authorization = 'Bearer ' + token2;
+      res = await fetch(fullUrl, { ...options, headers });
+    }
+  }
+  if (!res.ok) {
+    const t = await res.text().catch(() => '');
+    if (res.status === 401) throw new Error('انتهت جلسة دخول Google — سجّل دخولك مرة أخرى من زر «سجّل دخول بجوجل»');
+    if (res.status === 403) throw new Error('حساب Google هذا غير مصرّح له بعد — تأكد من إضافته في إعدادات التطبيق (دليل الإعداد) أو جرّب حساباً آخر');
+    if (res.status === 429) throw new Error(GOOGLE_QUOTA_EXHAUSTED_MSG);
+    if (res.status === 400) throw new Error('طلب غير صحيح من Google — جرّب وصفاً آخر');
+    throw new Error('Google: HTTP ' + res.status + ' ' + t.slice(0, 120));
+  }
+  return res;
+}
+/* تحديث كل أزرار/حالات تسجيل الدخول بجوجل في التطبيق (شات + صور + من صورة + إعدادات). */
+function renderGoogleAuthUI() {
+  const configured = googleOAuthConfigured();
+  const signedIn = googleSignedIn();
+  const label = googleAccountLabel();
+  document.querySelectorAll('[data-google-signin]').forEach(btn => {
+    btn.disabled = !configured;
+    if (!signedIn) btn.innerHTML = configured
+      ? '<span class="g-mark">G</span> سجّل دخول بجوجل'
+      : '⏳ تسجيل الدخول بجوجل — بيتجهز…';
+    btn.classList.toggle('hidden', signedIn);
+  });
+  document.querySelectorAll('[data-google-signout]').forEach(btn => {
+    btn.classList.toggle('hidden', !signedIn);
+  });
+  document.querySelectorAll('[data-google-account]').forEach(el => {
+    el.textContent = signedIn ? ('مسجّل دخول ✓ ' + label) : '';
+    el.classList.toggle('hidden', !signedIn);
+  });
+  document.querySelectorAll('[data-google-setup-note]').forEach(el => {
+    el.classList.toggle('hidden', configured || signedIn);
+  });
+  const st = $('#googleAuthStatus');
+  if (st) {
+    st.textContent = signedIn ? ('مسجّل دخول بجوجل ✓ ' + label)
+      : !configured ? '⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة، مجاناً).'
+      : 'مش مسجّل دخول — دوس الزر وسجّل بحساب Google، وبعدها ولّد على طول من غير أي مفتاح.';
+  }
+  const act = $('#chatSmartActivate');
+  if (act) act.classList.toggle('hidden', !(signedIn && (settings().chatProvider || 'pollinations') !== 'gemini'));
+  const imgCard = $('#imageAuthCard');
+  if (imgCard) {
+    const eng = $('#imageEngine') ? $('#imageEngine').value : 'flux';
+    const hasKey = !!((settings().geminiKey || '').trim());
+    imgCard.classList.toggle('hidden', !(eng === 'gemini' && !signedIn && !hasKey));
+  }
+  renderChatEngine();
+}
 /* ---------------- الترفيه: ترند، تحدي اليوم، نصائح Lyra ---------------- */
 const TRENDING_PROMPTS = [
   'قط صغير يطبخ كشري في مطبخ مصري',
@@ -172,7 +399,7 @@ const TIPS_GALLERY = [
 ];
 const TIPS_SETTINGS = [
   'الإعلانات عندنا بمزاجك — تشاهدها لما تحب، ومفيش إعلان إجباري أبداً.',
-  'مفتاح Gemini المجاني اختياري — التطبيق شغال ببلاش من غيره.',
+  'تسجيل دخولك بجوجل اختياري — التطبيق شغال ببلاش من غيره.',
   'خد نص نهاية الحلقة من هنا وحطه في وصف فيديوهاتك على فيسبوك.',
 ];
 const FUN_MSGS = [
@@ -633,6 +860,7 @@ function saveSettings(showMsg = true) {
   renderVeoCard();
   renderPoolStatus();
   renderMoneyDashboard();
+  renderGoogleAuthUI();
   if (showMsg) toast('✅ تم حفظ الإعدادات على جهازك');
 }
 $('#saveSettings').addEventListener('click', () => saveSettings());
@@ -2832,25 +3060,17 @@ $('#clearFirstScene').addEventListener('click', () => {
   toast('تم إلغاء الصورة المختارة كمشهد أول');
 });
 /* ---------------- توليد الصور عبر Gemini (Nano Banana — جودة أعلى، اختياري) ---------------- */
-// يحتاج مفتاح Gemini المجاني من المستخدم (يُحفظ على جهازه فقط). بدون مفتاح
-// يبقى المحرك المجاني Pollinations هو الافتراضي. الرد يحتوي الصورة كـ inlineData.
+// المصادقة: تسجيل دخول Google (OAuth) أولاً — مفتاح متقدم ثانياً. بدون أيٍّ منهما
+// يُرمى خطأ ودود يوجّه المستخدم لزر الدخول. الرد يحتوي الصورة كـ inlineData.
 async function generateImageGemini(apiPrompt) {
-  const key = (settings().geminiKey || '').trim();
-  if (!key) throw new Error('لم تضف مفتاح Gemini بعد — أضفه من الإعدادات (مجاني من Google AI Studio)');
-  const res = await fetch(CONFIG.geminiUrl(CONFIG.geminiImageModel) + '?key=' + encodeURIComponent(key), {
+  const res = await geminiFetch(CONFIG.geminiUrl(CONFIG.geminiImageModel), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: apiPrompt }] }],
       generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
     }),
-  });
-  if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    if (res.status === 400) throw new Error('مفتاح Gemini غير صحيح — تأكد من نسخه كاملاً من AI Studio');
-    if (res.status === 429) throw new Error('وصلت لحد Gemini المجاني مؤقتاً — جرّب بعد دقيقة');
-    throw new Error('Gemini: HTTP ' + res.status + ' ' + t.slice(0, 120));
-  }
+  }, { interactive: true });
   const data = await res.json();
   const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
   const imgPart = parts.find(p => p.inlineData && p.inlineData.data);
@@ -2917,6 +3137,11 @@ async function generateImage(opts = {}) {
     renderImages();
   } catch (err) {
     console.error(err);
+    if (err && err.code === 'NO_GEMINI_AUTH') {
+      const c = $('#imageAuthCard');
+      if (c) c.classList.remove('hidden');
+      renderGoogleAuthUI();
+    }
     toast('❌ ' + (err.message || 'حدث خطأ — جرّب مرة أخرى'));
     setQueueNote('❌ ' + (err.message || 'حدث خطأ'));
   } finally {
@@ -2963,6 +3188,11 @@ async function refineImage() {
     toast('تم إنشاء نسخة محسّنة — النسخة القديمة محفوظة في «صوري المحفوظة»');
   } catch (err) {
     console.error(err);
+    if (err && err.code === 'NO_GEMINI_AUTH') {
+      const c = $('#imageAuthCard');
+      if (c) c.classList.remove('hidden');
+      renderGoogleAuthUI();
+    }
     toast('❌ ' + (err.message || 'حدث خطأ — جرّب مرة أخرى'));
     setQueueNote('❌ ' + (err.message || 'حدث خطأ'));
   } finally {
@@ -3028,7 +3258,7 @@ async function reportImage(id) {
 /* ---------------- الصورة المرجعية (v1.10): ارفع صورة → عدّلها أو اعمل منها فيديو ---------------- */
 // الصورة تبقى على جهاز المستخدم (IndexedDB محلي) ولا تُرفع لأي خادم —
 // إلا لمزوّد الذكاء الاصطناعي الذي يختاره بنفسه (Google عند التعديل بـ Gemini).
-// التعديل يحتاج مفتاح Gemini المجاني؛ الفيديو من الصورة يعمل بدون أي مفتاح.
+// التعديل يحتاج تسجيل دخول بجوجل؛ الفيديو من الصورة يعمل بدون أي دخول.
 let refImage = null; // { blob, url, name, width, height }
 function downscaleImageBlob(blob, maxDim = 1024) {
   return new Promise((resolve, reject) => {
@@ -3098,20 +3328,14 @@ if (_refClear) _refClear.addEventListener('click', async () => {
   toast('تمت إزالة الصورة المرجعية');
 });
 /* تعديل الصورة بـ Gemini (Nano Banana): الصورة + تعليمات نصية → صورة معدّلة.
-   بدون مفتاح يظهر دليل الحصول على المفتاح المجاني بدل الفشل الصامت. */
+   بدون تسجيل دخول تظهر بطاقة الدخول بجوجل بدل الفشل الصامت. */
 async function editRefImage() {
   if (!refImage) { toast('✏️ ارفع صورة أولاً من الخطوة 1'); return; }
   const instruction = ($('#refInstruction').value || '').trim();
   if (!instruction) { toast('✏️ اكتب ماذا تريد تغييره في الصورة'); return; }
   const f = filterCheck(instruction);
   if (!f.ok) { toast(REFUSAL); return; }
-  const key = (settings().geminiKey || '').trim();
   const guide = $('#refKeyGuide');
-  if (!key) {
-    if (guide) guide.classList.remove('hidden');
-    toast('التعديل يحتاج مفتاح Gemini المجاني — الخطوات في البطاقة بالأسفل');
-    return;
-  }
   if (guide) guide.classList.add('hidden');
   const btn = $('#refEditBtn');
   btn.disabled = true;
@@ -3128,7 +3352,7 @@ async function editRefImage() {
       r.onerror = () => reject(new Error('تعذّر قراءة الصورة'));
       r.readAsDataURL(refImage.blob);
     });
-    const res = await fetch(CONFIG.geminiUrl(CONFIG.geminiImageModel) + '?key=' + encodeURIComponent(key), {
+    const res = await geminiFetch(CONFIG.geminiUrl(CONFIG.geminiImageModel), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3138,13 +3362,7 @@ async function editRefImage() {
         ] }],
         generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
       }),
-    });
-    if (!res.ok) {
-      const t = await res.text().catch(() => '');
-      if (res.status === 400) throw new Error('مفتاح Gemini غير صحيح — تأكد من نسخه كاملاً من AI Studio');
-      if (res.status === 429) throw new Error('وصلت لحد Gemini المجاني مؤقتاً — جرّب بعد دقيقة');
-      throw new Error('Gemini: HTTP ' + res.status + ' ' + t.slice(0, 120));
-    }
+    }, { interactive: true });
     const data = await res.json();
     const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
     const imgPart = parts.find(p => p.inlineData && p.inlineData.data);
@@ -3171,6 +3389,11 @@ async function editRefImage() {
     toast('تم تعديل الصورة — حُفظت أيضاً في «صوري المحفوظة»');
   } catch (err) {
     console.error(err);
+    if (err && err.code === 'NO_GEMINI_AUTH') {
+      const guide = $('#refKeyGuide');
+      if (guide) guide.classList.remove('hidden');
+      renderGoogleAuthUI();
+    }
     toast('❌ ' + (err.message || 'حدث خطأ — جرّب مرة أخرى'));
     if (note) note.textContent = '❌ ' + (err.message || 'حدث خطأ');
   } finally {
@@ -3180,8 +3403,6 @@ async function editRefImage() {
 }
 const _refEditBtn = $('#refEditBtn');
 if (_refEditBtn) _refEditBtn.addEventListener('click', editRefImage);
-const _refGoSettings = $('#refGoSettings');
-if (_refGoSettings) _refGoSettings.addEventListener('click', () => document.querySelector('[data-tab="settings"]').click());
 /* فيديو من الصورة المرجعية: صورتك الحقيقية هي المشاهد نفسها (3 حركات Ken Burns
    مختلفة عليها) + تعليق صوتي + موسيقى — بدون أي مفتاح. اختيارياً: مشهدان
    مولّدان بنفس الفكرة من وصفك (Pollinations) فيصبح الفيديو [صورتك، مشهد، مشهد]. */
@@ -3312,8 +3533,8 @@ function escapeHtml(s) {
 
 /* ---------------- Chat v2 — ChatGPT-style ---------------- */
 /* محادثات متعددة (localStorage) + بث حي + ماركداون + نسخ/إعادة/تعديل.
-   المحرك الافتراضي المجاني Pollinations (بلا مفتاح)؛ الوضع الذكي الأعلى
-   بمفتاح Gemini المجاني من Google AI Studio (Gemini 2.5 Flash).
+   المحرك الافتراضي المجاني Pollinations (بلا دخول)؛ الوضع الذكي الأعلى
+   بتسجيل دخول بجوجل (Gemini 2.5 Flash) — أو مفتاح متقدم من الإعدادات.
    بصراحة: لا ذاكرة بين المحادثات، ولا بحث حي على الإنترنت، ولا تحليل
    ملفات — الإجابات من النموذج وسياق المحادثة الحالية فقط. */
 const CHAT_SYSTEM = `أنت «Lyra»، مساعدة ذكية خبيرة تتحدث العربية بلهجة مصرية خفيفة وواضحة (وبالفصحى المبسطة عندما يُطلب ذلك).
@@ -3536,7 +3757,9 @@ function renderChatEngine() {
   const p = settings().chatProvider || 'pollinations';
   const toggle = $('#chatEngineToggle');
   if (toggle) toggle.textContent = p === 'gemini' ? '⭐ الوضع الذكي مفعّل — رجوع للمجاني' : '⭐ الوضع الذكي الأعلى';
-  if (card && p === 'gemini') card.classList.add('hidden');
+  // البطاقة تظهر لتسجيل الدخول طالما الوضع الذكي مختار ولم يُسجَّل دخول بعد؛
+  // وتختفي فقط بعد الدخول (الوضع الذكي يعمل فعلاً).
+  if (card) card.classList.toggle('hidden', !(p === 'gemini' && !googleSignedIn()));
 }
 function setChatProvider(p) {
   const s = settings();
@@ -3608,22 +3831,20 @@ async function chatPollinationsStream(messages, onToken, signal) {
   return out.trim();
 }
 async function chatGeminiStream(messages, onToken, signal) {
-  const key = (settings().geminiKey || '').trim();
-  if (!key) throw new Error('لم تضف مفتاح Gemini بعد — أضفه من الإعدادات (مجاني من Google AI Studio)');
   const contents = messages.map(m => ({
     role: m.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: m.content }],
   }));
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.geminiModel}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
-  const res = await fetch(url, {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.geminiModel}:streamGenerateContent?alt=sse`;
+  const res = await geminiFetch(url, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, signal,
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: CHAT_SYSTEM }] },
       contents,
       generationConfig: { maxOutputTokens: 1200, temperature: 0.7 },
     }),
-  });
-  if (!res.ok || !res.body) throw new Error('stream-unavailable');
+  }, { interactive: true });
+  if (!res.body) throw new Error('stream-unavailable');
   const reader = res.body.getReader();
   const dec = new TextDecoder();
   let buf = '', out = '', sawStream = false;
@@ -3667,21 +3888,18 @@ async function chatPollinations(messages) {
   return text.trim();
 }
 async function chatGemini(messages) {
-  const key = (settings().geminiKey || '').trim();
-  if (!key) throw new Error('لم تضف مفتاح Gemini بعد — أضفه من الإعدادات (مجاني من Google AI Studio)');
   const contents = messages.map(m => ({
     role: m.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: m.content }],
   }));
-  const res = await fetch(CONFIG.geminiUrl(CONFIG.geminiModel) + '?key=' + encodeURIComponent(key), {
+  const res = await geminiFetch(CONFIG.geminiUrl(CONFIG.geminiModel), {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: CHAT_SYSTEM }] },
       contents,
       generationConfig: { maxOutputTokens: 1200, temperature: 0.7 },
     }),
-  });
-  if (!res.ok) throw new Error('تعذّر الاتصال بـ Gemini (HTTP ' + res.status + ')');
+  }, { interactive: false });
   const j = await res.json();
   const parts = j.candidates?.[0]?.content?.parts || [];
   const text = parts.map(p => p.text || '').join('');
@@ -3696,6 +3914,7 @@ async function streamChatReply(messages, onToken, signal) {
       : await chatPollinationsStream(messages, onToken, signal);
   } catch (e) {
     if (e && (e.name === 'AbortError' || (signal && signal.aborted))) throw e;
+    if (e && e.code === 'NO_GEMINI_AUTH') throw e; // بلا مصادقة لا رجوع — لا نافذة دخول ثانية
     // البث غير مدعوم هنا — رجوع للرد الكامل مرة واحدة
     return provider === 'gemini' ? await chatGemini(messages) : await chatPollinations(messages);
   }
@@ -3824,13 +4043,23 @@ $('#chatEngineToggle').addEventListener('click', () => {
   const card = $('#chatSmartCard');
   if (card) card.classList.toggle('hidden');
 });
-$('#chatSmartSave').addEventListener('click', () => {
-  const key = ($('#chatGeminiKeyInline').value || '').trim();
-  if (!key || key.length < 10) { toast('⚠️ الصق مفتاح Gemini المجاني أولاً — من Google AI Studio'); return; }
-  const s = settings();
-  s.geminiKey = key; s.chatProvider = 'gemini';
-  LS.set('asly_settings', s);
-  renderChatEngine();
+/* زرار «سجّل دخول بجوجل» موحّد في كل التطبيق (شات + صور + من صورة + إعدادات):
+   نقرة واحدة تفتح موافقة Google؛ لا دخول وهمي ولا لصق مفاتيح في المسار العادي. */
+document.addEventListener('click', async (e) => {
+  const si = e.target.closest('[data-google-signin]');
+  if (si) {
+    if (si.disabled) return;
+    const ok = await googleSignIn();
+    if (ok && si.dataset.setSmart === '1') setChatProvider('gemini');
+    renderGoogleAuthUI();
+    return;
+  }
+  const so = e.target.closest('[data-google-signout]');
+  if (so) { await googleSignOut(); renderGoogleAuthUI(); }
+});
+const _chatSmartActivate = $('#chatSmartActivate');
+if (_chatSmartActivate) _chatSmartActivate.addEventListener('click', () => {
+  setChatProvider('gemini');
   toast('⭐ الوضع الذكي الأعلى مفعّل — إجابات أقوى من Gemini 2.5 Flash');
 });
 $('#chatSmartCancel').addEventListener('click', () => { const card = $('#chatSmartCard'); if (card) card.classList.add('hidden'); });
@@ -4132,6 +4361,9 @@ updateCapsBadge();
 renderChat();
 renderChatList();
 renderChatEngine();
+renderGoogleAuthUI(); // حالات زر «سجّل دخول بجوجل» (بيتجهز / دخول / مسجّل)
+const _imageEngineSel = $('#imageEngine');
+if (_imageEngineSel) _imageEngineSel.addEventListener('change', renderGoogleAuthUI);
 renderTour();
 initVideoModelPicker();
 updateFreeVideoUI();
@@ -4209,7 +4441,7 @@ if (wizAgain) wizAgain.addEventListener('click', () => showWizard());
 /* Test hooks for automated verification (not part of the UI) */
 window.__asly = {
   config: CONFIG,
-  version: '1.12.0-lyra',
+  version: '1.13.0-lyra',
   state: () => ({ caps: usageToday(), bonus: bonusBalance(), remaining: videosRemaining(), streak: currentStreak(), level: levelFor(stats().totalVideos), chatCount: chatHistory().length, device: deviceId(), refCode: myRefCode(), credits: veoCredits(), mode: appMode(), wheelCanSpin: canSpinWheel(), badges: stats().badges || [], pro: isPro(), chatRemaining: chatRemaining(), previewsRemaining: previewsRemaining() }),
   applyAdsVisibility,
   hasRealAds,
@@ -4258,6 +4490,10 @@ window.__asly = {
   remixVideo,
   renderChat,
   renderChatList, renderChatEngine, newChat, renameChat, deleteChat, switchChat,
+  // خطافات تسجيل الدخول بجوجل (v1.13)
+  googleOAuthConfigured, googleSignedIn, googleAccountLabel, googleSignIn, googleSignOut,
+  getGeminiAuth, geminiFetch, renderGoogleAuthUI, ensureGoogleToken, googleStoredToken,
+  GOOGLE_QUOTA_EXHAUSTED_MSG,
   chatStore, chatEngineLabel, setChatProvider, mdRender, regenerateMessage, editUserMessage,
   chatSendTest: async (text) => { const inp = $('#chatInput'); if (inp) inp.value = text; await sendChat(); return chatHistory(); },
   stopChat: () => { if (chatAbort) chatAbort.abort(); },
