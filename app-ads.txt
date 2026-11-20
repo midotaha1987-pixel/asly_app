@@ -1,0 +1,10 @@
+# app-ads.txt — تطبيق «أصلي» (Asly)
+# ملف التحقق من ناشر الإعلانات (IAB Tech Lab).
+# ضع هذا الملف في جذر موقعك كما هو، مثال:
+#   https://<username>.github.io/asly-app/app-ads.txt
+# ثم استبدل pub-XXXXXXXXXXXXXXXX بمعرّف الناشر الحقيقي من حساب AdMob
+# (انظر CONFIG.md — قسم 3: كيف تحصل على المعرّف وأين تضعه).
+# الصيغة: google.com, <publisher-id>, DIRECT, f08c47fec0942fa0
+# ملاحظة: بعد تعديل هذا الملف ارفع نسخة جديدة من التطبيق (أو غيّر رقم
+# نسخة الكاش في sw.js) حتى لا يبقى الملف القديم مخزّناً في المتصفحات.
+google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
