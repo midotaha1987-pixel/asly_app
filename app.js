@@ -12,7 +12,7 @@ const CONFIG = {
   imageSize: { w: 576, h: 1024 },      // حد المساحة المجانية 768×768 — 576×1024 = نفس المساحة
   exportSize: { w: 720, h: 1280 },     // 9:16 عمودي
   minIntervalMs: 46000,                // Pollinations المجاني: طلب واحد كل 45 ثانية تقريباً
-  caps: { videosPerDay: 50, chatPerDay: 10, imagesPerDay: 10, previewPerDay: 5, chatAdBundle: 5 },
+  caps: { videosPerDay: 50, chatPerDay: 20, imagesPerDay: 10, previewPerDay: 5, chatAdBundle: 5 },
   // --- برو (اشتراك يدوي عبر واتساب الآن — فوترة Play لاحقاً عند النشر) ---
   pro: {
     priceEgp: 50, // السعر الشهري التقديري — روني يحدد السعر النهائي
@@ -4441,7 +4441,7 @@ if (wizAgain) wizAgain.addEventListener('click', () => showWizard());
 /* Test hooks for automated verification (not part of the UI) */
 window.__asly = {
   config: CONFIG,
-  version: '1.13.0-lyra',
+  version: '1.14.0-lyra',
   state: () => ({ caps: usageToday(), bonus: bonusBalance(), remaining: videosRemaining(), streak: currentStreak(), level: levelFor(stats().totalVideos), chatCount: chatHistory().length, device: deviceId(), refCode: myRefCode(), credits: veoCredits(), mode: appMode(), wheelCanSpin: canSpinWheel(), badges: stats().badges || [], pro: isPro(), chatRemaining: chatRemaining(), previewsRemaining: previewsRemaining() }),
   applyAdsVisibility,
   hasRealAds,
