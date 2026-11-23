@@ -3,600 +3,127 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Lyra — اعمل فيديو بالذكاء الاصطناعي ببلاش</title>
-<meta name="description" content="Lyra — اعمل فيديو بالذكاء الاصطناعي ببلاش. حوّل فكرتك إلى فيديو: صور + حركة + تعليق صوتي، مجاناً وبدون تسجيل.">
-<meta name="theme-color" content="#7b6cc4">
+<title>علم ينتفع به — دار القرآن الكريم: تعلّم القرآن والتجويد والحديث والسلوكيات</title>
+<meta name="description" content="علم ينتفع به — دار القرآن الكريم: تعلّم القرآن والتجويد والحديث والسلوكيات من مصادر موثوقة: المصحف برواية حفص، متن تحفة الأطفال، وصحيح البخاري ومسلم.">
+<meta name="theme-color" content="#0B3D2E">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="sticky-top">
 <header class="app-header">
-  <div class="logo"><span class="logo-mark" aria-hidden="true">L</span> <span class="logo-word">Lyra</span> <small>استوديو ذكاء اصطناعي — فيديو وصور ببلاش</small></div>
-  <div class="caps" id="capsBadge" title="حدودك اليومية المجانية">🔥 <span id="streakBadge">0</span> • <span id="levelBadge">مبتدئ</span> • <span id="capVideos">50/50</span> • <span id="capChat">10/10</span> <button id="proBadge" class="pro-badge" title="برو — مزايا بلا حدود">برو</button></div>
+  <div class="logo">
+    <img class="logo-img" src="logo-b.webp" alt="شعار علم ينتفع به">
+    <span class="logo-word">علم ينتفع به</span>
+    <small>دار القرآن الكريم — القرآن والتجويد والحديث والسلوكيات</small>
+  </div>
+  <div class="caps" id="capsBadge" title="حدودك اليومية المجانية">🔥 <span id="streakBadge">0</span> • <span id="levelBadge">مبتدئ</span> • 💬 <span id="capChat">20/20</span></div>
 </header>
 
 <nav class="tabs" role="tablist">
-  <button class="tab active" data-tab="video" role="tab">إنشاء فيديو</button>
-  <button class="tab" data-tab="ref" role="tab">من صورة</button>
-  <button class="tab" data-tab="images" role="tab">صور</button>
-  <button class="tab" data-tab="prompts" role="tab">البرومبتات</button>
-  <button class="tab" data-tab="chat" role="tab">محادثة</button>
-  <button class="tab" data-tab="gallery" role="tab">مشاريعي</button>
-  <button class="tab" data-tab="settings" role="tab">الإعدادات</button>
+  <button class="tab active" data-tab="home" role="tab">🏠 الرئيسية</button>
+  <button class="tab" data-tab="quran" role="tab">📖 قسم القرآن</button>
+  <button class="tab" data-tab="manners" role="tab">🌿 قسم السلوكيات</button>
+  <button class="tab" data-tab="chat" role="tab">👨‍🏫 اسأل المعلم</button>
+  <button class="tab" data-tab="settings" role="tab">⚙️ الإعدادات</button>
 </nav>
+<nav id="quranSubnav" class="subnav hidden" aria-label="أقسام القرآن">
+  <button class="subtab" data-tab="quran">📖 المصحف</button>
+  <button class="subtab" data-tab="lesson">📅 درس اليوم</button>
+  <button class="subtab" data-tab="tajweed">🎙️ التجويد</button>
+  <button class="subtab" data-tab="hadith">📜 الحديث</button>
+  <button class="subtab" data-tab="exercises">✏️ التمارين</button>
+</nav>
+</div>
 
 <main>
-  <!-- ============ VIDEO TAB ============ -->
-  <section id="tab-video" class="tab-pane active">
-    <!-- البطل — الصفحة العامة: عنوان واضح + مثاليات + إحصاءات صادقة (محلية) -->
-    <section class="hero" id="heroSection">
-      <div class="hero-text">
-        <h1>اعمل فيديو بالذكاء الاصطناعي <span class="hero-free">ببلاش</span></h1>
-        <p class="hero-sub">اكتب فكرتك بكلام عادي — وحوّلها لفيديو جاهز للمشاركة في دقيقة، من غير تسجيل ومن غير دفع.</p>
-        <div class="hero-ctas">
-          <button id="heroCta" class="btn-primary hero-cta">اعمل أول فيديو</button>
-          <button id="heroInstallBtn" class="btn hero-cta2">ثبّت التطبيق</button>
-        </div>
-        <div class="hero-stats" id="heroStats">
-          <span><b id="heroVideos">0</b> فيديو اتعمل هنا</span>
-          <span>سلسلة <b id="heroStreak">0</b> يوم</span>
-          <span><b id="heroLevel">مبتدئ</b></span>
-        </div>
-      </div>
-      <div class="hero-art" aria-hidden="true"><span>L</span></div>
-    </section>
-    <div class="hero-examples" id="heroExamples"></div>
-
-    <!-- أدوات حسب ما تريد صنعه — اختار هدفك وابدأ -->
-    <section class="tools-grid" id="toolsGrid" aria-label="ماذا تريد أن تصنع؟">
-      <div class="tools-head">ماذا تريد أن تصنع؟</div>
-      <div class="tool-card" data-tool="video">
-        <div class="tool-icon">فيديو</div>
-        <b>فيديو من فكرة</b>
-        <small>اكتب وصفاً قصيراً — مثال: «قط يطبخ كشري في مطبخ مصري»</small>
-        <button class="btn tool-use">ابدأ</button>
-      </div>
-      <div class="tool-card" data-tool="ref-video">
-        <div class="tool-icon">من صورتك</div>
-        <b>فيديو من صورتك</b>
-        <small>ارفع صورة من موبايلك وحوّلها لفيديو متحرك بتعليق صوتي</small>
-        <button class="btn tool-use">ابدأ</button>
-      </div>
-      <div class="tool-card" data-tool="ref-edit">
-        <div class="tool-icon">تعديل صورة</div>
-        <b>عدّل صورة بالذكاء الاصطناعي</b>
-        <small>غيّر الخلفية أو النمط أو الإضاءة — مثال: «حوّلها لكرتون»</small>
-        <button class="btn tool-use">ابدأ</button>
-      </div>
-      <div class="tool-card" data-tool="image">
-        <div class="tool-icon">صورة</div>
-        <b>صورة احترافية</b>
-        <small>صورة منتج، بورتريه، سينمائي أو واقعي — مثال: «غروب فوق النيل»</small>
-        <button class="btn tool-use">ابدأ</button>
-      </div>
-      <div class="tool-card" data-tool="prompts">
-        <div class="tool-icon">برومبت</div>
-        <b>برومبت جاهز</b>
-        <small>مكتبة أفكار يومية مع معاينة للنتيجة قبل الاستخدام</small>
-        <button class="btn tool-use">تصفّح</button>
-      </div>
-      <div class="tool-card" data-tool="chat">
-        <div class="tool-icon">مساعد</div>
-        <b>مساعد ذكي</b>
-        <small>يكتب سكربتات ويحسّن برومبتات ويخطط معك المحتوى</small>
-        <button class="btn tool-use">اسأل</button>
-      </div>
-    </section>
-
-    <!-- إزاي تعمل فيديو في 3 خطوات -->
-    <section class="how-box">
-      <div class="how-title">إزاي تعمل فيديو في 3 خطوات؟</div>
-      <div class="how-steps">
-        <div class="how-step"><span class="how-num">1</span><b>اكتب فكرتك</b><small>بكلام عادي أو بالميكروفون</small></div>
-        <div class="how-step"><span class="how-num">2</span><b>اختار الشكل</b><small>أو سيب التطبيق يختار لك</small></div>
-        <div class="how-step"><span class="how-num">3</span><b>شارك الفيديو</b><small>واتساب وفيسبوك بضغطة واحدة</small></div>
-      </div>
-    </section>
-
-    <!-- بطاقة برومبت اليوم المصغّرة — تفتح تبويب البرومبتات -->
-    <div class="lib-teaser" id="libraryTeaser"></div>
-
-
-    <div class="guide-strip"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> <span id="tipVideo"></span></div></div>
-
-    <!-- بطاقة تثبيت PWA: تظهر عند توفر حدث التثبيت، أو من زر «تثبيت التطبيق» في الإعدادات -->
-    <div id="installCard" class="install-card hidden">
-      <div class="install-body">
-        <b>📲 ثبّت Lyra على شاشتك</b>
-        <small>افتحه بضغطة واحدة زي أي تطبيق — من غير متصفح، ومن غير تحميل من المتجر.</small>
-      </div>
-      <button id="installNowBtn" class="btn-primary small">ثبّت الآن</button>
-      <button id="installLaterBtn" class="btn small">لاحقاً</button>
+  <!-- ============ HOME TAB — الرئيسية: بابان ============ -->
+  <section id="tab-home" class="tab-pane active">
+    <div class="dar-hero">
+      <img class="dar-hero-logo" src="logo-a.webp" alt="شعار علم ينتفع به — المصحف والنجمة الثمانية">
+      <h1 class="dar-brand">علم ينتفع به</h1>
+      <div class="dar-gold-div"></div>
+      <p class="dar-hero-sub">دار القرآن الكريم: تعلّم القرآن والتجويد والحديث والسلوكيات — من مصادر موثوقة</p>
+      <p class="dar-hero-note">⚠️ النصوص من مصادر موثوقة — الذكاء الاصطناعي يشرح فقط، ولا يولّد أي آية أو حديث</p>
+      <button id="advertiseBtn" class="btn dar-advertise-btn">📢 أعلن معنا — واتساب</button>
+      <div id="homeNamesake" class="dar-namesake"></div>
     </div>
-    <div id="installSteps" class="install-steps hidden">
-      <b>📲 التثبيت يدوياً (دقيقة واحدة):</b>
-      <div>• <b>أندرويد (كروم):</b> اضغط ⋮ فوق ← «إضافة إلى الشاشة الرئيسية» ← «تثبيت».</div>
-      <div>• <b>آيفون (سفاري):</b> اضغط زر المشاركة ⎋ ← «إضافة إلى الشاشة الرئيسية».</div>
-      <div>• <b>كمبيوتر (كروم):</b> اضغط أيقونة التثبيت ⬇ في شريط العنوان.</div>
+    <div class="dar-doors">
+      <button class="dar-door" onclick="darSwitchTab('quran')">
+        <span class="dar-door-icon">📖</span>
+        <span class="dar-door-title">قسم القرآن</span>
+        <span class="dar-door-sub">المصحف • درس اليوم • التجويد • الحديث • التمارين</span>
+      </button>
+      <button class="dar-door dar-door-green" onclick="darSwitchTab('manners')">
+        <span class="dar-door-icon">🌿</span>
+        <span class="dar-door-title">قسم السلوكيات</span>
+        <span class="dar-door-sub">تعلّم إيه لو…؟ • مواقف من حياتك • وسام الأخلاق الحلوة</span>
+      </button>
     </div>
-
-    <div class="challenge-card" id="challengeCard">
-      <div class="challenge-title" id="challengeTitle">🏆 تحدي الأسبوع</div>
-      <div id="challengeText"></div>
-      <div class="hint" id="challengeNote"></div>
-      <button id="challengeTry" class="btn small">جرّب التحدي 👆</button>
+    <div class="dar-home-teacher">
+      <button class="dar-btn dar-btn-primary dar-btn-big" onclick="darSwitchTab('chat')">👨‍🏫 اسأل المعلم — عندك سؤال عن القرآن أو التجويد أو الحديث؟</button>
+      <p class="hint">المعلم يشرح فقط — ولا ينقل أي آية أو حديث من ذاكرته أبداً. النصوص الموثوقة تجدها في قسم القرآن.</p>
     </div>
-
-    <section class="badges-box">
-      <div class="field-label">🏅 أوسمتي — كل فيديو يقرّبك من الوسام الجاي</div>
-      <div id="badgesRow" class="badges-row"></div>
-    </section>
-
-    <div class="sponsor-card hidden" id="sponsorCard">
-      <span class="sponsor-tag">برعاية 🤝</span>
-      <img id="sponsorImg" alt="">
-      <div class="sponsor-body"><b id="sponsorName"></b><small id="sponsorDesc"></small></div>
+    <div id="adsenseSlot" class="adsense-slot hidden">
+      <ins class="adsbygoogle" style="display:block" data-ad-format="auto" data-full-width-responsive="true"></ins>
     </div>
-
-    <div class="field-label">🎨 قوالب جاهزة — اضغط قالباً وسيُملأ كل شيء</div>
-    <div class="templates-grid" id="templatesGrid"></div>
-
-    <!-- «اشتري الأصلي» — روابط تابعة (تظهر فقط بعد وضع معرّفات روني في affiliates.json) -->
-    <div id="affiliateSection" class="affiliate-section hidden"></div>
-
-    <!-- للرعاة: ماذا يحصل المعلن؟ زر «أعلن معنا» الوحيد هنا -->
-    <section class="sponsors-box" id="sponsorsBox">
-      <div class="sponsors-title">📢 أعلن معنا — وصّل منتجك لصنّاع الفيديو</div>
-      <p class="hint">إعلانك يظهر في الصفحة الرئيسية أمام كل من يصنع فيديو — بطاقة «برعاية» + قالب برعاية باسمك. بلا نوافذ منبثقة وبلا إزعاج للمستخدمين.</p>
-      <div class="sponsors-perks">
-        <span>👀 ظهور في الرئيسية</span>
-        <span>🎬 قالب برعاية خاص بك</span>
-        <span>💬 تواصل مباشر واتساب</span>
-        <span>💰 تفاوض مباشر — بلا وسطاء</span>
-      </div>
-      <button id="advertiseBtn" class="btn-primary advertise-btn">📢 أعلن معنا — واتساب</button>
-      <div class="hint">💼 للإعلانات والأعمال: الإعلانات والرعاة بيموّلوا الفيديوهات المجانية للجميع.</div>
-    </section>
-
-    <div class="field-label">🔥 الرائج الآن — أعمال مميزة وفيديوهاتك</div>
-    <div class="featured-grid" id="featuredGrid"></div>
-    <div class="hint" id="featuredNote"></div>
-    <div id="trendingMine"></div>
-
-    <!-- إعلان ويب (AdSense) — يظهر فقط بعد موافقة AdSense ووضع معرّف الناشر في الإعدادات -->
-    <div id="adsenseSlot" class="ad-slot hidden">
-      <small>📢 إعلان</small>
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    </div>
-
-    <div class="wheel-box" id="wheelBox">
-      <div class="wheel-title">🎡 عجلة الحظ</div>
-      <div class="wheel-wrap">
-        <div class="wheel-pointer">▼</div>
-        <div class="wheel" id="wheel">
-          <span class="wheel-seg" style="--r:0deg">+25 ⭐</span>
-          <span class="wheel-seg" style="--r:45deg">+50 ⭐</span>
-          <span class="wheel-seg" style="--r:90deg">+1 🖼️</span>
-          <span class="wheel-seg" style="--r:135deg">+5 💬</span>
-          <span class="wheel-seg" style="--r:180deg">+25 ⭐</span>
-          <span class="wheel-seg" style="--r:225deg">حظ أوفر 😅</span>
-          <span class="wheel-seg" style="--r:270deg">+75 ⭐</span>
-          <span class="wheel-seg" style="--r:315deg">+25 ⭐</span>
-        </div>
-      </div>
-      <button id="wheelSpinBtn" class="btn-primary">🎡 لفّ العجلة</button>
-      <div class="hint" id="wheelInfo"></div>
-    </div>
-
-    <div class="free-video-counter" id="freeVideoCounter">
-      <div class="free-video-count" id="freeVideoCount">فيديوهاتك المجانية النهاردة: 50/50</div>
-      <div class="free-video-bar"><div id="freeVideoBar" style="width:100%"></div></div>
-      <div class="free-video-lock hidden" id="freeVideoLock"></div>
-    </div>
-
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">1</span><div><b>الفكرة</b><small>اكتب وصف الفيديو أو اختار مثالاً جاهزاً</small></div></div>
-    <div class="field-label">جرّب فكرة جاهزة — اضغط واحدة</div>
-    <div class="trending" id="trendingStrip"></div>
-
-    <div class="field-label">أمثلة — اضغط مثالاً وغيّر الكلمات كما تحب</div>
-    <div class="examples-grid" id="examplesGrid"></div>
-
-    <label class="field-label" for="prompt">فكرتك — اكتب وصف الفيديو <button id="surpriseBtn" class="btn small">فاجئني</button> <button id="scriptBtn" class="btn small">اكتب لي السيناريو</button> <button id="micPrompt" class="btn small mic-btn" title="تحدث بدل الكتابة">🎤</button></label>
-    <textarea id="prompt" rows="3" maxlength="300" placeholder="مثال: مقدّم يفتح باور بانك مضروب ويكتشف رملة بداخله…"></textarea>
-    <div class="hint"><span id="promptCount">0/300</span> • كل فيديو = 3 صور تُنشأ تباعاً (الحد المجاني: صورة كل 45 ثانية تقريباً) • اضغط الميكروفون وتحدث بدل الكتابة</div>
-    </div>
-
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">2</span><div><b>النمط والخيارات</b><small>الوضع السهل يختار كل شيء تلقائياً — والمتقدم يفتح كل الخيارات</small></div></div>
-    <div class="field-label">نموذج الفيديو</div>
-    <div class="model-picker" id="videoModelPicker" role="group" aria-label="نموذج الفيديو">
-      <button class="model-card active" data-vmodel="motion"><b>حركة + تعليق صوتي</b><small>مجاني الآن — 50 فيديو/يوم</small></button>
-      <button class="model-card locked" data-vmodel="omni"><b>Gemini Omni — سينمائي مباشر 🔒</b><small>280 نقطة للكليب — يفتح من صندوق الإعلانات</small></button>
-      <button class="model-card locked" data-vmodel="kling"><b>Kling 🔒</b><small>قريباً — عبر جولة الفيديو المجاني</small></button>
-      <button class="model-card locked" data-vmodel="sora"><b>Sora 🔒</b><small>قريباً — يكلف لكل كليب</small></button>
-    </div>
-    <div class="hint" id="videoModelNote">النموذج الحالي: حركة + تعليق صوتي — مجاني الآن (50 فيديو/يوم). النماذج السينمائية تكلف لكل كليب وتفتح من صندوق الإعلانات أو الاشتراك؛ وجرّب أيضاً جولة الفيديو المجاني اليومية بالأسفل.</div>
-    <div class="mode-switch" role="group" aria-label="وضع الاستخدام">
-      <button class="mode-btn active" data-mode="easy">سهل</button>
-      <button class="mode-btn" data-mode="advanced">متقدم</button>
-    </div>
-    <div class="hint" id="modeNote">الوضع السهل: اكتب فكرتك فقط، والتطبيق يختار النمط والمدة والصوت تلقائياً.</div>
-    <div class="adv-only">
-    <div class="field-label">النمط</div>
-    <div class="chips" id="styleChips">
-      <button class="chip active" data-style="cinematic">سينمائي</button>
-      <button class="chip" data-style="cartoon">كرتوني</button>
-      <button class="chip" data-style="realistic">واقعي</button>
-      <button class="chip" data-style="anime">أنمي</button>
-      <button class="chip" data-style="product">صورة منتج</button>
-      <button class="chip" data-style="portrait">بورتريه</button>
-      <button class="chip pro-only hidden" data-style="noir">نوار (برو)</button>
-      <button class="chip pro-only hidden" data-style="watercolor">ألوان مائية (برو)</button>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label class="field-label" for="duration">المدة</label>
-        <select id="duration">
-          <option value="8" selected>8 ثوانٍ</option>
-          <option value="15">15 ثانية</option>
-          <option value="30">30 ثانية</option>
-        </select>
-      </div>
-      <div class="col">
-        <label class="field-label" for="voiceMode">التعليق الصوتي</label>
-        <select id="voiceMode">
-          <option value="none" selected>بدون صوت</option>
-          <option value="live">🎙️ قراءة حيّة أثناء المعاينة</option>
-          <option value="mic">🎤 سجّل صوتك أثناء التسجيل</option>
-        </select>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <label class="field-label" for="voiceStyle">نمط صوت الراوي (للقراءة الحيّة)</label>
-        <select id="voiceStyle">
-          <option value="normal" selected>صوت عادي</option>
-          <option value="excited">صوت حماسي 🎉</option>
-          <option value="calm">صوت هادئ 🌙</option>
-          <option value="deep" class="pro-only hidden">صوت عميق 🎙️ (برو ⭐)</option>
-          <option value="bright" class="pro-only hidden">صوت مشرق ✨ (برو ⭐)</option>
-        </select>
-      </div>
-      <div class="col">
-        <label class="field-label" for="voicePick">صوت الجهاز العربي</label>
-        <select id="voicePick">
-          <option value="">صوت الجهاز الافتراضي</option>
-        </select>
-      </div>
-    </div>
-    <div class="hint" id="voiceHint">بدون صوت: الفيديو يُصدَّر صامتاً. التعليق الحي يُسمَع أثناء التشغيل فقط ولا يُحفظ داخل الملف. تسجيل الصوت يُحفظ داخل الفيديو.</div>
-
-    <div class="row">
-      <div class="col">
-        <label class="field-label" for="aspectPick">مقاس الفيديو (منصة النشر)</label>
-        <select id="aspectPick">
-          <option value="portrait" selected>عمودي 9:16 — تيك توك / ريلز / شورتس</option>
-          <option value="square">مربع 1:1 — فيسبوك / إنستغرام</option>
-          <option value="wide">أفقي 16:9 — يوتيوب</option>
-        </select>
-      </div>
-      <div class="col">
-        <label class="field-label" for="musicPick">موسيقى خلفية (بدون حقوق)</label>
-        <select id="musicPick">
-          <option value="none" selected>بدون موسيقى</option>
-          <option value="calm">هادئة 🌙</option>
-          <option value="happy">حماسية 🎉</option>
-          <option value="dramatic">درامية 🎭</option>
-          <option value="festive">احتفالية 🎊</option>
-        </select>
-      </div>
-    </div>
-    <label class="setting-row"><input type="checkbox" id="captionsToggle" checked> 💬 كلمات التعليق تظهر على الفيديو (كابشن تلقائي)</label>
-    <div class="hint">الموسيقى مولّدة داخل جهازك (بدون ملفات وبدون حقوق نشر) وتُخلط بصوت منخفض تحت التعليق. الكابشن يعرض سطراً من نص التعليق في كل مشهد — لأن معظم الناس تشاهد بدون صوت.</div>
-
-    <label class="field-label" for="narration">نص التعليق (يُقرأ بصوتك أو بالقراءة الحيّة)</label>
-    <textarea id="narration" rows="2" maxlength="300" placeholder="اتركه فارغاً ليُستخدم نفس وصف الفيديو…"></textarea>
-    </div>
-    </div>
-
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">3</span><div><b>الإنشاء والنتيجة</b><small>زر واحد — والفيديو يظهر هنا جاهزاً للتحميل والمشاركة</small></div></div>
-    <div id="firstSceneNote" class="first-scene hidden">المشهد الأول: صورتك المختارة ستكون أول مشهد في الفيديو <button id="clearFirstScene" class="btn small">✕ إلغاء</button></div>
-
-    <button id="generateBtn" class="btn-primary">أنشئ الفيديو مجاناً</button>
-    <section class="ad-loop-section" id="adLoopSection">
-      <div class="ad-loop-title">شاهد إعلانات — واصنع أكثر</div>
-      <p class="ad-loop-text">الفيديوهات العادية <b>مجانية حتى 50 في اليوم</b> — بلا إعلانات إجبارية. كل إعلان تشاهده (اختياري) يضيف <b>+1 نقطة</b> لصندوق الفيديوهات السينمائية المباشرة للجميع. الإعلانات حالياً <b>تجريبية</b> (لا يوجد معلن حقيقي بعد) وتمنحك نفس الرصيد؛ الإعلانات الحقيقية تصل مع نسخة أندرويد (AdMob). بصراحة: AdMob يدفع لحسابك البنكي شهرياً بعد وصول الرصيد 100$، ولا يوجد تحويل تلقائي منه إلى Google Cloud أبداً.</p>
-      <div class="hint" id="adProgressNote">الفيديوهات العادية مجانية حتى 50 في اليوم — كل إعلان تشاهده يضيف +1 نقطة لصندوق الفيديو السينمائي المباشر للجميع.</div>
-      <button id="watchAdBtn" class="btn optin-ad">شاهد إعلاناً (اختياري) — +1 نقطة للفيديو السينمائي</button>
-    </section>
-
-    <div class="veo-card" id="veoCard">
-      <div class="veo-title">⭐ فيديو سينمائي مباشر — Gemini Omni — بصوت وصورة حقيقية</div>
-      <p class="hint">نقاطك: <b><span id="veoCredits">0</span> نقطة</b> (إعلان واحد = نقطة واحدة، ودخولك اليومي = 5 نقاط). فيديو مباشر 720p (8 ثوانٍ) = <b>280 نقطة</b>، و1080p = <b>415 نقطة</b>. بصراحة: إعلان واحد لا يساوي فيديو سينمائياً — الفيديو يحتاج نحو 280 إعلاناً، لأن الإعلان الواحد في مصر يدفع حوالي 0.002$ بينما الكليب يكلف ~0.56$.</p>
-      <div class="progress-bar"><div id="veoProgress" class="progress-fill" style="width:0%"></div></div>
-      <div class="hint" id="veoNeed"></div>
-      <div class="hint" id="veoModeStatus">🔒 الفيديو المباشر قادم قريباً ⏳</div>
-      <div class="hint" id="poolStatus">📦 صندوق الفيديو السينمائي: إعلاناتكم تموّل الفيديوهات المباشرة — أول 3$ يومياً ربح لصاحب التطبيق، والباقي يموّل الفيديوهات بالترتيب. تُفعّل الميزة مع مفتاح Gemini.</div>
-      <div class="row btns">
-        <button id="veoSubscribeBtn" class="btn-primary hidden">⭐ اشترك في الفيديو السينمائي — قريباً (بعد النشر على Google Play)</button>
-      </div>
-      <div class="row btns">
-        <button id="veoLiteBtn" class="btn" disabled>⭐ مباشر 720p — 280 نقطة</button>
-        <button id="veoFastBtn" class="btn" disabled>⭐ مباشر 1080p — 415 نقطة</button>
-      </div>
-      <div class="hint" id="veoOffNote">🔒 الفيديو السينمائي المباشر قادم قريباً ⏳ — روني يفعّله يدوياً بعد شحن رصيد Google Cloud من أرباح الإعلانات (AdMob أو إعلان مباشر). لا يُخصم أي شيء تلقائياً أبداً — الفيديوهات العادية تظل فورية ومجانية.</div>
-      <div class="hint" id="veoStatus"></div>
-    </div>
-
-    <div id="queueBox" class="queue hidden">
-      <div class="queue-title">⏳ جارٍ إنشاء الفيديو…</div>
-      <ol id="queueSteps" class="queue-steps"></ol>
-      <div class="progress-bar"><div id="queueProgress" class="progress-fill"></div></div>
-      <div id="queueNote" class="queue-note"></div>
-    </div>
-
-    <div id="resultBox" class="result hidden">
-      <div class="result-title">فيديوك جاهز! <span class="ai-badge">AI generated • صُنع بالذكاء الاصطناعي</span></div>
-      <video id="resultVideo" controls playsinline></video>
-      <div class="row btns">
-        <button id="downloadBtn" class="btn">تحميل</button>
-        <button id="shareBtn" class="btn">مشاركة</button>
-        <button id="refineVideoBtn" class="btn">حسّن الفيديو — نسخة جديدة</button>
-        <button id="reportBtn" class="btn danger">إبلاغ</button>
-      </div>
-      <div class="row btns">
-        <button id="shareWaBtn" class="btn">واتساب <span class="bonus-tag">+1</span></button>
-        <button id="shareFbBtn" class="btn">فيسبوك <span class="bonus-tag">+1</span></button>
-      </div>
-      <div class="hint">مشاركة الفيديو تمنحك +25 نقطة للفيديو السينمائي (حد أقصى 3 مشاركات في اليوم).</div>
-      <div class="hint hidden" id="musicNote"></div>
-      <div id="resultAffiliate"></div>
-    </div>
-    </div>
-
-    <!-- جولة الفيديو المجاني اليومية: بدّل بين النماذج المجانية -->
-    <section class="tour-section" id="tourSection">
-      <div class="tour-head">🎬 جولة الفيديو المجاني اليومية</div>
-      <p class="hint">الفيديوهات السينمائية الحقيقية (Veo وKling وغيرها) لا تعمل داخل أي تطبيق مجاناً — كل واحد منها له باقة مجانية يومية على موقعه. الجولة دي بترتّبهم لك: افتح واحد، اعمل كليبك بحسابك المجاني هناك، ارجع ارفع الكليب هنا — ولما يخلص واحد، افتح اللي بعده. <b>Lyra مش هي اللي بتولّد الكليب ده</b>؛ هي بتجمع لك الكليبات وتضيف عليها كابشن وتعليق ومشاركة.</p>
-      <div class="tour-next" id="tourNext"></div>
-      <div class="tour-list" id="tourList"></div>
-      <div class="hint" id="tourNote"></div>
-    </section>
-
-    <div class="ref-card" id="refCard">
-      <div class="ref-title">🎁 ادعُ أصدقاءك — فيديوهات إضافية مجاناً</div>
-      <p class="ref-text">أرسل رابط دعوتك لصديق: عندما يثبّت التطبيق من رابطك، تحصلان معاً على <b>+1 فيديو</b> لكل منكما.</p>
-      <div class="copy-box">
-        <input id="inviteLink" type="text" readonly>
-        <button id="copyInvite" class="btn">📋 نسخ الرابط</button>
-      </div>
-      <div class="ref-text" id="claimInfo"></div>
-      <div class="copy-box">
-        <input id="claimInput" type="text" placeholder="أدخل رمز تأكيد الدعوة من صديقك…" maxlength="30">
-        <button id="claimBtn" class="btn">✅ تأكيد</button>
-      </div>
-      <div class="ref-stats" id="refStats"></div>
-    </div>
+    <p class="dar-source-line">التطبيق مجاني بالكامل — بدعم الإعلانات فقط. لا إعلانات على صفحات القرآن أبداً.</p>
   </section>
 
-  <!-- ============ REF TAB: من صورة مرجعية ============ -->
-  <section id="tab-ref" class="tab-pane">
-    <div class="guide-strip"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> ارفع صورتك — عدّلها بالذكاء الاصطناعي أو حوّلها لفيديو متحرك.</div></div>
-
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">1</span><div><b>ارفع صورتك</b><small>من الكاميرا أو المعرض — مثال: صورة منتجك أو صورتك الشخصية</small></div></div>
-      <div class="ref-upload">
-        <label class="upload-btn" for="refFileCamera">التقط صورة بالكاميرا</label>
-        <label class="upload-btn secondary" for="refFileGallery">اختر صورة من المعرض</label>
-        <input type="file" id="refFileCamera" accept="image/*" capture="environment" class="hidden">
-        <input type="file" id="refFileGallery" accept="image/*" class="hidden">
-      </div>
-      <div id="refPreviewWrap" class="hidden">
-        <img id="refPreview" alt="الصورة المرجعية">
-        <div class="hint" id="refMeta"></div>
-        <button id="refClear" class="btn small">إزالة الصورة</button>
-      </div>
-      <div class="hint">خصوصيتك: الصورة تبقى على جهازك ولا تُرفع لأي خادم — إلا لمزوّد الذكاء الاصطناعي الذي تختاره بنفسك (Google عند التعديل بـ Gemini). الفيديو من الصورة يُصنع بالكامل على جهازك.</div>
+  <!-- ============ QURAN TAB ============ -->
+  <section id="tab-quran" class="tab-pane">
+    <div class="dar-hero">
+      <img class="dar-hero-logo" src="logo-a.webp" alt="شعار علم ينتفع به — المصحف والنجمة الثمانية">
+      <h1 class="dar-brand">علم ينتفع به</h1>
+      <div class="dar-gold-div"></div>
+      <p class="dar-hero-sub">دار القرآن الكريم: تعلّم القرآن والتجويد والحديث والسلوكيات — من مصادر موثوقة</p>
+      <p class="dar-hero-note">⚠️ النصوص من مصادر موثوقة — الذكاء الاصطناعي يشرح فقط، ولا يولّد أي آية أو حديث</p>
     </div>
 
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">2</span><div><b>عدّل الصورة بالذكاء الاصطناعي</b><small>اكتب التعديل بكلام عادي — مثال: «غيّر الخلفية لشاطئ عند الغروب» أو «حوّلها لكرتون»</small></div></div>
-      <label class="field-label" for="refInstruction">ماذا تريد تغييره؟</label>
-      <textarea id="refInstruction" rows="2" maxlength="300" placeholder="مثال: غيّر الخلفية إلى شاطئ عند الغروب، وحسّن الإضاءة…"></textarea>
-      <button id="refEditBtn" class="btn-primary">عدّل الصورة</button>
-      <div id="refKeyGuide" class="key-guide hidden">
-        <b>التعديل بالذكاء الاصطناعي يحتاج تسجيل دخول بجوجل — مرة واحدة بس</b>
-        <p>التعديل الحقيقي للصور لا يعمل بالمحرك المجاني — سجّل دخولك بجوجل وعدّل على طول، من غير لصق أي مفتاح.</p>
-        <div class="row">
-          <button class="google-btn" data-google-signin><span class="g-mark">G</span> سجّل دخول بجوجل</button>
-        </div>
-        <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة).</div>
-        <div class="auth-quota-note">⚖️ بصراحة: الحصة المجانية مشتركة بين كل مستخدمي Lyra — لو خلصت النهاردة استخدم الخطوة 3 (فيديو من الصورة) — تعمل بالكامل بدون دخول.</div>
-        <p class="hint">بدون الدخول يمكنك استخدام الخطوة 3 (فيديو من الصورة) — تعمل بالكامل بدون دخول.</p>
-      </div>
-      <div id="refEditQueue" class="queue hidden">
-        <div class="queue-title">جارٍ تعديل الصورة…</div>
-        <div class="progress-bar"><div id="refEditQueueProgress" class="progress-fill"></div></div>
-        <div id="refEditQueueNote" class="queue-note"></div>
-      </div>
-      <div id="refEditResult" class="result hidden">
-        <div class="result-title">الصورة المعدّلة جاهزة! <span class="ai-badge">AI generated • صُنع بالذكاء الاصطناعي</span></div>
-        <img id="refEditImage" alt="الصورة المعدّلة بالذكاء الاصطناعي">
-        <div class="hint" id="refEditEngineLabel"></div>
-        <div class="row btns">
-          <button id="refEditDownloadBtn" class="btn">تحميل</button>
-          <button id="refEditShareBtn" class="btn">مشاركة</button>
-          <button id="refEditUseBtn" class="btn">استخدمها في فيديو</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">3</span><div><b>أو اعمل فيديو من الصورة</b><small>حركة سينمائية على صورتك الحقيقية + تعليق صوتي — تعمل بدون أي مفتاح</small></div></div>
-      <label class="field-label" for="refNarration">نص التعليق (يُقرأ بصوتك أو بالقراءة الحيّة)</label>
-      <textarea id="refNarration" rows="2" maxlength="300" placeholder="مثال: ده منتجنا الأصلي — شوف الفرق بنفسك…"></textarea>
-      <div class="row">
-        <div class="col">
-          <label class="field-label" for="refMusic">موسيقى خلفية</label>
-          <select id="refMusic">
-            <option value="calm" selected>هادئة</option>
-            <option value="happy">حماسية</option>
-            <option value="dramatic">درامية</option>
-            <option value="festive">احتفالية</option>
-            <option value="none">بدون موسيقى</option>
-          </select>
-        </div>
-        <div class="col">
-          <label class="field-label" for="refAspect">مقاس الفيديو</label>
-          <select id="refAspect">
-            <option value="portrait" selected>عمودي 9:16 — تيك توك / ريلز</option>
-            <option value="square">مربع 1:1 — فيسبوك / إنستغرام</option>
-            <option value="wide">أفقي 16:9 — يوتيوب</option>
-          </select>
-        </div>
-      </div>
-      <label class="setting-row"><input type="checkbox" id="refAddScenes"> أضف مشهدين مولّدين بنفس الفكرة (اختياري — اكتب وصفاً قصيراً)</label>
-      <input id="refSceneDesc" type="text" maxlength="200" placeholder="وصف المشاهد الإضافية — مثال: محل عصير مصري قديم…" autocomplete="off">
-      <button id="refVideoBtn" class="btn-primary">اعمل فيديو من الصورة</button>
-      <div id="refQueue" class="queue hidden">
-        <div class="queue-title">جارٍ إنشاء الفيديو…</div>
-        <div class="progress-bar"><div id="refQueueProgress" class="progress-fill"></div></div>
-        <div id="refQueueNote" class="queue-note"></div>
-      </div>
-      <div id="refVideoResult" class="result hidden">
-        <div class="result-title">فيديو صورتك جاهز! <span class="ai-badge">AI generated • صُنع بالذكاء الاصطناعي</span></div>
-        <video id="refResultVideo" controls playsinline></video>
-        <div class="row btns">
-          <button id="refVideoDownloadBtn" class="btn">تحميل</button>
-          <button id="refVideoShareBtn" class="btn">مشاركة</button>
-        </div>
-      </div>
-      <div class="hint">بصراحة: الفيديو من الصورة هو حركة وتعليق فوق صورتك الحقيقية — ليس فيديو سينمائياً مولّداً بالكامل مثل الفيديو المباشر.</div>
-    </div>
+    <div id="quranContent"></div>
+    <audio id="quranAudio" preload="none"></audio>
   </section>
 
-  <!-- ============ IMAGES TAB ============ -->
-  <section id="tab-images" class="tab-pane">
-    <div class="guide-strip"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> <span id="tipImages"></span></div></div>
-
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">1</span><div><b>وصف الصورة</b><small>اكتب ما تريد رؤيته — مثال: «غروب شمس فوق النيل بقارب شراعي»</small></div></div>
-    <label class="field-label" for="imagePrompt">وصف الصورة <button id="micImage" class="btn small mic-btn" title="تحدث بدل الكتابة">🎤</button></label>
-    <textarea id="imagePrompt" rows="3" maxlength="300" placeholder="مثال: غروب شمس فوق النيل بقارب شراعي…"></textarea>
-    <div class="hint"><span id="imagePromptCount">0/300</span> • <span id="imagesRemaining"></span></div>
-    </div>
-
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">2</span><div><b>النمط والمحرك</b><small>النمط الذي تختاره يبقى ثابتاً لكل صورك وفيديوهاتك — لتبقى أعمالك على نفس الهوية</small></div></div>
-    <div class="field-label">النمط</div>
-    <div class="chips" id="imageStyleChips">
-      <button class="chip active" data-istyle="cinematic">سينمائي</button>
-      <button class="chip" data-istyle="cartoon">كرتوني</button>
-      <button class="chip" data-istyle="realistic">واقعي</button>
-      <button class="chip" data-istyle="anime">أنمي</button>
-      <button class="chip" data-istyle="product">صورة منتج</button>
-      <button class="chip" data-istyle="portrait">بورتريه</button>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label class="field-label" for="imageAspect">المقاس</label>
-        <select id="imageAspect">
-          <option value="portrait" selected>عمودي 9:16 (576×1024)</option>
-          <option value="square">مربع 1:1 (768×768)</option>
-        </select>
-      </div>
-      <div class="col">
-        <label class="field-label" for="imageEngine">محرك الصور</label>
-        <select id="imageEngine">
-          <option value="flux" selected>Flux — مجاني (الافتراضي)</option>
-          <option value="turbo">Turbo — سريع مجاني</option>
-          <option value="gemini">Nano Banana (Gemini) — أعلى جودة، بدخول Google</option>
-        </select>
-      </div>
-    </div>
-    <div class="hint" id="imageEngineNote"><b>Flux</b> هو نفس عائلة النماذج التي يستخدمها Tinker للصور — مجاني هنا عبر Pollinations (~768px وبشعار صغير). <b>Nano Banana (Gemini)</b> هو نفس نموذج صور Google الذي يستخدمه Tinker — أعلى جودة، ويحتاج تسجيل دخول بجوجل (مرة واحدة، من غير لصق أي مفتاح). بدونه، اختار Flux أو Turbo.</div>
-    <div id="imageAuthCard" class="key-guide hidden">
-      <b>Nano Banana يحتاج تسجيل دخول بجوجل — مرة واحدة بس</b>
-      <p>دوس الزر وسجّل بحساب Google، وبعدها ولّد صور بأعلى جودة على طول — من غير لصق أي مفتاح.</p>
-      <div class="row">
-        <button class="google-btn" data-google-signin><span class="g-mark">G</span> سجّل دخول بجوجل</button>
-      </div>
-      <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة).</div>
-      <div class="auth-quota-note">⚖️ بصراحة: الحصة المجانية مشتركة بين كل مستخدمي Lyra — لو خلصت النهاردة جرّب Flux المجاني أو ارجع بكرة.</div>
-    </div>
-
-    <button id="generateImageBtn" class="btn-primary">أنشئ الصورة مجاناً</button>
-    </div>
-
-    <div class="step-card">
-      <div class="step-head"><span class="step-num">3</span><div><b>النتيجة</b><small>حمّلها أو شاركها أو استخدمها في فيديو — وإن لم تعجبك حسّنها بنقرة</small></div></div>
-    <div id="imageQueue" class="queue hidden">
-      <div class="queue-title">جارٍ إنشاء الصورة…</div>
-      <div class="progress-bar"><div id="imageQueueProgress" class="progress-fill"></div></div>
-      <div id="imageQueueNote" class="queue-note"></div>
-    </div>
-
-    <div id="imageResult" class="result hidden">
-      <div class="result-title">صورتك جاهزة! <span class="ai-badge">AI generated • صُنع بالذكاء الاصطناعي</span></div>
-      <img id="resultImage" alt="صورة مولّدة بالذكاء الاصطناعي">
-      <div class="hint" id="imageEngineLabel"></div>
-      <details class="prompt-preview-box">
-        <summary>البرومبت المُرسَل للذكاء الاصطناعي — اضغط لعرضه</summary>
-        <code id="imagePromptPreviewText"></code>
-      </details>
-      <div class="row btns">
-        <button id="imageDownloadBtn" class="btn">تحميل</button>
-        <button id="imageShareBtn" class="btn">مشاركة</button>
-        <button id="refineImageBtn" class="btn">حسّن الصورة — نسخة جديدة</button>
-        <button id="useInVideoBtn" class="btn">استخدمها في فيديو</button>
-        <button id="imageReportBtn" class="btn danger">إبلاغ</button>
-      </div>
-    </div>
-
-    <h3>صوري المحفوظة</h3>
-    <div id="imagesGrid" class="gallery-grid"></div>
-    <div id="imagesEmpty" class="empty">لا صور بعد — أنشئ أول صورة من الأعلى</div>
-    </div>
+  <!-- ============ LESSON TAB — درس اليوم ============ -->
+  <section id="tab-lesson" class="tab-pane">
+    <div id="lessonContent"></div>
   </section>
 
-  <!-- ============ PROMPTS TAB ============ -->
-  <section id="tab-prompts" class="tab-pane">
-    <div class="guide-strip"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> <span>برومبت جديد كل يوم — جرّب برومبت اليوم الأول، ومعاينته جاهزة تشوفها قبل ما تستخدمه.</span></div></div>
-    <section class="lib-box" id="promptLibrary">
-      <div class="lib-head">
-        <div class="field-label">📚 مكتبة البرومبتات — فكرة جديدة كل يوم</div>
-        <span class="hint" id="libCount"></span>
-      </div>
-      <div id="dailyPromptCard" class="daily-prompts"></div>
-      <div class="hint" id="previewCount">👁️ معاينات مجانية اليوم: 5 — إعلان واحد = 5 معاينات</div>
-      <div class="hint" id="libTrendStrip"></div>
-      <div class="chips lib-kinds">
-        <button class="chip active" id="libKindVideo">🎬 فيديو</button>
-        <button class="chip" id="libKindImage">🖼️ صور</button>
-      </div>
-      <div class="chips lib-cats" id="libCats"></div>
-      <div class="chips lib-seasons" id="libSeasonStrip"></div>
-      <div id="promptGrid" class="prompt-grid"></div>
-      <button id="libShowAllBtn" class="btn lib-more">📚 عرض كل البرومبتات</button>
-      <div class="hint">💡 كل برومبت يمرّ على فلتر الأمان ويُحسَّن تلقائياً للجودة عند التوليد — تعال كل يوم تلاقي أفكار جديدة. أول 5 معاينات مجاناً كل يوم، وبعدها إعلان واحد يفتح 5 معاينات. 💚 مشاهدتك دي بتساعد تفتح الفيديوهات السينمائية المباشرة للكل.</div>
-    </section>
+  <!-- ============ TAJWEED TAB — التجويد ============ -->
+  <section id="tab-tajweed" class="tab-pane">
+    <div id="tajweedContent"></div>
   </section>
 
-  <!-- ============ CHAT TAB ============ -->
+  <!-- ============ HADITH TAB — الحديث ============ -->
+  <section id="tab-hadith" class="tab-pane">
+    <div id="hadithContent"></div>
+  </section>
+
+  <!-- ============ MANNERS TAB — قسم السلوكيات ============ -->
+  <section id="tab-manners" class="tab-pane">
+    <div id="mannersContent"></div>
+  </section>
+
+  <!-- ============ EXERCISES TAB — التمارين التفاعلية ============ -->
+  <section id="tab-exercises" class="tab-pane">
+    <div id="exercisesContent"></div>
+  </section>
+
+  <!-- ============ CHAT TAB — اسأل المعلم ============ -->
   <section id="tab-chat" class="tab-pane">
-    <div class="guide-strip"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> <span id="tipChat"></span></div></div>
+    <div class="guide-strip"><span class="dar-badge" aria-hidden="true">✦</span><div><b>المعلم:</b> <span id="tipChat"></span></div></div>
     <div class="chat-engine" id="chatEngineBar">
       <span>النموذج الحالي: <b id="chatEngineName">Pollinations المجاني</b></span>
       <button id="chatEngineToggle" class="btn small">⭐ الوضع الذكي الأعلى</button>
     </div>
     <div class="chat-smart hidden" id="chatSmartCard">
       <b>⭐ الوضع الذكي الأعلى — إجابات أقوى، من غير أي مفتاح</b>
-      <p class="hint">سجّل دخولك بجوجل مرة واحدة، وبعدها الوضع الذكي يشتغل على طول — للشات (Gemini 2.5 Flash) ولتعديل الصور (Nano Banana). التوكن بيتحفظ على جهازك بس، ومفيش حاجة تنسخها.</p>
+      <p class="hint">سجّل دخولك بجوجل مرة واحدة، وبعدها الوضع الذكي يشتغل على طول — للأسئلة (Gemini 2.5 Flash). التوكن بيتحفظ على جهازك بس، ومفيش حاجة تنسخها.</p>
       <div class="row">
         <button class="google-btn" data-google-signin data-set-smart="1"><span class="g-mark">G</span> سجّل دخول بجوجل</button>
         <button id="chatSmartActivate" class="btn-primary small hidden">✅ فعّل الوضع الذكي</button>
@@ -605,8 +132,7 @@
       </div>
       <div class="hint" data-google-account></div>
       <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة).</div>
-      <div class="auth-quota-note">⚖️ بصراحة: الحصة المجانية دي مشتركة بين كل مستخدمي Lyra (حصة مشروع Google الخاص بصاحب التطبيق)، فلو خلصت في يوم هتستنى لبكرة — والوضع المجاني (Pollinations / Flux) يفضل شغال على طول.</div>
-      <p class="hint">عندك مفتاح Gemini أصلاً؟ هتلاقيه كخيار متقدم في الإعدادات.</p>
+      <div class="auth-quota-note">⚖️ بصراحة: الحصة المجانية دي مشتركة بين كل مستخدمي التطبيق (حصة مشروع Google الخاص بصاحب التطبيق)، فلو خلصت في يوم هتستنى لبكرة — والوضع المجاني يفضل شغال على طول.</div>
     </div>
     <div class="chat-layout">
       <aside class="chat-sidebar" id="chatSidebar">
@@ -615,8 +141,8 @@
         <div id="chatList" class="chat-list"></div>
       </aside>
       <div class="chat-main">
-        <div class="chat-intro">💬 مساعد ذكي بالعربية — اسأل عن أي شيء: أفكار فيديوهات، نصائح، شرح… <span id="chatRemaining"></span></div>
-        <div class="hint chat-limits">بصراحة: المحادثة بتتم بينك وبين نموذج الذكاء الاصطناعي مباشرة — رسايلك مش بتروح لأي مساعد شخصي ولا لأي حد تاني. ولا ذاكرة بين المحادثات، ولا بحث حي على الإنترنت، ولا تحليل ملفات — الإجابات من النموذج وسياق محادثتك الحالية فقط.</div>
+        <div class="chat-intro">👨‍🏫 اسأل المعلم — عن القرآن والتجويد والحديث النبوي: شرح الأحكام، معاني الآيات، وكيف تحفظ. <span id="chatRemaining"></span></div>
+        <div class="hint chat-limits">بصراحة: المعلم يشرح فقط — ولا ينقل أي آية أو حديث من ذاكرته أبداً. النصوص الموثوقة تجدها في تبويب «القرآن الكريم». المحادثة نصية فقط، ولا ذاكرة بين المحادثات، ولا بحث حي على الإنترنت.</div>
         <div id="chatLog" class="chat-log"></div>
         <div class="chat-input-row">
           <input id="chatInput" type="text" maxlength="500" placeholder="اكتب سؤالك هنا…" autocomplete="off">
@@ -630,37 +156,29 @@
     </div>
   </section>
 
-  <!-- ============ GALLERY TAB ============ -->
-  <section id="tab-gallery" class="tab-pane">
-    <div class="guide-strip"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> <span id="tipGallery"></span></div></div>
-    <h2>مشاريعي — كل أعمالك في مكان واحد</h2>
-    <div class="hint" id="galleryCount"></div>
-    <div class="row btns">
-      <button id="importVideoBtn" class="btn">⬆️ ارفع كليب جاهز (من جولة الفيديو المجاني أو من جهازك)</button>
-      <input id="importVideoInput" type="file" accept="video/*" class="hidden">
-    </div>
-    <div id="galleryGrid" class="gallery-grid"></div>
-    <div id="galleryEmpty" class="empty">لا فيديوهات بعد — أنشئ أول فيديو من تبويب «إنشاء فيديو»</div>
-    <div class="ad-banner" id="bannerAd">
-      <span>📢 إعلان</span>
-    </div>
-  </section>
-
   <!-- ============ SETTINGS TAB ============ -->
   <section id="tab-settings" class="tab-pane">
-    <div class="guide-strip"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> <span id="tipSettings"></span></div></div>
+    <div class="guide-strip"><span class="dar-badge" aria-hidden="true">✦</span><div><b>علم ينتفع به:</b> <span id="tipSettings"></span></div></div>
     <h2>⚙️ الإعدادات</h2>
 
-    <h3>👤 عنك (اختياري — Lyra تفتكرك)</h3>
+    <h3>🔠 حجم الخط</h3>
+    <p class="hint">كبّر الخط أو صغّره حسب راحة عينك — يتطبق على الآيات والنصوص فوراً، ويتحفظ على جهازك.</p>
+    <div class="row textsize-row" id="textSizeRow">
+      <button class="btn textsize-btn" data-textsize="small">صغير</button>
+      <button class="btn textsize-btn" data-textsize="medium">وسط</button>
+      <button class="btn textsize-btn" data-textsize="large">كبير</button>
+    </div>
+
+    <h3>👤 عنك (اختياري — التطبيق يفتكرك)</h3>
     <label class="field-label" for="userName">اسمك</label>
     <input id="userName" type="text" placeholder="مثال: روني" maxlength="30" autocomplete="off">
-    <div class="hint">يُحفظ على جهازك فقط — Lyra ترحّب بك باسمك، وتفتكر النمط اللي بتحبه في الفيديوهات.</div>
+    <div class="hint">يُحفظ على جهازك فقط — التطبيق يرحّب بك باسمك.</div>
 
     <h3>📢 أعلن معنا (للأعمال)</h3>
-    <p class="hint">💼 للإعلانات والأعمال: الإعلانات والرعاة بيموّلوا الفيديوهات المجانية للجميع. زر «📢 أعلن معنا» الوحيد موجود في الصفحة الرئيسية فوق — اضغطه وكلّمنا واتساب.</p>
+    <p class="hint">💼 للإعلانات والأعمال: الإعلانات والرعاة بيموّلوا التطبيق المجاني للجميع. زر «📢 أعلن معنا» موجود في الصفحة الرئيسية فوق — اضغطه وكلّمنا واتساب.</p>
 
-    <h3>🎬 نص نهاية الحلقة (End-card)</h3>
-    <p class="hint">انسخ هذا النص وضعه في وصف حلقات «أصلي يا باشا» أو في آخرها — يوجّه المشاهدين للتطبيق وللصفحة:</p>
+    <h3>🕌 نص دعوة للتطبيق</h3>
+    <p class="hint">انسخ هذا النص وشاركه مع من تحب — يوجّههم للتطبيق:</p>
     <div class="copy-box">
       <textarea id="endCardText" rows="5" readonly></textarea>
       <button id="copyEndCard" class="btn">📋 نسخ</button>
@@ -671,7 +189,7 @@
     <a class="btn fb-btn" href="https://facebook.com/people/أصلى-مش-مضروب/61571405720824/" target="_blank" rel="noopener">👍 تابع صفحة «أصلى مش مضروب» على فيسبوك</a>
     <a id="youtubeBtn" class="btn yt-btn hidden" href="#" target="_blank" rel="noopener">📺 قناتنا على يوتيوب — شاهد الحلقات وفعّل الجرس</a>
 
-    <h3>🔐 تسجيل الدخول بجوجل — Nano Banana + الوضع الذكي</h3>
+    <h3>🔐 تسجيل الدخول بجوجل — الوضع الذكي</h3>
     <div class="google-auth-box">
       <div class="hint" id="googleAuthStatus"></div>
       <div class="row">
@@ -680,7 +198,7 @@
       </div>
       <div class="hint" data-google-account></div>
       <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة، مجاناً).</div>
-      <div class="auth-quota-note">⚖️ بصراحة: تسجيل الدخول ده بيستخدم حصة Gemini المجانية الخاصة بمشروع Google بتاع صاحب التطبيق — يعني الحصة مشتركة بين كل المستخدمين. لو خلصت في يوم، التطبيق هيقولك «الحصة خلصت» والوضع المجاني (Pollinations / Flux) يفضل شغال. (الحصة الخاصة بكل مستخدم موجودة بس في «جولة الفيديو المجاني» لأنها على مواقع Google نفسها.)</div>
+      <div class="auth-quota-note">⚖️ بصراحة: تسجيل الدخول ده بيستخدم حصة Gemini المجانية الخاصة بمشروع Google بتاع صاحب التطبيق — يعني الحصة مشتركة بين كل المستخدمين. لو خلصت في يوم، التطبيق هيقولك «الحصة خلصت» والوضع المجاني يفضل شغال.</div>
     </div>
 
     <h3>💬 مصدر المحادثة</h3>
@@ -688,7 +206,7 @@
       <label><input type="radio" name="chatProvider" value="pollinations" checked> Pollinations مجاني (بدون دخول) — جودة عادية</label>
       <label><input type="radio" name="chatProvider" value="gemini"> ⭐ جودة أعلى (تسجيل دخول بجوجل) — إجابات أفضل من النموذج المجاني</label>
     </div>
-    <div class="hint">بصراحة: النموذج المجاني ليس بمستوى ChatGPT؛ بتسجيل دخولك بجوجل تحصل على إجابات أفضل (Gemini 2.5 Flash). نفس الدخول يفعّل أيضاً <b>تعديل الصور بالذكاء الاصطناعي</b> (Nano Banana) وتوليد صور بجودة أعلى من تبويب «صور». التوكن يُحفظ على جهازك فقط ولا يُرسَل لأي خادم غير Google.</div>
+    <div class="hint">بصراحة: النموذج المجاني ليس بمستوى ChatGPT؛ بتسجيل دخولك بجوجل تحصل على إجابات أفضل (Gemini 2.5 Flash). التوكن يُحفظ على جهازك فقط ولا يُرسَل لأي خادم غير Google.</div>
     <details class="advanced-key">
       <summary>🔧 خيار متقدم: مفتاح Gemini يدوياً (للي عنده مفتاح أصلاً — مش لازم خالص)</summary>
       <label class="field-label" for="geminiKey">مفتاح Gemini المجاني (من <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> — بدون بطاقة)</label>
@@ -696,144 +214,47 @@
       <div class="hint">يُستخدم فقط إذا اخترت «جودة أعلى» ولم تسجّل دخولك بجوجل. يُرسَل إلى Google مباشرة ولا يُحفظ على أي خادم. اتركه فارغاً لاستخدام Pollinations المجاني أو الدخول بجوجل.</div>
     </details>
 
-    <h3>⭐ الفيديو السينمائي المباشر — Gemini Omni (للمطوّر فقط — متوقف افتراضياً)</h3>
-    <label class="field-label" for="veoWorkerUrl">رابط Cloudflare Worker للفيديو المباشر</label>
-    <input id="veoWorkerUrl" type="text" placeholder="https://lyra-video.اسمك.workers.dev — اتركه فارغاً لإبقاء الميزة متوقفة" autocomplete="off">
-    <div class="hint">المحرك المباشر الآن هو <b>Gemini Omni 1.2 Flash</b> (بديل Veo 3.1 — Google أوقفت Veo في Gemini API في 22 أكتوبر 2026). الكليب 720p (8 ثوانٍ) يكلف ~0.56$، و1080p ~0.83$ — أرخص من Veo Fast (0.96$). الـ Worker يحمل مفتاح Gemini في متغيرات البيئة (أبداً داخل التطبيق) ويفرض سقفاً يومياً عاماً وسقفاً لكل جهاز. خطوات التفعيل في README.md و worker/README.md.</div>
-    <label class="setting-row"><input type="checkbox" id="veoManualOn"> ✅ فعّلت الفيديو المباشر — تم نشر الـ Worker وشحن رصيد Google Cloud الأولي من أرباح الإعلانات</label>
-    <div class="hint">⚠️ مهم: لا يوجد تحويل تلقائي من AdMob إلى Google Cloud أبداً — AdMob يدفع لحسابك البنكي شهرياً بعد وصول 100$، وGoogle Cloud تخصم من رصيد تشحنه أنت بنفسك. فعّل هذا الخيار مرة واحدة بعد التفعيل الأولي. بعدها يتبدّل وضع الفيديو المباشر (اشتراك ↔ مجاني) <b>تلقائياً</b> حسب رصيد الصندوق — بلا أي تدخل منك. <b>الاشتراك عبر Google Play خطوة لاحقة</b> — التطبيق حالياً ويب + PWA بدون Play (انظر DEPLOY.md).</div>
-
     <h3>📲 تثبيت التطبيق على شاشتك</h3>
     <p class="hint">التطبيق يعمل كصفحة ويب كاملة من غير تثبيت، ويمكنك تثبيته كأيقونة على الشاشة الرئيسية (PWA) — يفتح بضغطة واحدة من غير متصفح.</p>
-    <button id="installAppBtn" class="btn">📲 تثبيت Lyra على شاشتك</button>
-
-    <h3>💰 لوحة الرصيد — لروني (تقديرات فقط)</h3>
-    <div class="money-card" id="moneyCard">
-      <div class="money-row"><span>📦 صندوق الإعلانات المقدَّر هذا الشهر:</span><b id="moneyPoolMonth">~$0.00</b></div>
-      <div class="money-row"><span>📺 إعلانات هذا الشهر:</span><b id="moneyAdsMonth">0 إعلان</b></div>
-      <div class="money-row"><span>🎬 إنفاق الفيديو المباشر المقدَّر هذا الشهر:</span><b id="moneyVeoSpend">~$0.00 (0 مقطع)</b></div>
-      <div class="money-row"><span>💰 ربحك المحفوظ (احتياطي 3$/يوم):</span><b id="moneyProfit">~$0.00</b></div>
-      <div class="money-row"><span>🔄 وضع الفيديو المباشر (يتبدّل تلقائياً):</span><b id="moneyVeoMode">اشتراك</b></div>
-      <div class="money-row"><span>⚖️ رصيد الصندوق المقدَّر / حد الفتح المجاني:</span><b id="moneyBalance">~$0.00 / ~$0.00</b></div>
-      <div class="money-row"><span>🎬 من المتبقي — سعة فيديو مباشر إضافية:</span><b id="moneyVeoShare">~$0.00</b></div>
-      <div class="money-row"><span>🚀 من المتبقي — تطوير مزايا أسرع:</span><b id="moneyImproveShare">~$0.00</b></div>
-      <div class="hint" id="moneyLoop">🔄 حلقة الدخل: الإيراد → ربحك (3$/يوم) → سعة الفيديو المباشر + تطوير المزايا — كل إعلان يطوّر التطبيق ويسرّع الفيديوهات.</div>
-      <div class="hint" id="moneyNote">⏳ الأرقام تقديرية من عدّادات التطبيق والـ Worker — ليست أرقام AdMob أو Google الحقيقية.</div>
-      <button id="moneyRefresh" class="btn small">🔄 حدّث الأرقام</button>
+    <button id="installAppBtn" class="btn">📲 تثبيت علم ينتفع به على شاشتك</button>
+    <div id="installSteps" class="install-steps hidden">
+      <b>📲 التثبيت اليدوي — اختر جهازك:</b>
+      <span>أندرويد (كروم): من قائمة المتصفح ⋮ اختر «إضافة إلى الشاشة الرئيسية».</span>
+      <span>آيفون (سفاري): زر المشاركة ⎋ ثم «إضافة إلى الشاشة الرئيسية».</span>
+      <span>كمبيوتر (كروم/إيدج): أيقونة التثبيت في شريط العنوان.</span>
     </div>
-    <div class="hint">🏦 بصراحة: AdMob يدفع لحسابك البنكي شهرياً بعد وصول رصيدك 100$ (أول دفعة بعد ~شهر ونصف)، وGoogle Cloud تخصم تكلفة الفيديو المباشر من رصيد تشحنه أنت بنفسك — لا يوجد تحويل تلقائي بينهما أبداً. أما فلوس الإعلانات المباشرة (رعاة) فتصلك فوراً نقداً أو تحويلاً، ويمكنك شحن Google Cloud منها فوراً.</div>
-
-    <h3>⭐ برو — أقوى نسخة</h3>
-    <div class="pro-card" id="proSection">
-      <div class="pro-compare">
-        <div class="pro-col"><b>🆓 مجاني</b><ul><li>فيديوهات: 50 فيديو مجاني/يوم</li><li>محادثة: 10 رسائل/يوم</li><li>معاينات برومبت: 5/يوم</li><li>بانر إعلاني في المعرض</li></ul></div>
-        <div class="pro-col pro-col-gold"><b>⭐ برو (~50 ج/شهر)</b><ul><li>فيديوهات بلا إعلانات وبلا حد يومي</li><li>محادثة بلا حدود + أذكى وضع</li><li>مكتبة برومبتات بلا حدود</li><li>فيديو سينمائي مباشر عند توفره</li><li>بلا إعلانات • تنزيل HD</li><li>أنماط وأصوات إضافية</li><li>وصول مبكر للبرومبتات الجديدة</li></ul></div>
-      </div>
-      <p class="hint" id="proState"></p>
-      <p class="hint" id="deviceIdLine"></p>
-      <p class="hint" id="proCodeUsed"></p>
-      <button id="proSubscribeBtn" class="btn-primary">⭐ اشترك في برو — عبر واتساب (تفعيل يدوي)</button>
-      <div class="row" id="proCodeRow">
-        <input id="proCodeInput" type="text" placeholder="كود التفعيل من روني (LYRA-PRO-…)" autocomplete="off">
-        <button id="proActivateBtn" class="btn">✅ فعّل برو</button>
-      </div>
-      <button id="proDeactivateBtn" class="btn link hidden">إيقاف برو على هذا الجهاز</button>
-      <div class="hint">💡 الاشتراك الآن يدوي عبر واتساب — روني يرسل لك كود التفعيل بعد الدفع. عند النشر على Google Play لاحقاً ستتم الفوترة داخل التطبيق. أولوية المعالجة في برو أسرع بصمت، دون أي إظهار للطابور.</div>
-    </div>
-
-    <h3>🧭 جولة التعريف</h3>
-    <button id="showWizardAgain" class="btn">▶️ إعادة جولة «اعمل أول فيديو» (3 خطوات)</button>
-
-    <h3>📢 الإعلانات (AdMob)</h3>
-    <div class="hint">الإعلانات الحقيقية تحتاج: حساب AdMob + معرّفات التطبيق + بناء نسخة أندرويد (Capacitor). زر «شاهد إعلاناً» يظهر دائماً (إعلانات تجريبية على الويب حتى تنشر نسخة أندرويد)؛ البانر يظهر فقط بمعرّف حقيقي.</div>
-    <label class="field-label" for="admobAppId">AdMob App ID</label>
-    <input id="admobAppId" type="text" value="ca-app-pub-9117972626650086~8368459382">
-    <label class="field-label" for="admobRewardedId">Rewarded Ad Unit ID</label>
-    <input id="admobRewardedId" type="text" value="ca-app-pub-9117972626650086/3449185524">
-    <label class="field-label" for="admobBannerId">Banner Ad Unit ID</label>
-    <input id="admobBannerId" type="text" value="ca-app-pub-9117972626650086/9739261706">
-
-    <h3>📢 إعلانات الويب (AdSense) — للنسخة المتصفح فقط</h3>
-    <div class="hint">إعلان واحد أسفل قسم «الرائج الآن» في نسخة الويب. يحتاج حساب AdSense معتمد + إضافة رابط الموقع في حسابك (نفس حساب مدفوعات Google الخاص بـ AdMob). الخانة مخفية تماماً حتى تحفظ معرّفاً حقيقياً.</div>
-    <label class="field-label" for="adsenseClientId">AdSense Publisher ID</label>
-    <input id="adsenseClientId" type="text" value="ca-pub-XXXXXXXXXXXXXXXX">
-    <label class="field-label" for="adsenseSlotId">AdSense Ad Slot ID</label>
-    <input id="adsenseSlotId" type="text" value="XXXXXXXXXX">
     <button id="saveSettings" class="btn">💾 حفظ الإعدادات</button>
 
-    <h3>ℹ️ حدود النسخة المجانية — بصراحة</h3>
+    <h3>💾 نسخة احتياطية من تقدّمك</h3>
+    <p class="hint">تقدّمك (دروس اليوم، السلسلة اليومية، النجوم، أوسمة السلوكيات، نتائج الاختبارات، المحادثات) محفوظ على هذا الجهاز فقط — لو غيّرت هاتفك أو مسحت بيانات التطبيق ستفقده. صدّر نسخة احتياطية الآن واحتفظ بها، واستوردها على أي جهاز لاسترجاع كل شيء.</p>
+    <div class="row">
+      <button id="darExportBtn" class="btn">💾 تصدير نسخة احتياطية (JSON)</button>
+      <label class="btn" for="darImportFile">📥 استيراد نسخة احتياطية</label>
+      <input id="darImportFile" type="file" accept="application/json,.json" class="hidden">
+    </div>
+
+    <h3>📢 الإعلانات — كيف يدعم التطبيق نفسه؟</h3>
+    <div class="hint">التطبيق <b>مجاني بالكامل</b> — لا يوجد أي اشتراك مدفوع. الإعلانات هي الدعم الوحيد: إعلانات عائلية آمنة فقط (موجّهة للأطفال، غير مخصّصة)، و<b>لا تظهر أبداً على صفحات القرآن أو قرب نص الآيات</b> احتراماً لكتاب الله. البانر يظهر فقط في الصفحة الرئيسية، ولا توجد إعلانات إجبارية (لا إعلانات بينية) — فقط إعلان اختياري بمكافأة (+5 رسائل لاسأل المعلم) تشاهده إذا أردت.</div>
+
+    <h3>ℹ️ الاستخدام — بصراحة</h3>
     <ul class="limits">
-      <li>الصور من Pollinations مجاناً: صورة كل 45 ثانية تقريباً، بحد أقصى 576×1024، وبشعار صغير في الزاوية — وجودة الصور جيدة لا ممتازة؛ لجودة أعلى سجّل دخولك بجوجل واختار Nano Banana.</li>
-      <li>تعديل صورة موجودة بالذكاء الاصطناعي لا يعمل بالمحرك المجاني — سجّل دخولك بجوجل أولاً (تبويب «من صورة»).</li>
-      <li>الفيديو أسلوب «شرائح متحركة» (صور + حركة بطيئة)، وليس فيديو سينمائياً مباشراً مولّداً بالكامل.</li>
-      <li>لا يوجد تعليق صوتي جاهز مجاناً من Pollinations — التعليق إما قراءة حيّة من جهازك أو تسجيل صوتك.</li>
-      <li>🎤 الإدخال الصوتي (الميكروفون) يعمل في كروم على أندرويد/سطح المكتب حيث يدعمه المتصفح؛ في نسخة التطبيق (APK) يحتاج إضافة @capacitor-community/speech-recognition — والتسجيل الصوتي على هاتف روني لم يُختبر بعد، فلا نعد بنجاحه قبل التجربة.</li>
+      <li>المصحف كاملاً (114 سورة) والتجويد والحديث: مجاناً بالكامل وبلا حدود — النصوص من مصادر موثوقة.</li>
+      <li>اسأل المعلم: 20 رسالة مجانية في اليوم؛ شاهد إعلاناً واحداً تحصل على +5 رسائل إضافية.</li>
+      <li>التلاوة بصوت مقرئين حقيقيين فقط (تسجيلات) — لا يُستخدم صوت آلي في قراءة القرآن أو الحديث أبداً.</li>
+      <li>الفيديوهات التعليمية من يوتيوب تحتاج إنترنت — وهي مضمّنة من قنوات المشايخ، ولا يُعاد رفعها.</li>
+      <li>🎤 الإدخال الصوتي (الميكروفون) في المحادثة يعمل في كروم على أندرويد/سطح المكتب حيث يدعمه المتصفح.</li>
       <li>الخدمة المجانية بلا ضمان استمرارية وقد تتغير حدودها في أي وقت.</li>
-      <li>إذا توقف الوصول المجاني: سجّل دخولك بجوجل وستعمل المحادثة عبر الوضع الذكي.</li>
     </ul>
   </section>
 </main>
 
-<!-- متصفح داخل التطبيق: جولة الفيديو المجاني -->
-<div id="webviewOverlay" class="webview-overlay hidden" role="dialog" aria-modal="true" aria-label="متصفح داخل التطبيق">
-  <div class="webview-bar">
-    <button id="webviewClose" class="btn small">✕ إغلاق</button>
-    <div class="webview-title"><b id="webviewModelName"></b><small id="webviewHint">أنت داخل موقع الخدمة بحسابك — اعمل الكليب بنفسك، ولما يخلص ارجع هنا وارفع الكليب.</small></div>
-    <button id="webviewExternal" class="btn small">🌐 فتح في المتصفح</button>
-    <button id="webviewImport" class="btn-primary small">⬆️ خلصت؟ ارفع الكليب</button>
-  </div>
-  <div class="webview-wait" id="webviewWait"><span class="webview-spinner" aria-hidden="true"></span><span>جاري تجهيز الفيديو… الصفحة بتتحمل، استنى ثواني.</span></div>
-  <div class="webview-fallback hidden" id="webviewFallback">الصفحة مش ظاهرة؟ بعض المواقع بتمنع العرض داخل التطبيقات — اضغط «فتح في المتصفح»، اعمل كليبك هناك، وارجع هنا ارفع الكليب.</div>
-  <iframe id="tourFrame" title="موقع خدمة الفيديو" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals"></iframe>
-</div>
-
-<!-- Wizard: جولة البداية (3 خطوات) -->
-<div id="wizardModal" class="modal hidden">
-  <div class="modal-card wizard-card">
-    <div class="modal-title">🎬 اعمل أول فيديو في 3 خطوات</div>
-    <div class="wiz-dots"><span class="wiz-dot active">1</span><span class="wiz-dot">2</span><span class="wiz-dot">3</span></div>
-    <div id="wizStep1">
-      <div class="mascot-bar"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> اكتب فكرتك هنا، وسأتولى الباقي.</div></div>
-      <label class="field-label" for="wizIdea">1️⃣ فكرتك — اكتبها بكلام عادي أو تحدث بالميكروفون</label>
-      <div class="chat-input-row">
-        <textarea id="wizIdea" rows="3" maxlength="300" placeholder="مثال: قط صغير يطبخ كشري في مطبخ مصري…"></textarea>
-        <button id="wizMic" class="btn mic-btn" title="تحدث بدل الكتابة">🎤</button>
-      </div>
-      <div class="field-label">أو اضغط مثالاً جاهزاً:</div>
-      <div class="examples-grid" id="wizExamples"></div>
-      <button id="wizNext1" class="btn-primary">التالي: اختار شكل الفيديو ➡️</button>
-      <button class="btn link wiz-skip">تخطّي الجولة</button>
-    </div>
-    <div id="wizStep2" class="hidden">
-      <div class="mascot-bar"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> اختار الشكل اللي يعجبك — مفيش اختيار غلط.</div></div>
-      <label class="field-label">2️⃣ اختار شكل الفيديو (اضغط صورة)</label>
-      <div class="styles-grid" id="wizStyles"></div>
-      <div class="row btns">
-        <button id="wizBack2" class="btn">⬅️ رجوع</button>
-        <button id="wizNext2" class="btn-primary">التالي: اعمل الفيديو ➡️</button>
-      </div>
-      <button class="btn link wiz-skip">تخطّي الجولة</button>
-    </div>
-    <div id="wizStep3" class="hidden">
-      <div class="mascot-bar"><span class="lyra-badge" aria-hidden="true">L</span><div><b>Lyra:</b> كده تمام — اضغط الزر الكبير وسيتم إنشاء الفيديو. 🎬</div></div>
-      <label class="field-label">3️⃣ راجع واعمل الفيديو</label>
-      <div id="wizSummary" class="wiz-summary"></div>
-      <button id="wizGo" class="btn-primary">🎬 اعمل الفيديو</button>
-      <div class="row btns">
-        <button id="wizBack3" class="btn">⬅️ رجوع</button>
-      </div>
-      <button class="btn link wiz-skip">تخطّي الجولة</button>
-    </div>
-  </div>
-</div>
-
 <!-- Rewarded ad gate modal -->
 <div id="adModal" class="modal hidden">
   <div class="modal-card">
-    <div class="modal-title">إعلان تجريبي — +1 نقطة للفيديو السينمائي</div>
-    <div class="hint" id="adProgress">إعلان 1 من 3 — فيديوك جاهز بعد الثالث</div>
+    <div class="modal-title">إعلان تجريبي — +5 رسائل إضافية</div>
+    <div class="hint" id="adProgress">إعلان واحد قصير — وبعده تُضاف الرسائل فوراً</div>
     <div class="hint" id="adPoolLine"></div>
-    <p>شاهد إعلاناً قصيراً واحصل على <b>+1 نقطة للفيديو السينمائي</b>. اختياري تماماً — لا إعلانات إجبارية في التطبيق، ولا إعلانات أثناء المحادثة.</p>
+    <p>شاهد إعلاناً قصيراً واحصل على <b>+5 رسائل إضافية</b> لاسأل المعلم. اختياري تماماً — لا إعلانات إجبارية في التطبيق، ولا إعلانات أثناء القراءة.</p>
     <div class="fake-ad">
       <div class="fake-ad-label">إعلان تجريبي — لا يوجد معلن حقيقي بعد</div>
       <div class="fake-ad-body">هذا إعلان تجريبي من التطبيق نفسه للتجربة فقط.<br>الإعلانات الحقيقية تصل مع نسخة أندرويد (AdMob) — ومشاهدتك الآن تمنحك نفس الرصيد.</div>
@@ -849,6 +270,7 @@
 <div id="toast" class="toast hidden"></div>
 
 <script src="app.js"></script>
+<script src="quran.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

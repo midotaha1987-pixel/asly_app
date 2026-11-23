@@ -1,7 +1,7 @@
-/* Lyra service worker — cache-first for the app shell only.
-   API calls (Pollinations / Gemini) are never cached. */
-const CACHE = 'lyra-v4';
-const SHELL = ['index.html', 'style.css', 'app.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon.svg', 'featured.json', 'featured-1.jpg', 'featured-2.jpg', 'featured-3.jpg', 'sponsors.json', 'prompts.json'];
+/* علم ينتفع به service worker — cache-first for the app shell only.
+   API calls (AlQuran Cloud / jsDelivr / Pollinations / Gemini / YouTube) are never cached. */
+const CACHE = 'dar-quran-v2'; // BUMP ON EVERY SHELL RELEASE — browsers only reinstall the SW when sw.js itself changes; a stale CACHE serves the old app forever.
+const SHELL = ['index.html', 'style.css', 'app.js', 'quran.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'logo-a.webp', 'logo-b.webp', 'sponsors.json', 'data/manners.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -13,7 +13,10 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  const isApi = url.hostname.includes('pollinations.ai') || url.hostname.includes('googleapis.com');
+  const isApi = url.hostname.includes('alquran.cloud') || url.hostname.includes('islamic.network')
+    || url.hostname.includes('jsdelivr.net') || url.hostname.includes('pollinations.ai')
+    || url.hostname.includes('googleapis.com') || url.hostname.includes('youtube')
+    || url.hostname.includes('googlevideo.com') || url.hostname.includes('fonts.g');
   if (isApi || e.request.method !== 'GET') return; // network only for APIs
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
