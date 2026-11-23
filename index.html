@@ -17,6 +17,8 @@
 <body>
 <div class="sticky-top">
 <header class="app-header">
+  <button id="headerGoogleBtn" class="google-btn header-google-btn" data-google-signin data-set-smart="1"><span class="g-mark">G</span> <span class="gsi-full">سجّل دخول بجوجل</span><span class="gsi-short">دخول</span></button>
+  <button class="btn small header-signout hidden" data-google-signout>تسجيل خروج</button>
   <div class="logo">
     <img class="logo-img" src="logo-b.webp" alt="شعار علم ينتفع به">
     <span class="logo-word">علم ينتفع به</span>
@@ -124,10 +126,9 @@
     <div class="chat-smart hidden" id="chatSmartCard">
       <b>⭐ الوضع الذكي الأعلى — إجابات أقوى، من غير أي مفتاح</b>
       <p class="hint">سجّل دخولك بجوجل مرة واحدة، وبعدها الوضع الذكي يشتغل على طول — للأسئلة (Gemini 2.5 Flash). التوكن بيتحفظ على جهازك بس، ومفيش حاجة تنسخها.</p>
+      <p class="hint">تسجيل الدخول من الزر أعلى الصفحة على اليمين.</p>
       <div class="row">
-        <button class="google-btn" data-google-signin data-set-smart="1"><span class="g-mark">G</span> سجّل دخول بجوجل</button>
         <button id="chatSmartActivate" class="btn-primary small hidden">✅ فعّل الوضع الذكي</button>
-        <button class="btn small" data-google-signout>تسجيل خروج</button>
         <button id="chatSmartCancel" class="btn small">ليس الآن</button>
       </div>
       <div class="hint" data-google-account></div>
@@ -192,10 +193,7 @@
     <h3>🔐 تسجيل الدخول بجوجل — الوضع الذكي</h3>
     <div class="google-auth-box">
       <div class="hint" id="googleAuthStatus"></div>
-      <div class="row">
-        <button class="google-btn" data-google-signin><span class="g-mark">G</span> سجّل دخول بجوجل</button>
-        <button class="btn small" data-google-signout>تسجيل خروج</button>
-      </div>
+      <p class="hint">تسجيل الدخول من الزر أعلى الصفحة على اليمين.</p>
       <div class="hint" data-google-account></div>
       <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة، مجاناً).</div>
       <div class="auth-quota-note">⚖️ بصراحة: تسجيل الدخول ده بيستخدم حصة Gemini المجانية الخاصة بمشروع Google بتاع صاحب التطبيق — يعني الحصة مشتركة بين كل المستخدمين. لو خلصت في يوم، التطبيق هيقولك «الحصة خلصت» والوضع المجاني يفضل شغال.</div>

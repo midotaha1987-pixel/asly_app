@@ -56,6 +56,16 @@ body {
   font-size: 14px; background: rgba(255,255,255,.12); color: #fff;
   padding: 6px 10px; border-radius: 20px; line-height: 1.8; border: 1px solid rgba(201,162,39,.5);
 }
+/* زر الدخول بجوجل الوحيد — أول عنصر في الهيدر = أقصى اليمين في RTL.
+   مضغوط (لا يتمدد ولا يزاحم الشعار)، ونصه يختصر لـ«دخول» على الشاشات الضيقة. */
+.app-header .google-btn { flex: none; min-width: 0; padding: 10px 14px; min-height: 44px; }
+.app-header .gsi-short { display: none; }
+.app-header .header-signout { flex: none; }
+@media (max-width: 480px) {
+  .app-header .gsi-full { display: none; }
+  .app-header .gsi-short { display: inline; }
+  .app-header .google-btn { padding: 8px 12px; gap: 8px; }
+}
 .pro-badge {
   background: linear-gradient(135deg, #C9A227, #A8861B); color: #fff; border: none;
   border-radius: 999px; padding: 2px 10px; font-size: 14px; font-weight: 700; cursor: pointer;

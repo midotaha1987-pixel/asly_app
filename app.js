@@ -156,7 +156,7 @@ async function googleSignIn() {
   if (!googleOAuthConfigured()) { toast('⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة)'); return false; }
   try {
     await requestGoogleAccessToken({ prompt: 'consent' });
-    toast('✅ تم تسجيل دخولك بجوجل — Nano Banana والوضع الذكي مفعّلان');
+    toast('✅ تم تسجيل دخولك بجوجل — الوضع الذكي مفعّل');
     return true;
   } catch (err) {
     console.warn('[google-auth]', err && err.message);
@@ -220,10 +220,12 @@ function renderGoogleAuthUI() {
   const signedIn = googleSignedIn();
   const label = googleAccountLabel();
   document.querySelectorAll('[data-google-signin]').forEach(btn => {
-    btn.disabled = !configured;
+    // زر الدخول الوحيد في الهيدر — يبقى قابلاً للنقر حتى قبل اكتمال إعداد
+    // OAuth: النقرة تعرض تنبيه الإعداد (googleSignIn) بدل زر معطّل بلا رد.
+    btn.disabled = false;
     if (!signedIn) btn.innerHTML = configured
-      ? '<span class="g-mark">G</span> سجّل دخول بجوجل'
-      : '⏳ تسجيل الدخول بجوجل — بيتجهز…';
+      ? '<span class="g-mark">G</span> <span class="gsi-full">سجّل دخول بجوجل</span><span class="gsi-short">دخول</span>'
+      : '<span class="g-mark">G</span> <span class="gsi-full">تسجيل الدخول — بيتجهز…</span><span class="gsi-short">بيتجهز…</span>';
     btn.classList.toggle('hidden', signedIn);
   });
   document.querySelectorAll('[data-google-signout]').forEach(btn => {
