@@ -1,8 +1,8 @@
 # بناء نسخة APK (debug) لتطبيق «علم ينتفع به» — يعمل على GitHub
 # الناتج: ملف ilm-yantaf3-bihi-v2.0.0.apk جاهز للتثبيت على أندرويد مباشرة،
-# ويُرفع كأصل (asset) في الإصدار android-v2.0.0 — رابطه ثابت ويستخدمه
+# ويُرفع كأصل (asset) في الإصدار v2.0.0-android — رابطه ثابت ويستخدمه
 # زر «نزّل نسخة الأندرويد» في الصفحة الرئيسية للتطبيق:
-# https://github.com/midotaha1987-pixel/asly_app/releases/download/android-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
+# https://github.com/midotaha1987-pixel/asly_app/releases/download/v2.0.0-android/ilm-yantaf3-bihi-v2.0.0.apk
 #
 # متى يعمل:
 # - يدوياً من تبويب Actions (workflow_dispatch) — الطريقة المعتادة بعد أي
@@ -92,15 +92,15 @@ jobs:
       - name: Remove previous release (if any)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release delete android-v2.0.0 --yes --cleanup-tag || true
+        run: gh release delete v2.0.0-android --yes --cleanup-tag || true
 
       # Stable download URL for the home-screen button:
-      # .../releases/download/android-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
+      # .../releases/download/v2.0.0-android/ilm-yantaf3-bihi-v2.0.0.apk
       # (creates the release on first run, replaces the asset afterwards)
-      - name: Publish to release android-v2.0.0
+      - name: Publish to release v2.0.0-android
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: android-v2.0.0
+          tag_name: v2.0.0-android
           name: Android v2.0.0 (APK)
           body: "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة."
           files: ilm-yantaf3-bihi-v2.0.0.apk
