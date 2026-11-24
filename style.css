@@ -216,6 +216,8 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
   border-radius: 999px; padding: 3px 10px; font-size: 16px; cursor: pointer; font-family: inherit;
 }
 .msg.user .msg-actions button { background: rgba(255,255,255,.18); border-color: transparent; color: #fff; }
+.msg-actions button.danger { color: #9B2226; border-color: rgba(155,34,38,.35); background: rgba(155,34,38,.06); }
+.msg.user .msg-actions button.danger { color: #FFD9D9; border-color: rgba(255,255,255,.35); background: rgba(155,34,38,.30); }
 .msg-body p { margin: 0 0 8px; }
 .msg-body p:last-child { margin-bottom: 0; }
 .msg-body h3, .msg-body h4, .msg-body h5 { margin: 10px 0 6px; font-size: 16px; color: var(--ink); }

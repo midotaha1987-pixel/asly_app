@@ -1009,9 +1009,9 @@ function renderChat() {
     const acts = document.createElement('div');
     acts.className = 'msg-actions';
     if (m.role === 'user') {
-      acts.innerHTML = `<button data-act="edit" type="button">✏️ تعديل</button><button data-act="copy" type="button">📋 نسخ</button>`;
+      acts.innerHTML = `<button data-act="edit" type="button">✏️ تعديل</button><button data-act="copy" type="button">📋 نسخ</button><button data-act="delete" class="danger" type="button">🗑️ حذف</button>`;
     } else if (m.role === 'assistant' && m.text) {
-      acts.innerHTML = `<button data-act="copy" type="button">📋 نسخ</button><button data-act="regen" type="button">🔄 إعادة الإجابة</button>`;
+      acts.innerHTML = `<button data-act="edit" type="button">✏️ تعديل</button><button data-act="copy" type="button">📋 نسخ</button><button data-act="regen" type="button">🔄 إعادة الإجابة</button><button data-act="delete" class="danger" type="button">🗑️ حذف</button>`;
     }
     if (acts.children.length) div.appendChild(acts);
     log.appendChild(div);
@@ -1356,6 +1356,31 @@ async function editUserMessage(idx, newText) {
   renderChat();
   return streamReply(false);
 }
+/* تعديل ردّ المعلم: يحدَّث النص في مكانه فقط — بلا توليد جديد وبلا استهلاك.
+   يمرّ على نفس فحص المحتوى؛ عند الفشل يُحفَظ النص الأصلي كما هو. */
+async function editAssistantMessage(idx, newText) {
+  if (chatStreaming) return null;
+  const hist = chatHistory();
+  if (idx < 0 || hist[idx].role !== 'assistant') return null;
+  const t = String(newText || '').trim();
+  if (!t) return null;
+  const f = filterCheck(t);
+  if (!f.ok) { toast(REFUSAL); return null; }
+  hist[idx].text = t;
+  saveChatHistory(hist);
+  renderChat();
+  return t;
+}
+/* حذف رسالة واحدة فقط من السجل — بلا استدعاء للنموذج وبلا تغيير في الحد اليومي. */
+function deleteMessage(idx) {
+  if (chatStreaming) { toast('⏳ استنى المعلم يخلّص الكتابة الأول'); return false; }
+  const hist = chatHistory();
+  if (idx < 0 || idx >= hist.length) return false;
+  hist.splice(idx, 1);
+  saveChatHistory(hist);
+  renderChat();
+  return true;
+}
 $('#chatSend').addEventListener('click', sendChat);
 $('#chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
 $('#chatStop').addEventListener('click', () => { if (chatAbort) chatAbort.abort(); });
@@ -1413,21 +1438,27 @@ $('#chatLog').addEventListener('click', async (e) => {
     catch (err) { toast('⚠️ تعذّر النسخ في هذا المتصفح'); }
   } else if (act === 'regen') {
     await regenerateMessage(idx);
+  } else if (act === 'delete') {
+    if (confirm('حذف هذه الرسالة؟')) deleteMessage(idx);
   } else if (act === 'edit') {
     const body = msgEl.querySelector('.msg-body');
     if (!body || msgEl.querySelector('.msg-edit')) return;
+    const isUser = m.role === 'user';
     const ta = document.createElement('textarea');
     ta.className = 'msg-edit';
     ta.value = m.text;
     ta.rows = 3;
     const row = document.createElement('div');
     row.className = 'msg-edit-row';
-    row.innerHTML = `<button class="btn-primary small" data-edit-save type="button">إرسال التعديل</button><button class="btn small" data-edit-cancel type="button">إلغاء</button>`;
+    row.innerHTML = `<button class="btn-primary small" data-edit-save type="button">${isUser ? 'إرسال التعديل' : 'حفظ التعديل'}</button><button class="btn small" data-edit-cancel type="button">إلغاء</button>`;
     body.textContent = '';
     body.appendChild(ta);
     body.appendChild(row);
     ta.focus();
-    row.querySelector('[data-edit-save]').onclick = async () => { await editUserMessage(idx, ta.value); };
+    row.querySelector('[data-edit-save]').onclick = async () => {
+      if (isUser) await editUserMessage(idx, ta.value);
+      else await editAssistantMessage(idx, ta.value);
+    };
     row.querySelector('[data-edit-cancel]').onclick = () => renderChat();
   }
 });
@@ -1500,7 +1531,7 @@ window.__asly = {
   googleOAuthConfigured, googleSignedIn, googleAccountLabel, googleSignIn, googleSignOut,
   getGeminiAuth, geminiFetch, renderGoogleAuthUI, ensureGoogleToken, googleStoredToken,
   GOOGLE_QUOTA_EXHAUSTED_MSG,
-  chatStore, chatEngineLabel, setChatProvider, mdRender, regenerateMessage, editUserMessage,
+  chatStore, chatEngineLabel, setChatProvider, mdRender, regenerateMessage, editUserMessage, editAssistantMessage, deleteMessage,
   chatSendTest: async (text) => { const inp = $('#chatInput'); if (inp) inp.value = text; await sendChat(); return chatHistory(); },
   stopChat: () => { if (chatAbort) chatAbort.abort(); },
   isChatStreaming: () => chatStreaming,
