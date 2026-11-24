@@ -1,25 +1,30 @@
 /* ============================================================
-   دار القرآن الكريم — Design System v2.0.0
-   Palette: deep emerald #0B3D2E • gold #C9A227 • ivory #FAF7F0
-            ink #1F2937 • soft green tint #E8F0EB
+   دار القرآن الكريم — Design System v2.0.0 + redesign (2026-11-24)
+   Palette: deep emerald #0B3D2E • gold #B28A38 • bg #F8FAF7
+            ink #183B32 • soft green tint #EDF4EE
    Fonts: Amiri (Quran verses / brand / headings) • Cairo (UI / body)
-   RTL-first.
+   RTL-first. Spacing scale 8/16/24/32 • radii 16/12 • buttons 52/48.
    ============================================================ */
 * { box-sizing: border-box; }
 :root {
   --emerald: #0B3D2E;
   --emerald-2: #0E4A38;
   --emerald-3: #14664C;
-  --gold: #C9A227;
+  --gold: #B28A38;
   --gold-soft: #E9DCAC;
-  --gold-border: #DCCB8F;
-  --ivory: #FAF7F0;
-  --ink: #1F2937;
-  --muted: #4B5563;
-  --tint: #E8F0EB;
-  --card: #FDFBF4;
-  --border: #E7DFC8;
+  --gold-border: #D9C98A;
+  --ivory: #F8FAF7;
+  --ink: #183B32;
+  --muted: #596C64;
+  --tint: #EDF4EE;
+  --card: #FFFFFF;
+  --border: #DCE6DF;
   --radius: 16px;
+  --radius-sm: 12px;
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
   --shadow: 0 2px 10px rgba(11, 61, 46, .08);
   --fs-ui: 17px;
   --fs-verse: 28px;
@@ -35,37 +40,31 @@ body {
   max-width: 640px; margin-inline: auto; min-height: 100vh;
 }
 
-/* ---------- header (dark emerald, logo B) ---------- */
+/* ---------- header (dark emerald, logo B — compact, one row) ---------- */
 .sticky-top { position: sticky; top: 0; z-index: 10; }
 .app-header {
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-  padding: 12px 16px; background: var(--emerald); color: #fff;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 8px 12px; background: var(--emerald); color: #fff;
   border-bottom: 3px solid var(--gold);
 }
 .logo { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .logo-img {
-  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
   border: 2px solid var(--gold); object-fit: cover; background: var(--emerald);
 }
 .logo-word {
-  font-family: 'Amiri', serif; font-size: 22px; font-weight: 700; color: #fff;
+  font-family: 'Amiri', serif; font-size: 20px; font-weight: 700; color: #fff;
   letter-spacing: 0; line-height: 1.2; white-space: nowrap;
 }
 .logo small { font-size: 14px; font-weight: 400; color: var(--gold-soft); display: block; line-height: 1.4; }
-.caps {
-  font-size: 14px; background: rgba(255,255,255,.12); color: #fff;
-  padding: 6px 10px; border-radius: 20px; line-height: 1.8; border: 1px solid rgba(201,162,39,.5);
+@media (max-width: 560px) { .logo small { display: none; } }
+/* زر الإعدادات في الهيدر — يفتح تبويب الإعدادات (الدخول بجوجل هناك) */
+.header-settings-btn {
+  flex: none; min-width: 44px; min-height: 44px; padding: 8px 10px;
+  background: transparent; border: 1px solid rgba(255,255,255,.4); border-radius: 12px;
+  color: #fff; font-size: 20px; cursor: pointer; font-family: inherit;
 }
-/* زر الدخول بجوجل الوحيد — أول عنصر في الهيدر = أقصى اليمين في RTL.
-   مضغوط (لا يتمدد ولا يزاحم الشعار)، ونصه يختصر لـ«دخول» على الشاشات الضيقة. */
-.app-header .google-btn { flex: none; min-width: 0; padding: 10px 14px; min-height: 44px; }
-.app-header .gsi-short { display: none; }
-.app-header .header-signout { flex: none; }
-@media (max-width: 480px) {
-  .app-header .gsi-full { display: none; }
-  .app-header .gsi-short { display: inline; }
-  .app-header .google-btn { padding: 8px 12px; gap: 8px; }
-}
+.header-settings-btn:hover { background: rgba(255,255,255,.12); }
 .pro-badge {
   background: linear-gradient(135deg, #C9A227, #A8861B); color: #fff; border: none;
   border-radius: 999px; padding: 2px 10px; font-size: 14px; font-weight: 700; cursor: pointer;
@@ -73,17 +72,21 @@ body {
 }
 .pro-badge.pro-on { background: var(--emerald-3); }
 
-/* ---------- tabs ---------- */
+/* ---------- tabs (5 destinations, one row) ---------- */
 .tabs {
-  display: flex; flex-wrap: wrap; background: var(--card); border-bottom: 1px solid var(--border);
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  background: var(--card); border-bottom: 1px solid var(--border);
 }
 .tab {
-  flex: 1 1 30%; padding: 11px 2px; background: none; border: none; color: var(--muted);
+  padding: 10px 2px; background: none; border: none; color: var(--muted);
   font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer;
-  border-bottom: 3px solid transparent;
+  border-bottom: 3px solid transparent; min-height: 48px; white-space: nowrap;
 }
 .tab.active { color: #fff; background: var(--emerald); border-bottom-color: var(--gold); font-weight: 800; }
-@media (min-width: 640px) { .tab { flex: 1; } }
+@media (max-width: 480px) {
+  .tab { font-size: 14px; padding: 10px 1px; }
+  .tab-ic { display: none; }
+}
 main { padding: 16px; }
 .tab-pane { display: none; }
 .tab-pane.active { display: block; animation: pane-in .25s ease; }
@@ -96,7 +99,8 @@ textarea, input[type="text"], input[type="password"], input[type="search"], sele
   background: var(--card); color: var(--ink); font-size: 16px; font-family: inherit;
 }
 textarea { resize: vertical; }
-input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); outline-offset: 0; border-color: var(--gold); }
+input:focus, textarea:focus, select:focus { outline: 3px solid var(--gold); outline-offset: 0; border-color: var(--gold); }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .hint { color: var(--muted); font-size: var(--fs-ui); margin-top: 6px; line-height: 1.9; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip {
@@ -117,7 +121,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); outl
 .btn-primary.small { width: auto; margin-top: 0; padding: 10px 18px; font-size: 16px; min-height: 44px; }
 .btn {
   padding: 10px 14px; border-radius: 10px; border: 1px solid var(--gold-border); background: var(--card);
-  color: var(--emerald); font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; flex: 1; min-height: 44px;
+  color: var(--emerald); font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; flex: 1; min-height: 48px;
 }
 .btn:hover { background: var(--tint); }
 .btn.small { flex: none; padding: 8px 12px; font-size: 16px; min-height: 40px; }
@@ -250,6 +254,9 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
 .google-btn:disabled { opacity: .55; cursor: not-allowed; }
 .google-btn .g-mark { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #4285F4; color: #fff; font-weight: 900; font-size: 16px; flex: none; }
 .google-auth-box { background: var(--tint); border: 1px solid var(--gold-border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.google-auth-box .google-btn { width: 100%; margin-bottom: 8px; }
+.google-auth-box .gsi-short { display: none; }
+.google-auth-box [data-google-signout] { margin-bottom: 8px; }
 .google-auth-box .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .auth-quota-note { background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 10px; padding: 10px 12px; font-size: 16px; line-height: 1.8; margin-top: 10px; color: #92400E; }
 .advanced-key { margin-top: 10px; border: 1px dashed var(--gold-border); border-radius: 10px; padding: 10px 12px; background: var(--card); }
@@ -288,25 +295,25 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
    ============================================================ */
 /* subtle Islamic geometric pattern (8-pointed star lattice, gold, 7% opacity) */
 :root {
-  --geo-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23C9A227' stroke-opacity='0.16' stroke-width='1'%3E%3Cpath d='M36 8 L44 28 L64 36 L44 44 L36 64 L28 44 L8 36 L28 28 Z'/%3E%3Cpath d='M36 18 L40 32 L54 36 L40 40 L36 54 L32 40 L18 36 L32 32 Z'/%3E%3C/g%3E%3C/svg%3E");
+  --geo-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23B28A38' stroke-opacity='0.16' stroke-width='1'%3E%3Cpath d='M36 8 L44 28 L64 36 L44 44 L36 64 L28 44 L8 36 L28 28 Z'/%3E%3Cpath d='M36 18 L40 32 L54 36 L40 40 L36 54 L32 40 L18 36 L32 32 Z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-/* ---------- hero (light, logo A) ---------- */
+/* ---------- hero (light, logo A — slim) ---------- */
 .dar-hero {
   background-color: var(--ivory);
   background-image: var(--geo-pattern);
   border: 1px solid var(--gold-border); border-radius: 20px;
-  padding: 26px 16px 20px; margin: 2px 0 14px; text-align: center;
+  padding: 16px 16px 14px; margin: 2px 0 14px; text-align: center;
   box-shadow: var(--shadow);
 }
 .dar-hero-logo {
-  width: 150px; height: 150px; object-fit: cover; border-radius: 20px;
+  width: 96px; height: 96px; object-fit: cover; border-radius: 20px;
   border: 2px solid var(--gold); box-shadow: 0 6px 18px rgba(11, 61, 46, .18);
   background: var(--ivory);
 }
 .dar-brand {
-  font-family: 'Amiri', serif; font-size: 34px; font-weight: 700;
-  color: var(--emerald); margin: 14px 0 4px; line-height: 1.3;
+  font-family: 'Amiri', serif; font-size: 28px; font-weight: 700;
+  color: var(--emerald); margin: 10px 0 4px; line-height: 1.3;
 }
 .dar-gold-div { width: 84px; height: 3px; background: var(--gold); margin: 10px auto; border-radius: 2px; }
 .dar-hero-sub { font-size: 16px; line-height: 1.7; margin: 6px 0; color: var(--ink); }
@@ -314,7 +321,27 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
   background: #FEF3C7; border: 1.5px solid var(--gold); color: #92400E;
   border-radius: 12px; padding: 10px 12px; font-size: var(--fs-ui); line-height: 1.9; margin: 12px 0;
 }
-.dar-advertise-btn { flex: none; width: auto; margin: 6px auto 0; padding: 10px 22px; }
+
+/* ---------- learn / home section cards (prototype qa-section pattern) ----------
+   Title on top, description below, fixed spacing, uniform min-height,
+   icon tile, arrow. 2 columns on phones, 4 on wide screens. ---------- */
+.dar-home-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+@media (min-width: 768px) { .dar-home-sections { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.dar-learn-card {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
+  padding: 18px 16px 32px; background: var(--card); color: var(--ink);
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+  min-height: 160px; text-align: start; cursor: pointer; font-family: inherit;
+}
+.dar-learn-card:hover { border-color: var(--emerald); background: #FBFDFB; }
+.dar-learn-card:active { transform: scale(.97); }
+.dar-learn-icon {
+  font-size: 22px; color: var(--emerald); background: var(--tint); border-radius: 10px;
+  width: 38px; height: 38px; display: grid; place-items: center;
+}
+.dar-learn-title { font-size: 18px; font-weight: 700; color: var(--emerald); }
+.dar-learn-desc { font-size: 14px; color: var(--muted); line-height: 1.8; }
+.dar-learn-arrow { position: absolute; inset-inline-end: 16px; bottom: 12px; color: var(--emerald); font-size: 18px; }
 
 /* ---------- generic dar bits ---------- */
 .dar-h3 { font-family: 'Amiri', serif; font-size: 22px; color: var(--emerald); margin: 18px 0 6px; }
@@ -508,8 +535,8 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 420px) {
-  .dar-hero-logo { width: 120px; height: 120px; }
-  .dar-brand { font-size: 28px; }
+  .dar-hero-logo { width: 80px; height: 80px; }
+  .dar-brand { font-size: 26px; }
   .logo-word { font-size: 19px; }
   .logo-img { width: 40px; height: 40px; }
 }
@@ -517,8 +544,8 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
   body { max-width: 720px; }
   .dar-surah-grid { grid-template-columns: repeat(3, 1fr); }
   .dar-book-grid { grid-template-columns: repeat(3, 1fr); }
-  .dar-hero-logo { width: 170px; height: 170px; }
-  .dar-brand { font-size: 38px; }
+  .dar-hero-logo { width: 120px; height: 120px; }
+  .dar-brand { font-size: 32px; }
 }
 
 /* ---------- text-size control (Settings: صغير / وسط / كبير) ---------- */
@@ -535,18 +562,10 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
 .dar-subnav .subtab { flex: 1 1 auto; min-width: 96px; padding: 10px 8px; font-size: var(--fs-ui); font-family: 'Cairo', sans-serif; color: var(--emerald); background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; cursor: pointer; min-height: 48px; }
 .dar-subnav .subtab.active { background: var(--emerald); color: #fff; border-color: var(--emerald); font-weight: 700; }
 
-/* --- home: two doors + namesake --- */
-.dar-doors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
-.dar-door { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 10px; font-family: 'Cairo', sans-serif; background: var(--card); border: 2px solid var(--gold-border); border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; color: var(--ink); }
-.dar-door:active { transform: scale(.97); }
-.dar-door-icon { font-size: 44px; line-height: 1; }
-.dar-door-name { font-family: 'Amiri', serif; font-size: 24px; font-weight: 700; color: var(--emerald); }
-.dar-door-desc { font-size: var(--fs-ui); line-height: 1.7; color: var(--muted); text-align: center; }
-.dar-door-quran { border-color: var(--emerald); }
-.dar-door-manners { border-color: var(--gold); }
-.dar-namesake { margin: 14px 0; padding: 16px; background: var(--tint); border: 1px solid var(--gold-border); border-radius: var(--radius); text-align: center; }
+/* --- namesake (moved below the journey card on home, smaller) --- */
+.dar-namesake { margin: 14px 0; padding: 12px; background: var(--tint); border: 1px solid var(--gold-border); border-radius: var(--radius); text-align: center; }
 .dar-namesake-title { font-size: var(--fs-ui); color: var(--muted); margin-bottom: 6px; }
-.dar-namesake-text { font-family: 'Amiri', serif; font-size: 22px; line-height: 2; color: var(--emerald); }
+.dar-namesake-text { font-family: 'Amiri', serif; font-size: 18px; line-height: 2; color: var(--emerald); }
 .dar-namesake-ref { font-size: var(--fs-ui); color: var(--muted); margin-top: 4px; }
 .dar-namesake-why { font-size: var(--fs-ui); line-height: 1.8; margin-top: 8px; color: var(--ink); }
 
@@ -563,22 +582,26 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
 .dar-reciter-btn { padding: 9px 14px; font-size: var(--fs-ui); font-family: 'Cairo', sans-serif; background: var(--card); color: var(--emerald); border: 1.5px solid var(--border); border-radius: 999px; cursor: pointer; min-height: 44px; }
 .dar-reciter-btn.active { background: var(--emerald); color: #fff; border-color: var(--emerald); font-weight: 700; }
 
-/* --- manners --- */
+/* --- manners (same card pattern: title on top, description below) --- */
 .dar-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
-.dar-group-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 10px; font-family: 'Cairo', sans-serif; background: var(--card); border: 2px solid var(--gold-border); border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; color: var(--ink); text-align: center; }
+.dar-group-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 10px 32px; font-family: 'Cairo', sans-serif; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; color: var(--ink); text-align: center; min-height: 160px; }
 .dar-group-card:active { transform: scale(.97); }
-.dar-group-icon { font-size: 40px; line-height: 1; }
-.dar-group-name { font-family: 'Amiri', serif; font-size: 22px; font-weight: 700; color: var(--emerald); }
-.dar-group-desc { font-size: var(--fs-ui); line-height: 1.7; color: var(--muted); }
+.dar-group-card:hover { border-color: var(--emerald); }
+.dar-group-card::after { content: '‹'; position: absolute; inset-inline-end: 12px; bottom: 8px; color: var(--emerald); font-size: 18px; }
+.dar-group-icon { font-size: 22px; color: var(--emerald); background: var(--tint); border-radius: 10px; width: 38px; height: 38px; display: grid; place-items: center; }
+.dar-group-name { font-family: 'Amiri', serif; font-size: 20px; font-weight: 700; color: var(--emerald); line-height: 1.5; }
+.dar-group-desc { font-size: 14px; line-height: 1.8; color: var(--muted); }
 .dar-group-progress { font-size: var(--fs-ui); color: var(--emerald); font-weight: 700; }
 .dar-badge-won { font-size: var(--fs-ui); color: #8A6D00; background: #FBF6E3; border: 1px solid var(--gold); border-radius: 999px; padding: 4px 10px; margin-top: 4px; }
 .dar-badge-banner { background: #FBF6E3; border: 2px solid var(--gold); color: var(--emerald); border-radius: var(--radius); padding: 14px; margin: 12px 0; text-align: center; font-size: var(--fs-ui); line-height: 1.9; }
 .dar-sit-list { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
-.dar-sit-card { display: flex; align-items: center; gap: 10px; width: 100%; text-align: right; padding: 14px; font-family: 'Cairo', sans-serif; background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; color: var(--ink); }
+/* situation rows: title on its own row (with the check), «بدل كذا» below it —
+   the title no longer gets squeezed beside the long «instead» text. */
+.dar-sit-card { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; width: 100%; text-align: right; padding: 14px; font-family: 'Cairo', sans-serif; background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; color: var(--ink); }
 .dar-sit-card.done { border-color: var(--gold); background: #FBF6E3; }
 .dar-sit-check { font-size: 22px; color: var(--gold); flex: none; }
-.dar-sit-title { font-size: var(--fs-ui); font-weight: 700; color: var(--emerald); }
-.dar-sit-instead { font-size: var(--fs-ui); color: var(--muted); line-height: 1.7; }
+.dar-sit-title { font-size: var(--fs-ui); font-weight: 700; color: var(--emerald); flex: 1 1 auto; }
+.dar-sit-instead { font-size: var(--fs-ui); color: var(--muted); line-height: 1.7; flex: 1 1 100%; }
 .dar-game { margin: 12px 0; }
 .dar-game-instead { font-size: var(--fs-ui); line-height: 1.8; background: var(--tint); border: 1px solid var(--gold-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
 .dar-game-sit { font-size: var(--fs-ui); line-height: 2; background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px; margin: 10px 0; }
@@ -632,6 +655,9 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
 /* ---------- رحلة القرآن — نموذج أولي (مرحلتان، 3 محطات) ---------- */
 .dar-jrn-home { background: var(--card); border: 2px solid var(--gold-border); border-radius: var(--radius); padding: 16px; margin: 14px 0; box-shadow: var(--shadow); }
 .dar-jrn-home-t { font-family: 'Amiri', serif; font-size: 22px; font-weight: 700; color: var(--emerald); margin-bottom: 4px; }
+.dar-jrn-streak { display: inline-block; font-size: 14px; font-weight: 700; color: var(--emerald); background: var(--tint); border: 1px solid var(--gold-border); border-radius: 20px; padding: 2px 12px; margin: 4px 0 0; line-height: 1.9; }
+.dar-jrn-progress { height: 6px; background: #D5E3D8; border-radius: 8px; overflow: hidden; margin: 12px 0 4px; }
+.dar-jrn-progress span { display: block; height: 100%; background: var(--emerald); }
 .dar-jrn-big { width: 100%; min-height: 60px; font-size: 19px; }
 .dar-jrn-map-tools { margin: 10px 0; }
 .dar-jrn-station { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin: 12px 0; box-shadow: var(--shadow); }

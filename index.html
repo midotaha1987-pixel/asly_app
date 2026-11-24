@@ -17,24 +17,22 @@
 <body>
 <div class="sticky-top">
 <header class="app-header">
-  <button id="headerGoogleBtn" class="google-btn header-google-btn" data-google-signin data-set-smart="1"><span class="g-mark">G</span> <span class="gsi-full">سجّل دخول بجوجل</span><span class="gsi-short">دخول</span></button>
-  <button class="btn small header-signout hidden" data-google-signout>تسجيل خروج</button>
   <div class="logo">
     <img class="logo-img" src="logo-b.webp" alt="شعار علم ينتفع به">
     <span class="logo-word">علم ينتفع به</span>
     <small>دار القرآن الكريم — القرآن والتجويد والحديث والسلوكيات</small>
   </div>
-  <div class="caps" id="capsBadge" title="حدودك اليومية المجانية">🔥 <span id="streakBadge">0</span> • <span id="levelBadge">مبتدئ</span> • 💬 <span id="capChat">20/20</span></div>
+  <button class="header-settings-btn" type="button" onclick="darSwitchTab('settings')" title="الإعدادات" aria-label="الإعدادات">⚙️</button>
 </header>
 
 <nav class="tabs" role="tablist">
-  <button class="tab active" data-tab="home" role="tab">🏠 الرئيسية</button>
-  <button class="tab" data-tab="quran" role="tab">📖 قسم القرآن</button>
-  <button class="tab" data-tab="manners" role="tab">🌿 قسم السلوكيات</button>
-  <button class="tab" data-tab="chat" role="tab">👨‍🏫 اسأل المعلم</button>
-  <button class="tab" data-tab="settings" role="tab">⚙️ الإعدادات</button>
+  <button class="tab active" data-tab="home" role="tab"><span class="tab-ic">🏠</span> الرئيسية</button>
+  <button class="tab" data-tab="learn" role="tab"><span class="tab-ic">📚</span> تعلّم</button>
+  <button class="tab" data-tab="journey" role="tab"><span class="tab-ic">🗺️</span> رحلتي</button>
+  <button class="tab" data-tab="chat" role="tab"><span class="tab-ic">👨‍🏫</span> المعلم</button>
+  <button class="tab" data-tab="settings" role="tab"><span class="tab-ic">⚙️</span> الإعدادات</button>
 </nav>
-<nav id="quranSubnav" class="subnav hidden" aria-label="أقسام القرآن">
+<nav id="quranSubnav" class="dar-subnav hidden" aria-label="أقسام القرآن">
   <button class="subtab" data-tab="quran">📖 المصحف</button>
   <button class="subtab" data-tab="lesson">📅 درس اليوم</button>
   <button class="subtab" data-tab="journey">🗺️ رحلتي</button>
@@ -53,22 +51,35 @@
       <div class="dar-gold-div"></div>
       <p class="dar-hero-sub">دار القرآن الكريم: تعلّم القرآن والتجويد والحديث والسلوكيات — من مصادر موثوقة</p>
       <p class="dar-hero-note">⚠️ النصوص من مصادر موثوقة — الذكاء الاصطناعي يشرح فقط، ولا يولّد أي آية أو حديث</p>
-      <button id="advertiseBtn" class="btn dar-advertise-btn">📢 أعلن معنا — واتساب</button>
-      <div id="homeNamesake" class="dar-namesake"></div>
-    </div>
-    <div class="dar-doors">
-      <button class="dar-door" onclick="darSwitchTab('quran')">
-        <span class="dar-door-icon">📖</span>
-        <span class="dar-door-title">قسم القرآن</span>
-        <span class="dar-door-sub">المصحف • درس اليوم • التجويد • الحديث • التمارين</span>
-      </button>
-      <button class="dar-door dar-door-green" onclick="darSwitchTab('manners')">
-        <span class="dar-door-icon">🌿</span>
-        <span class="dar-door-title">قسم السلوكيات</span>
-        <span class="dar-door-sub">تعلّم إيه لو…؟ • مواقف من حياتك • وسام الأخلاق الحلوة</span>
-      </button>
     </div>
     <div id="darJourneyHome"></div>
+    <div id="homeNamesake" class="dar-namesake"></div>
+    <div class="dar-home-sections">
+      <button class="dar-learn-card" onclick="darOpenLearnSection('quran')">
+        <span class="dar-learn-icon">📖</span>
+        <span class="dar-learn-title">المصحف</span>
+        <span class="dar-learn-desc">اقرأ واسمع السور كلها برواية حفص</span>
+        <span class="dar-learn-arrow">‹</span>
+      </button>
+      <button class="dar-learn-card" onclick="darOpenLearnSection('tajweed')">
+        <span class="dar-learn-icon">🎙️</span>
+        <span class="dar-learn-title">التجويد</span>
+        <span class="dar-learn-desc">أحكام النون والميم والمدود من تحفة الأطفال</span>
+        <span class="dar-learn-arrow">‹</span>
+      </button>
+      <button class="dar-learn-card" onclick="darOpenLearnSection('hadith')">
+        <span class="dar-learn-icon">📜</span>
+        <span class="dar-learn-title">الحديث</span>
+        <span class="dar-learn-desc">أحاديث موثوقة من صحيح البخاري ومسلم</span>
+        <span class="dar-learn-arrow">‹</span>
+      </button>
+      <button class="dar-learn-card" onclick="darOpenLearnSection('manners')">
+        <span class="dar-learn-icon">🌿</span>
+        <span class="dar-learn-title">السلوكيات</span>
+        <span class="dar-learn-desc">تعلّم إيه لو…؟ مواقف من حياتك</span>
+        <span class="dar-learn-arrow">‹</span>
+      </button>
+    </div>
     <div class="dar-home-teacher">
       <button class="dar-btn dar-btn-primary dar-btn-big" onclick="darSwitchTab('chat')">👨‍🏫 اسأل المعلم — عندك سؤال عن القرآن أو التجويد أو الحديث؟</button>
       <p class="hint">المعلم يشرح فقط — ولا ينقل أي آية أو حديث من ذاكرته أبداً. النصوص الموثوقة تجدها في قسم القرآن.</p>
@@ -77,6 +88,40 @@
       <ins class="adsbygoogle" style="display:block" data-ad-format="auto" data-full-width-responsive="true"></ins>
     </div>
     <p class="dar-source-line">التطبيق مجاني بالكامل — بدعم الإعلانات فقط. لا إعلانات على صفحات القرآن أبداً.</p>
+  </section>
+
+  <!-- ============ LEARN TAB — تعلّم: الأقسام الأربعة + بحث ============ -->
+  <section id="tab-learn" class="tab-pane">
+    <h2>📚 تعلّم</h2>
+    <p class="hint">اختر القسم اللي عايز تتعلمه — أو ابحث عنه بالاسم.</p>
+    <div class="dar-search"><input id="learnSearch" type="search" placeholder="ابحث عن قسم… (مثال: التجويد)" autocomplete="off"></div>
+    <div class="dar-home-sections" id="learnGrid">
+      <button class="dar-learn-card" data-search="المصحف اقرأ واسمع السور كلها برواية حفص قرآن تلاوة" onclick="darOpenLearnSection('quran')">
+        <span class="dar-learn-icon">📖</span>
+        <span class="dar-learn-title">المصحف</span>
+        <span class="dar-learn-desc">اقرأ واسمع السور كلها برواية حفص</span>
+        <span class="dar-learn-arrow">‹</span>
+      </button>
+      <button class="dar-learn-card" data-search="التجويد أحكام النون والميم والمدود من تحفة الأطفال" onclick="darOpenLearnSection('tajweed')">
+        <span class="dar-learn-icon">🎙️</span>
+        <span class="dar-learn-title">التجويد</span>
+        <span class="dar-learn-desc">أحكام النون والميم والمدود من تحفة الأطفال</span>
+        <span class="dar-learn-arrow">‹</span>
+      </button>
+      <button class="dar-learn-card" data-search="الحديث أحاديث موثوقة من صحيح البخاري ومسلم" onclick="darOpenLearnSection('hadith')">
+        <span class="dar-learn-icon">📜</span>
+        <span class="dar-learn-title">الحديث</span>
+        <span class="dar-learn-desc">أحاديث موثوقة من صحيح البخاري ومسلم</span>
+        <span class="dar-learn-arrow">‹</span>
+      </button>
+      <button class="dar-learn-card" data-search="السلوكيات تعلم إيه لو مواقف من حياتك أخلاق" onclick="darOpenLearnSection('manners')">
+        <span class="dar-learn-icon">🌿</span>
+        <span class="dar-learn-title">السلوكيات</span>
+        <span class="dar-learn-desc">تعلّم إيه لو…؟ مواقف من حياتك</span>
+        <span class="dar-learn-arrow">‹</span>
+      </button>
+    </div>
+    <div id="learnEmpty" class="empty hidden">مفيش قسم بالاسم ده — جرّب كلمة تانية.</div>
   </section>
 
   <!-- ============ QURAN TAB ============ -->
@@ -133,7 +178,7 @@
     <div class="chat-smart hidden" id="chatSmartCard">
       <b>⭐ الوضع الذكي الأعلى — إجابات أقوى، من غير أي مفتاح</b>
       <p class="hint">سجّل دخولك بجوجل مرة واحدة، وبعدها الوضع الذكي يشتغل على طول — للأسئلة (Gemini 2.5 Flash). التوكن بيتحفظ على جهازك بس، ومفيش حاجة تنسخها.</p>
-      <p class="hint">تسجيل الدخول من الزر أعلى الصفحة على اليمين.</p>
+      <p class="hint">تسجيل الدخول من تبويب «الإعدادات» — زر «سجّل دخول بجوجل».</p>
       <div class="row">
         <button id="chatSmartActivate" class="btn-primary small hidden">✅ فعّل الوضع الذكي</button>
         <button id="chatSmartCancel" class="btn small">ليس الآن</button>
@@ -183,7 +228,7 @@
     <div class="hint">يُحفظ على جهازك فقط — التطبيق يرحّب بك باسمك.</div>
 
     <h3>📢 أعلن معنا (للأعمال)</h3>
-    <p class="hint">💼 للإعلانات والأعمال: الإعلانات والرعاة بيموّلوا التطبيق المجاني للجميع. زر «📢 أعلن معنا» موجود في الصفحة الرئيسية فوق — اضغطه وكلّمنا واتساب.</p>
+    <p class="hint">💼 للإعلانات والأعمال: الإعلانات والرعاة بيموّلوا التطبيق المجاني للجميع. للتواصل بخصوص الإعلانات راسلنا على صفحة «أصلى مش مضروب» على فيسبوك.</p>
 
     <h3>🕌 نص دعوة للتطبيق</h3>
     <p class="hint">انسخ هذا النص وشاركه مع من تحب — يوجّههم للتطبيق:</p>
@@ -199,8 +244,9 @@
 
     <h3>🔐 تسجيل الدخول بجوجل — الوضع الذكي</h3>
     <div class="google-auth-box">
+      <button id="settingsGoogleBtn" class="google-btn" data-google-signin data-set-smart="1"><span class="g-mark">G</span> <span class="gsi-full">سجّل دخول بجوجل</span><span class="gsi-short">دخول</span></button>
+      <button class="btn small hidden" data-google-signout>تسجيل خروج</button>
       <div class="hint" id="googleAuthStatus"></div>
-      <p class="hint">تسجيل الدخول من الزر أعلى الصفحة على اليمين.</p>
       <div class="hint" data-google-account></div>
       <div class="hint" data-google-setup-note>⏳ تسجيل الدخول بجوجل لسه بيتجهز — صاحب التطبيق بيكمّل الإعداد (مرة واحدة، مجاناً).</div>
       <div class="auth-quota-note">⚖️ بصراحة: تسجيل الدخول ده بيستخدم حصة Gemini المجانية الخاصة بمشروع Google بتاع صاحب التطبيق — يعني الحصة مشتركة بين كل المستخدمين. لو خلصت في يوم، التطبيق هيقولك «الحصة خلصت» والوضع المجاني يفضل شغال.</div>
@@ -226,7 +272,7 @@
       <label><input type="radio" name="journeyStage" value="2"> المرحلة الثانية: اكتشف وطبّق (10–14 سنة) — اسم الحكم وسببه وتطبيق</label>
     </div>
     <div class="hint" id="journeyStageHint"></div>
-    <div class="hint">صوت التعليمات في الدروس: تسجيلات روني نفسه (قريبًا — لما يبعتها)؛ حاليًا التعليمات مكتوبة على الشاشة بس، من غير أي صوت آلي. التلاوة بصوت مقرئ حقيقي فقط دائمًا.</div>
+    <div class="hint">صوت التعليمات في الدروس: تسجيلات المعلّم نفسه (قريبًا)؛ حاليًا التعليمات مكتوبة على الشاشة بس، من غير أي صوت آلي. التلاوة بصوت مقرئ حقيقي فقط دائمًا.</div>
 
     <h3>📲 تثبيت التطبيق على شاشتك</h3>
     <p class="hint">التطبيق يعمل كصفحة ويب كاملة من غير تثبيت، ويمكنك تثبيته كأيقونة على الشاشة الرئيسية (PWA) — يفتح بضغطة واحدة من غير متصفح.</p>

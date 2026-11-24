@@ -220,7 +220,7 @@ function renderGoogleAuthUI() {
   const signedIn = googleSignedIn();
   const label = googleAccountLabel();
   document.querySelectorAll('[data-google-signin]').forEach(btn => {
-    // زر الدخول الوحيد في الهيدر — يبقى قابلاً للنقر حتى قبل اكتمال إعداد
+    // زر الدخول الوحيد — في الإعدادات — يبقى قابلاً للنقر حتى قبل اكتمال إعداد
     // OAuth: النقرة تعرض تنبيه الإعداد (googleSignIn) بدل زر معطّل بلا رد.
     btn.disabled = false;
     if (!signedIn) btn.innerHTML = configured
@@ -350,7 +350,8 @@ function chatRemaining() {
 }
 function updateCapsBadge() {
   const cr2 = chatRemaining();
-  $('#capChat').textContent = `${cr2}/${CONFIG.caps.chatPerDay}`;
+  const cc = $('#capChat');
+  if (cc) cc.textContent = `${cr2}/${CONFIG.caps.chatPerDay}`;
   const cr = $('#chatRemaining');
   if (cr) cr.textContent = `• باقي لك ${cr2} رسايل مجانية النهاردة`;
   updateStreakBadge();
@@ -437,11 +438,35 @@ $$('.tab').forEach(function (b) { b.addEventListener('click', function () {
 $$('.subtab').forEach(function (b) { b.addEventListener('click', function () {
   document.querySelectorAll('#quranSubnav .subtab').forEach(function (x) { x.classList.remove('active'); });
   b.classList.add('active');
-  // يبقى زر «قسم القرآن» العلوي مفعّلاً أثناء التنقل داخل القسم
-  const top = document.querySelector('.tab[data-tab="quran"]');
+  // يبقى زر «تعلّم» العلوي مفعّلاً أثناء التنقل داخل القسم
+  const top = document.querySelector('.tab[data-tab="learn"]');
   if (top) { $$('.tab').forEach(function (x) { x.classList.remove('active'); }); top.classList.add('active'); }
   darSwitchPane(b.dataset.tab);
 }); });
+
+/* ---------------- تعلّم: فتح قسم + بحث الأقسام ---------------- */
+// بطاقات الرئيسية وتبويب «تعلّم» تفتح القسم وتحافظ على زر «تعلّم» مفعّلاً
+function darOpenLearnSection(tab) {
+  $$('.tab').forEach(function (x) { x.classList.remove('active'); });
+  const top = document.querySelector('.tab[data-tab="learn"]');
+  if (top) top.classList.add('active');
+  darSwitchPane(tab);
+}
+function initLearnSearch() {
+  const inp = $('#learnSearch');
+  if (!inp) return;
+  inp.addEventListener('input', function () {
+    const q = inp.value.trim();
+    let shown = 0;
+    $$('#learnGrid .dar-learn-card').forEach(function (c) {
+      const hit = !q || (c.dataset.search || '').indexOf(q) !== -1;
+      c.style.display = hit ? '' : 'none';
+      if (hit) shown++;
+    });
+    const em = $('#learnEmpty');
+    if (em) em.classList.toggle('hidden', shown > 0);
+  });
+}
 
 /* ---------------- Settings ---------------- */
 function loadSettings() {
@@ -486,12 +511,19 @@ const DAR_PROGRESS_KEYS = [
   'asly_settings', 'asly_streak', 'asly_stats', 'asly_usage', 'asly_bonus_extra',
   'asly_install_dismissed', 'dar_textsize', 'darquran_chats', 'asly_chat',
   'darquran_lesson', 'darquran_mem', 'darquran_manners_done', 'darquran_reciter',
-  'darquran_hard_words',
+  'darquran_hard_words', 'asly_journey_stage', 'asly_journey_progress',
 ];
 function darExportProgress() {
   const data = { app: 'علم ينتفع به', version: '2.0.0', exportedAt: new Date().toISOString(), progress: {} };
   for (const k of DAR_PROGRESS_KEYS) {
-    try { const v = localStorage.getItem(k); if (v !== null) data.progress[k] = JSON.parse(v); } catch (e) {}
+    try {
+      const v = localStorage.getItem(k);
+      if (v === null) continue;
+      const parsed = JSON.parse(v);
+      // الخصوصية: مفتاح Gemini اليدوي لا يخرج أبداً في النسخة الاحتياطية
+      if (k === 'asly_settings' && parsed && typeof parsed === 'object') delete parsed.geminiKey;
+      data.progress[k] = parsed;
+    } catch (e) {}
   }
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const stamp = new Date().toISOString().slice(0, 10);
@@ -507,7 +539,16 @@ async function darImportProgress(obj) {
   let n = 0;
   for (const k of DAR_PROGRESS_KEYS) {
     if (Object.prototype.hasOwnProperty.call(obj.progress, k)) {
-      try { localStorage.setItem(k, JSON.stringify(obj.progress[k])); n++; } catch (e) {}
+      try {
+        let val = obj.progress[k];
+        // الخصوصية: مفتاح Gemini اليدوي لا يُستورَد أبداً — يبقى مفتاح هذا الجهاز
+        if (k === 'asly_settings' && val && typeof val === 'object') {
+          const keep = (LS.get('asly_settings', {}) || {}).geminiKey || '';
+          val = { ...val };
+          if (keep) val.geminiKey = keep; else delete val.geminiKey;
+        }
+        localStorage.setItem(k, JSON.stringify(val)); n++;
+      } catch (e) {}
     }
   }
   if (!n) { toast('⚠️ الملف لا يحتوي أي تقدّم معروف'); return false; }
@@ -1479,6 +1520,7 @@ function initTextSize() {
 /* ---------------- Init ---------------- */
 loadSettings();
 initTextSize();
+initLearnSearch();
 loadAffiliates(); // زر يوتيوب (مخفي حتى يُوضع رابط حقيقي في affiliates.json)
 renderTips();
 fillEndCard();
@@ -1491,9 +1533,6 @@ renderChatEngine();
 renderGoogleAuthUI(); // حالات زر «سجّل دخول بجوجل» (بيتجهز / دخول / مسجّل)
 // أزرار الميكروفون (الإدخال الصوتي)
 $('#micChat').addEventListener('click', (e) => toggleDictation($('#chatInput'), e.currentTarget));
-// زر «أعلن معنا» الوحيد — في قسم القرآن (إعلانات مباشرة — واتساب روني)
-const advBtn = $('#advertiseBtn');
-if (advBtn) advBtn.addEventListener('click', openAdvertise);
 // أزرار تثبيت PWA
 const installNow = $('#installNowBtn');
 if (installNow) installNow.addEventListener('click', installApp);

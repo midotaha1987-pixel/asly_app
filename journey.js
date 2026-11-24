@@ -951,11 +951,15 @@ function darJourneyHomeCard() {
   const due = flat.filter(function (f) { const s = darJrnLessonState(f.lesson.id); return s.due && s.due <= today; })[0];
   const next = due || flat.filter(function (f) { return !darJrnLessonState(f.lesson.id).stars[0]; })[0];
   host.innerHTML = '<div class="dar-jrn-home"><div class="dar-jrn-home-t">🗺️ رحلتي مع القرآن</div>'
+    + '<p class="dar-jrn-streak">🔥 <span id="streakBadge">0</span> • <span id="levelBadge">مبتدئ</span></p>'
     + '<p>' + (stage === 1 ? 'المرحلة الأولى: اسمع وقلّد' : 'المرحلة الثانية: اكتشف وطبّق')
     + ' — ' + done + ' من ' + flat.length + ' درس.</p>'
+    + '<div class="dar-jrn-progress"><span style="width:' + Math.round((flat.length ? done / flat.length : 0) * 100) + '%"></span></div>'
     + (next ? '<p class="hint">الجاي: سورة ' + darEsc(darSurahBare((DAR_SURAHS.filter(function (s) { return s.n === next.station.surah; })[0] || {}).name)) + ' — ' + darEsc(darJrnLessonTitle(next.lesson, stage)) + '</p>' : '<p class="hint">خلّصت المحطات الثلاث — راجع من الخريطة.</p>')
     + '<button class="dar-btn dar-btn-primary dar-jrn-big" id="darJrnContinueBtn" onclick="darJrnContinue()">أكمل من هنا</button>'
     + '<p class="hint">المرحلة يختارها ولي الأمر من الإعدادات.</p></div>';
+  if (typeof updateStreakBadge === 'function') updateStreakBadge();
+  if (typeof updateLevelBadge === 'function') updateLevelBadge();
 }
 function darJrnContinue() {
   const flat = darJrnFlat();
