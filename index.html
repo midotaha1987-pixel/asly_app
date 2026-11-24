@@ -37,6 +37,7 @@
 <nav id="quranSubnav" class="subnav hidden" aria-label="أقسام القرآن">
   <button class="subtab" data-tab="quran">📖 المصحف</button>
   <button class="subtab" data-tab="lesson">📅 درس اليوم</button>
+  <button class="subtab" data-tab="journey">🗺️ رحلتي</button>
   <button class="subtab" data-tab="tajweed">🎙️ التجويد</button>
   <button class="subtab" data-tab="hadith">📜 الحديث</button>
   <button class="subtab" data-tab="exercises">✏️ التمارين</button>
@@ -67,6 +68,7 @@
         <span class="dar-door-sub">تعلّم إيه لو…؟ • مواقف من حياتك • وسام الأخلاق الحلوة</span>
       </button>
     </div>
+    <div id="darJourneyHome"></div>
     <div class="dar-home-teacher">
       <button class="dar-btn dar-btn-primary dar-btn-big" onclick="darSwitchTab('chat')">👨‍🏫 اسأل المعلم — عندك سؤال عن القرآن أو التجويد أو الحديث؟</button>
       <p class="hint">المعلم يشرح فقط — ولا ينقل أي آية أو حديث من ذاكرته أبداً. النصوص الموثوقة تجدها في قسم القرآن.</p>
@@ -114,6 +116,11 @@
   <!-- ============ EXERCISES TAB — التمارين التفاعلية ============ -->
   <section id="tab-exercises" class="tab-pane">
     <div id="exercisesContent"></div>
+  </section>
+
+  <!-- ============ JOURNEY TAB — رحلتي مع القرآن (نموذج أولي: مرحلتان، 3 محطات) ============ -->
+  <section id="tab-journey" class="tab-pane">
+    <div id="journeyContent"></div>
   </section>
 
   <!-- ============ CHAT TAB — اسأل المعلم ============ -->
@@ -212,6 +219,15 @@
       <div class="hint">يُستخدم فقط إذا اخترت «جودة أعلى» ولم تسجّل دخولك بجوجل. يُرسَل إلى Google مباشرة ولا يُحفظ على أي خادم. اتركه فارغاً لاستخدام Pollinations المجاني أو الدخول بجوجل.</div>
     </details>
 
+    <h3>👶 مرحلة الطفل في رحلة القرآن</h3>
+    <p class="hint">المرحلة يختارها ولي الأمر أو المعلم — وهي اللي بتحدد شكل الدروس في «رحلتي مع القرآن». بتتحفظ فوراً على جهازك.</p>
+    <div class="setting-row" id="journeyStageRow">
+      <label><input type="radio" name="journeyStage" value="1"> المرحلة الأولى: اسمع وقلّد (6–9 سنوات) — سماع وتقليد بس، من غير أسماء أحكام</label>
+      <label><input type="radio" name="journeyStage" value="2"> المرحلة الثانية: اكتشف وطبّق (10–14 سنة) — اسم الحكم وسببه وتطبيق</label>
+    </div>
+    <div class="hint" id="journeyStageHint"></div>
+    <div class="hint">صوت التعليمات في الدروس: تسجيلات روني نفسه (قريبًا — لما يبعتها)؛ حاليًا التعليمات مكتوبة على الشاشة بس، من غير أي صوت آلي. التلاوة بصوت مقرئ حقيقي فقط دائمًا.</div>
+
     <h3>📲 تثبيت التطبيق على شاشتك</h3>
     <p class="hint">التطبيق يعمل كصفحة ويب كاملة من غير تثبيت، ويمكنك تثبيته كأيقونة على الشاشة الرئيسية (PWA) — يفتح بضغطة واحدة من غير متصفح.</p>
     <button id="installAppBtn" class="btn">📲 تثبيت علم ينتفع به على شاشتك</button>
@@ -269,6 +285,7 @@
 
 <script src="app.js"></script>
 <script src="quran.js"></script>
+<script src="journey.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

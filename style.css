@@ -626,3 +626,59 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
 /* --- ads policy block (Settings; app is fully free, ads only) --- */
 .dar-ads-policy { background: var(--tint); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 14px; margin: 12px 0; font-size: var(--fs-ui); line-height: 1.9; }
 .dar-ads-policy h4 { font-family: 'Amiri', serif; font-size: 20px; color: var(--emerald); margin: 0 0 6px; }
+
+/* ---------- رحلة القرآن — نموذج أولي (مرحلتان، 3 محطات) ---------- */
+.dar-jrn-home { background: var(--card); border: 2px solid var(--gold-border); border-radius: var(--radius); padding: 16px; margin: 14px 0; box-shadow: var(--shadow); }
+.dar-jrn-home-t { font-family: 'Amiri', serif; font-size: 22px; font-weight: 700; color: var(--emerald); margin-bottom: 4px; }
+.dar-jrn-big { width: 100%; min-height: 60px; font-size: 19px; }
+.dar-jrn-map-tools { margin: 10px 0; }
+.dar-jrn-station { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin: 12px 0; box-shadow: var(--shadow); }
+.dar-jrn-station-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.dar-jrn-station-name { font-family: 'Amiri', serif; font-size: 20px; font-weight: 700; color: var(--emerald); }
+.dar-jrn-state { background: var(--tint); border: 1px solid var(--gold-border); border-radius: 20px; padding: 2px 12px; font-size: 14px; font-weight: 700; color: var(--emerald); white-space: nowrap; }
+.dar-jrn-goal { background: #FBF6E3; border: 1px dashed var(--gold); border-radius: 12px; padding: 10px; margin: 8px 0; font-size: 16px; line-height: 1.9; }
+.dar-jrn-lesson-row { display: flex; gap: 10px; align-items: flex-start; border-top: 1px solid var(--border); padding: 12px 0; }
+.dar-jrn-lesson-info { flex: 1; min-width: 0; }
+.dar-jrn-lesson-title { font-weight: 800; font-size: 17px; line-height: 1.8; }
+.dar-jrn-tag { display: inline-block; border: 2px solid var(--gold); border-radius: 20px; padding: 0 10px; font-size: 14px; font-weight: 700; line-height: 1.9; }
+.dar-jrn-start { flex: none; min-width: 76px; }
+.dar-jrn-stars { margin-top: 4px; }
+.dar-jrn-due { color: #92400E; font-weight: 700; }
+.dar-jrn-pend { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.dar-jrn-steps { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.dar-jrn-pill { padding: 6px 8px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-size: 13px; font-family: inherit; cursor: pointer; }
+.dar-jrn-pill.seen { color: var(--ink); }
+.dar-jrn-pill.cur { background: var(--emerald); border-color: var(--emerald); color: #fff; font-weight: 700; }
+.dar-jrn-instr { font-family: 'Amiri', serif; font-size: 21px; font-weight: 700; color: var(--emerald); margin: 10px 0; }
+.dar-jrn-story { background: var(--card); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 14px; margin: 10px 0; }
+.dar-jrn-story-t { font-weight: 800; color: var(--emerald); font-size: 16px; margin-bottom: 4px; }
+.dar-jrn-card { background: var(--card); border: 2px solid var(--gold-border); border-radius: var(--radius); padding: 14px; margin: 12px 0; box-shadow: var(--shadow); }
+.dar-jrn-warn { background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 12px; padding: 12px; margin: 10px 0; font-size: var(--fs-ui); line-height: 1.9; }
+.dar-jrn-lam { background: var(--tint); border: 1px solid var(--gold-border); border-radius: 12px; padding: 10px; margin: 10px 0; font-size: 16px; line-height: 1.9; }
+.dar-jrn-word { font-family: 'Amiri', serif; font-size: var(--fs-verse); line-height: 2; background: transparent; border: none; border-bottom: 2px dotted var(--gold-border); color: var(--ink); cursor: pointer; padding: 2px 4px; }
+.dar-jrn-word:hover { background: #FBF6E3; }
+.dar-jrn-word:disabled { opacity: .7; cursor: default; }
+.dar-jrn-word.dar-jrn-mark { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 8px; background: #FBF6E3; }
+.dar-jrn-ear { font-size: 18px; vertical-align: super; }
+.dar-jrn-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.dar-jrn-tile { font-family: 'Amiri', serif; font-size: 22px; padding: 10px 16px; min-height: 56px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--ink); cursor: pointer; font-family: 'Amiri', serif; }
+.dar-jrn-tile.found { background: #EAF7EE; border-color: #2E7D32; font-weight: 700; }
+.dar-jrn-tile.wrong { background: #FDECEA; border-color: #C62828; opacity: .6; }
+.dar-jrn-tile:disabled { cursor: default; }
+.dar-jrn-fingers { background: var(--card); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 12px; margin: 12px 0; }
+.dar-jrn-finger { font-size: 26px; min-height: 60px; }
+.dar-jrn-finger.on { background: #EAF7EE; border-color: #2E7D32; }
+.dar-jrn-recing { color: #B91C1C; font-weight: 700; margin: 8px 0; }
+.dar-jrn-dots { letter-spacing: 6px; color: var(--muted); }
+.dar-jrn-obs-q { font-weight: 800; color: var(--emerald); margin: 14px 0 6px; font-size: 17px; }
+.dar-jrn-endcard { background: var(--card); border: 2px solid var(--gold-border); border-radius: var(--radius); padding: 16px; margin: 12px 0; box-shadow: var(--shadow); }
+.dar-jrn-stars-big { font-size: 18px; margin: 10px 0; display: flex; gap: 14px; flex-wrap: wrap; }
+.dar-jrn-star { color: var(--muted); }
+.dar-jrn-star.on { color: var(--ink); font-weight: 700; }
+.dar-jrn-teacher-pending { background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 12px; padding: 12px; margin: 10px 0; font-weight: 700; }
+.dar-jrn-endline { font-family: 'Amiri', serif; font-size: 20px; color: var(--emerald); margin: 10px 0; }
+.dar-jrn-teacher { background: var(--tint); border: 1px solid var(--gold-border); border-radius: 12px; padding: 12px; margin: 12px 0; }
+.dar-jrn-teacher summary { font-weight: 800; color: var(--emerald); cursor: pointer; }
+.dar-jrn-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.dar-jrn-review { background: var(--card); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 14px; margin: 12px 0; }
+.dar-matn-line { font-family: 'Amiri', serif; font-size: 20px; line-height: 2.1; color: var(--ink); }

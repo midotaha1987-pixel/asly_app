@@ -403,7 +403,7 @@ const BADGE_DEFS = [
   ['firstChat', '💬 أول محادثة'],
   ['streak7', '🔥 7 أيام متتالية'],
 ];
-const DAR_QURAN_TABS = ['quran', 'lesson', 'tajweed', 'hadith', 'exercises'];
+const DAR_QURAN_TABS = ['quran', 'lesson', 'journey', 'tajweed', 'hadith', 'exercises'];
 function darShowQuranSubnav(show) {
   const sn = document.getElementById('quranSubnav');
   if (sn) sn.classList.toggle('hidden', !show);
@@ -416,15 +416,18 @@ function darShowQuranSubnav(show) {
   }
 }
 function darSwitchPane(tab) {
+  if (typeof darJrnCleanup === 'function') darJrnCleanup(); // مغادرة درس الرحلة = حذف التسجيل المؤقت
   document.querySelectorAll('.tab-pane').forEach(function (x) { x.classList.remove('active'); });
   const pane = document.getElementById('tab-' + tab);
   if (pane) pane.classList.add('active');
   window.scrollTo(0, 0);
   darShowQuranSubnav(DAR_QURAN_TABS.indexOf(tab) !== -1);
   if (tab === 'lesson' && typeof darEnsureLesson === 'function') darEnsureLesson();
+  if (tab === 'journey' && typeof darEnsureJourney === 'function') darEnsureJourney();
   if (tab === 'manners' && typeof darEnsureManners === 'function') darEnsureManners();
   if (tab === 'exercises' && typeof darEnsureExercises === 'function') darEnsureExercises();
   if (tab === 'home' && typeof darEnsureHome === 'function') darEnsureHome();
+  if (tab === 'home' && typeof darJourneyHomeCard === 'function') darJourneyHomeCard();
 }
 $$('.tab').forEach(function (b) { b.addEventListener('click', function () {
   $$('.tab').forEach(function (x) { x.classList.remove('active'); });
