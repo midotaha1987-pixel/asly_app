@@ -32,8 +32,8 @@ const CONFIG = {
   // يتشاركون حصة هذا المشروع؛ التطبيق يوضح ذلك للمستخدم ويوجّهه للوضع
   // المجاني عند نفادها. لا يُشحَن أي سر داخل التطبيق أبداً.
   googleOAuth: {
-    clientId: '', // مثال: 123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com
-    projectId: '', // مثال: darquran-app-123456 (معرّف مشروع Google Cloud)
+    clientId: '861564155318-a6gc16lfql2jah6ijcdpufpm904efb0a.apps.googleusercontent.com',
+    projectId: 'lyra-515316',
   },
   // --- رقم واتساب للإعلانات المباشرة (ملف sponsors.json هو المصدر الأول) ---
   // ضع رقم روني هنا بصيغة دولية بدون + (مثال: 201001234567).
