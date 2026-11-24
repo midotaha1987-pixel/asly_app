@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">علم ينتفع به</string>
+    <string name="title_activity_main">علم ينتفع به</string>
+    <string name="package_name">com.ilm.yantaf3</string>
+    <string name="custom_url_scheme">com.ilm.yantaf3</string>
+    <!-- AdMob App ID (real) — «علم ينتفع به» Android -->
+    <string name="admob_app_id">ca-app-pub-9117972626650086~8368459382</string>
+</resources>

@@ -1,2 +1,4 @@
 verify/
 media-generation-*.json
+node_modules/
+www/

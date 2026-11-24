@@ -1,0 +1,98 @@
+# بناء نسخة APK (debug) لتطبيق «علم ينتفع به» — يعمل على GitHub
+# الناتج: ملف ilm-yantaf3-bihi-v2.0.0.apk جاهز للتثبيت على أندرويد مباشرة،
+# ويُرفع كأصل (asset) في الإصدار android-v2.0.0 — رابطه ثابت ويستخدمه
+# زر «نزّل نسخة الأندرويد» في الصفحة الرئيسية للتطبيق:
+# https://github.com/midotaha1987-pixel/asly_app/releases/download/android-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
+#
+# متى يعمل:
+# - يدوياً من تبويب Actions (workflow_dispatch) — الطريقة المعتادة بعد أي
+#   تعديل على صفحات التطبيق (ملفات الويب تُنسخ في www/ أثناء البناء).
+# - تلقائياً عند دفع تعديل يمسّ ملفات أندرويد/Capacitor نفسها فقط — تعديلات
+#   الويب وحدها لا تعيد البناء (شغّلها يدوياً عند الحاجة).
+# نسخة debug لا تحتاج مفتاح توقيع، وتصلح للتوزيع الداخلي فقط.
+# نسخة release الموقّعة (Google Play) تحتاج keystore + أسرار GitHub — تُضاف لاحقاً.
+name: Build Android APK
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "capacitor.config.json"
+      - "package.json"
+      - "package-lock.json"
+      - "android/**"
+      - "native-ads-entry.js"
+      - "vendor/**"
+      - "scripts/sync-www.js"
+      - ".github/workflows/build-android-apk.yml"
+  workflow_dispatch:
+
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync web assets + native ads bundle
+        run: npm run sync
+
+      # Capacitor 8's android library targets Java 21 — JDK 17 fails its
+      # compile with "invalid source release: 21".
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # GitHub-hosted runners already ship the full Android SDK (root-owned at
+      # /usr/local/lib/android/sdk). android-actions/setup-android@v3 fails on
+      # it (permission errors reinstalling over the preinstalled SDK), so use
+      # the preinstalled one directly instead.
+      - name: Use runner's preinstalled Android SDK
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
+          ls "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools"
+          ls "${ANDROID_HOME:-/usr/local/lib/android/sdk}/platforms"
+
+      - name: Build APK (debug)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee "$GITHUB_WORKSPACE/gradle-android-apk.log"
+          test "${PIPESTATUS[0]}" -eq 0
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk ilm-yantaf3-bihi-v2.0.0.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ilm-yantaf3-bihi-apk
+          path: ilm-yantaf3-bihi-v2.0.0.apk
+          if-no-files-found: error
+
+      # Stable download URL for the home-screen button:
+      # .../releases/download/android-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
+      - name: Publish to release android-v2.0.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view android-v2.0.0 >/dev/null 2>&1; then
+            gh release create android-v2.0.0 --title "Android v2.0.0 (APK)" \
+              --notes "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة."
+          fi
+          gh release upload android-v2.0.0 ilm-yantaf3-bihi-v2.0.0.apk --clobber

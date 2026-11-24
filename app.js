@@ -429,6 +429,7 @@ function darSwitchPane(tab) {
   if (tab === 'exercises' && typeof darEnsureExercises === 'function') darEnsureExercises();
   if (tab === 'home' && typeof darEnsureHome === 'function') darEnsureHome();
   if (tab === 'home' && typeof darJourneyHomeCard === 'function') darJourneyHomeCard();
+  applyNativeBanner(tab);
 }
 $$('.tab').forEach(function (b) { b.addEventListener('click', function () {
   $$('.tab').forEach(function (x) { x.classList.remove('active'); });
@@ -581,6 +582,23 @@ function applyAdsVisibility() {
   if (watch) watch.classList.remove('hidden');
 }
 
+/* ---------------- Native banner (AdMob, Android only) ---------------- */
+// Banner only on non-Quran screens: home / learn list / settings.
+// Never on Quran reading/verse pages (quran, lesson, tajweed, hadith,
+// exercises, manners, journey lessons, chat). No-op on the website.
+const DAR_NATIVE_BANNER_TABS = ['home', 'learn', 'settings'];
+function applyNativeBanner(tab) {
+  if (!window.DarAds || !window.DarAds.isNative()) return;
+  if (DAR_NATIVE_BANNER_TABS.indexOf(tab) !== -1) {
+    Promise.resolve(window.DarAds.showBanner()).then(function (ok) {
+      if (ok) document.body.classList.add('dar-native-banner');
+    });
+  } else {
+    document.body.classList.remove('dar-native-banner');
+    window.DarAds.hideBanner();
+  }
+}
+
 /* ---------------- إعلانات الويب (AdSense) — خانة واحدة في الصفحة الرئيسية ---------------- */
 // تظهر فقط بعد موافقة AdSense ووضع معرّف ناشر حقيقي في الإعدادات.
 // قبل ذلك لا يرى المستخدم أي صندوق إعلاني فارغ. سكربت AdSense يُحقن
@@ -725,6 +743,24 @@ const POOL_LINE = '💚 مشاهدتك دي بتساعد تطوّر التطبي
 // إعلان اختياري بمكافأة: مشاهدة واحدة = +5 رسائل «اسأل المعلم» (أو +10
 // بمكافأة مضاعفة أحياناً 20%). لا إعلانات إجبارية في التطبيق أبداً.
 async function watchSingleAd(reason) {
+  // Native Android: real rewarded AdMob ad first; any failure/decline
+  // falls back to the web demo gate below (same +5 reward).
+  if (window.DarAds && window.DarAds.isNative()) {
+    try {
+      const r = await window.DarAds.showRewarded();
+      if (r && r.ok) {
+        if (reason === 'chat') {
+          const n = CONFIG.caps.chatAdBundle;
+          addChatBonus(n, 'إعلان واحد');
+          toast(`🎁 +${n} رسائل محادثة — ${POOL_LINE}`);
+        }
+        const btn = $('#chatUnlockBtn');
+        if (btn && chatRemaining() > 0) btn.classList.add('hidden');
+        updateCapsBadge();
+        return true;
+      }
+    } catch (e) { /* fall through to the web gate */ }
+  }
   const watched = await showAdGate(1, 1);
   if (!watched) return false;
   // المكافأة دائماً +5 رسائل كما يعد الإعلان — لا مضاعفة عشوائية.
@@ -1526,6 +1562,7 @@ renderTips();
 fillEndCard();
 applyAdsVisibility();
 applyAdsenseVisibility();
+applyNativeBanner('home'); // Android only — no-op on the website
 updateCapsBadge();
 renderChat();
 renderChatList();
