@@ -87,12 +87,12 @@ jobs:
 
       # Stable download URL for the home-screen button:
       # .../releases/download/android-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
+      # (creates the release on first run, replaces the asset afterwards)
       - name: Publish to release android-v2.0.0
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if ! gh release view android-v2.0.0 >/dev/null 2>&1; then
-            gh release create android-v2.0.0 --title "Android v2.0.0 (APK)" \
-              --notes "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة."
-          fi
-          gh release upload android-v2.0.0 ilm-yantaf3-bihi-v2.0.0.apk --clobber
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-v2.0.0
+          name: Android v2.0.0 (APK)
+          body: "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة."
+          files: ilm-yantaf3-bihi-v2.0.0.apk
+          fail_on_unmatched_files: true
