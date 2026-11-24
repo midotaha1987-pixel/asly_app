@@ -1563,6 +1563,10 @@ fillEndCard();
 applyAdsVisibility();
 applyAdsenseVisibility();
 applyNativeBanner('home'); // Android only — no-op on the website
+// Inside the Android app itself, don't offer the APK download.
+if (window.DarAds && window.DarAds.isNative()) {
+  $$('.apk-download').forEach(function (el) { el.classList.add('hidden'); });
+}
 updateCapsBadge();
 renderChat();
 renderChatList();
