@@ -81,6 +81,16 @@ jobs:
           ./gradlew assembleDebug --stacktrace 2>&1 | tee "$GITHUB_WORKSPACE/gradle-android-apk.log"
           test "${PIPESTATUS[0]}" -eq 0
 
+      # Keep the Gradle log when the build fails — the job log download
+      # needs repo auth, this artifact does not.
+      - name: Upload Gradle log on failure
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: gradle-android-apk-log
+          path: gradle-android-apk.log
+          if-no-files-found: warn
+
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk ilm-yantaf3-bihi-v2.0.0.apk
 
