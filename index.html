@@ -30,6 +30,7 @@
   <button class="tab" data-tab="learn" role="tab"><span class="tab-ic">📚</span> تعلّم</button>
   <button class="tab" data-tab="journey" role="tab"><span class="tab-ic">🗺️</span> رحلتي</button>
   <button class="tab" data-tab="chat" role="tab"><span class="tab-ic">👨‍🏫</span> المعلم</button>
+  <button class="tab" data-tab="review" role="tab"><span class="tab-ic">✅</span> عن المراجع</button>
   <button class="tab" data-tab="settings" role="tab"><span class="tab-ic">⚙️</span> الإعدادات</button>
 </nav>
 <nav id="quranSubnav" class="dar-subnav hidden" aria-label="أقسام القرآن">
@@ -51,9 +52,10 @@
       <div class="dar-gold-div"></div>
       <p class="dar-hero-sub">دار القرآن الكريم: تعلّم القرآن والتجويد والحديث والسلوكيات — من مصادر موثوقة</p>
       <p class="dar-hero-note">⚠️ النصوص من مصادر موثوقة — الذكاء الاصطناعي يشرح فقط، ولا يولّد أي آية أو حديث</p>
+      <div class="dar-review-badge" id="reviewBadge">⏳ المحتوى قيد المراجعة من معلم قرآن — <a href="#" onclick="darSwitchTab('review'); return false;">اعرف أكتر</a></div>
     </div>
     <div id="apkDownload" class="dar-apk-download apk-download">
-      <a class="dar-btn dar-btn-primary dar-btn-big dar-apk-btn" href="https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.3/ilm-yantaf3-bihi-v2.0.0.apk">📲 نزّل نسخة الأندرويد (APK)</a>
+      <a class="dar-btn dar-btn-primary dar-btn-big dar-apk-btn" href="https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.4/ilm-yantaf3-bihi-v2.0.0.apk">📲 نزّل نسخة الأندرويد (APK)</a>
       <p class="hint">نسخة أندرويد من التطبيق — تثبيت مباشر من خارج المتجر، والإعلانات الحقيقية تعمل داخلها. لو ظهر تحذير «تثبيت من مصدر غير معروف» فده طبيعي — الملف من صفحتنا الرسمية على GitHub.</p>
     </div>
     <div id="darJourneyHome"></div>
@@ -213,6 +215,25 @@
     </div>
   </section>
 
+  <!-- ============ REVIEW TAB — عن المراجع ============ -->
+  <section id="tab-review" class="tab-pane">
+    <div class="guide-strip"><span class="dar-badge" aria-hidden="true">✦</span><div><b>عن المراجع:</b> <span>مراجعة بشرية لمحتوى التطبيق من معلم قرآن.</span></div></div>
+    <h2>✅ عن المراجع</h2>
+    <div id="reviewTeacherBox"><p class="hint">جاري تحميل بيانات المراجعة…</p></div>
+    <h3>اللي بتغطيه المراجعة</h3>
+    <ul class="limits">
+      <li>متن تحفة الأطفال وشرح الأحكام</li>
+      <li>أسئلة الاختبارات</li>
+      <li>الأحاديث والسلوكيات</li>
+      <li>شرح المعلم الذكي</li>
+    </ul>
+    <h3>إزاي بنحمي الدقة</h3>
+    <ul class="limits">
+      <li>الآيات والأحاديث من مصادرها داخل التطبيق — لا تُولَّد ولا تُنقَل من ذاكرة.</li>
+      <li>المعلم الذكي يرد من نصوص التطبيق فقط، ولو مفيش مصدر يقول «لا أعلم».</li>
+    </ul>
+  </section>
+
   <!-- ============ SETTINGS TAB ============ -->
   <section id="tab-settings" class="tab-pane">
     <div class="guide-strip"><span class="dar-badge" aria-hidden="true">✦</span><div><b>علم ينتفع به:</b> <span id="tipSettings"></span></div></div>
@@ -281,7 +302,7 @@
     <h3>📲 تثبيت التطبيق على شاشتك</h3>
     <p class="hint">التطبيق يعمل كصفحة ويب كاملة من غير تثبيت، ويمكنك تثبيته كأيقونة على الشاشة الرئيسية (PWA) — يفتح بضغطة واحدة من غير متصفح.</p>
     <button id="installAppBtn" class="btn">📲 تثبيت علم ينتفع به على شاشتك</button>
-    <a class="btn apk-download" href="https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.3/ilm-yantaf3-bihi-v2.0.0.apk">📲 أو نزّل نسخة الأندرويد (APK)</a>
+    <a class="btn apk-download" href="https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.4/ilm-yantaf3-bihi-v2.0.0.apk">📲 أو نزّل نسخة الأندرويد (APK)</a>
     <div id="installSteps" class="install-steps hidden">
       <b>📲 التثبيت اليدوي — اختر جهازك:</b>
       <span>أندرويد (كروم): من قائمة المتصفح ⋮ اختر «إضافة إلى الشاشة الرئيسية».</span>

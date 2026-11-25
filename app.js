@@ -1170,6 +1170,14 @@ function renderChat() {
     if (m.role === 'assistant') body.innerHTML = mdRender(m.text);
     else body.textContent = m.text;
     div.appendChild(body);
+    /* مصادر الإجابة: أسماء المقاطع التي بُنيت منها الإجابة فعلاً فقط
+       (تُحفَظ على الرسالة وقت توليدها من نتيجة البحث — لا تُخترَع أبداً). */
+    if (m.role === 'assistant' && Array.isArray(m.sources) && m.sources.length) {
+      const src = document.createElement('div');
+      src.className = 'chat-sources';
+      src.textContent = '📚 المصادر: ' + m.sources.join(' • ');
+      div.appendChild(src);
+    }
     const acts = document.createElement('div');
     acts.className = 'msg-actions';
     if (m.role === 'user') {
@@ -1389,6 +1397,7 @@ async function streamReply(countUsage) {
   // اعرض الرفض مباشرة بلا استدعاء للنموذج وبلا خصم من رصيد الرسائل.
   // سؤال متابعة بلا كلمات محتوى («اشرح أكتر») يعيد استخدام آخر سؤال له محتوى.
   let extraSystem = '';
+  let ragSources = []; // أسماء المقاطع التي بُنيت منها الإجابة فعلاً — تُحفَظ على الرسالة
   if (typeof darAnswerFromSources === 'function') {
     const userMsgs = hist.filter(m => m.role === 'user');
     let qText = userMsgs.length ? userMsgs[userMsgs.length - 1].text : '';
@@ -1411,6 +1420,7 @@ async function streamReply(countUsage) {
       }
       if (rag && rag.passages && rag.passages.length && typeof darRagSystemBlock === 'function') {
         extraSystem = darRagSystemBlock(rag.passages);
+        ragSources = [...new Set(rag.passages.map(function (p) { return p.ref; }).filter(Boolean))];
       }
     }
   }
@@ -1454,6 +1464,7 @@ async function streamReply(countUsage) {
   const last = h3[h3.length - 1];
   if (last && last.role === 'assistant') {
     last.text = (full || last.text || '').trim();
+    if (ragSources.length) last.sources = ragSources;
     if (aborted && last.text) last.text += '\n\n(تم الإيقاف — الإجابة غير مكتملة)';
     if (!last.text) h3.pop();
   }
@@ -1641,6 +1652,67 @@ function initTextSize() {
 }
 
 /* ---------------- Init ---------------- */
+/* ---------- شارة المراجعة + تبويب «عن المراجع» ----------
+   data/review.json هو المصدر الوحيد لبيانات المراجعة؛ الحالة الافتراضية
+   «pending» بلا اسم معلم — لا يُخترَع اسم معلم أو أي تفصيل مراجعة أبداً.
+   الشارة والتبويب يقرآن الملف وقت التشغيل؛ عند فشل القراءة يبقى الوضع
+   «قيد المراجعة» بأمان. */
+const DAR_REVIEW_PENDING_BADGE = '⏳ المحتوى قيد المراجعة من معلم قرآن';
+const DAR_REVIEW_PENDING_NOTE = 'المراجعة لسه جارية، أول ما نخلص هنكتب اسم المعلم ومؤهلاته وتاريخ المراجعة';
+let darReviewData = null;
+function darReviewBadgeHTML(d) {
+  const name = (d && d.teacherName ? String(d.teacherName) : '').trim();
+  const reviewed = d && d.status === 'reviewed' && name;
+  const txt = reviewed ? '✅ مراجَع من ' + name : DAR_REVIEW_PENDING_BADGE;
+  return escapeHtml(txt) + ' — <a href="#" onclick="darSwitchTab(\'review\'); return false;">اعرف أكتر</a>';
+}
+function darRenderReviewBadge() {
+  const el = document.getElementById('reviewBadge');
+  if (el) el.innerHTML = darReviewBadgeHTML(darReviewData);
+}
+function darRenderReviewTab() {
+  const box = document.getElementById('reviewTeacherBox');
+  if (!box) return;
+  const d = darReviewData || { status: 'pending' };
+  const name = (d.teacherName ? String(d.teacherName) : '').trim();
+  if (d.status !== 'reviewed' || !name) {
+    box.innerHTML = '<p class="hint">' + escapeHtml(DAR_REVIEW_PENDING_NOTE) + '</p>';
+    return;
+  }
+  const esc = function (v) { return escapeHtml(String(v == null ? '' : v).trim()); };
+  const nonEmpty = function (arr) {
+    return (Array.isArray(arr) ? arr : []).filter(function (x) { return String(x || '').trim(); });
+  };
+  let h = '<div class="dar-review-teacher">';
+  h += '<p><b>المعلم:</b> ' + esc(name) + '</p>';
+  if (esc(d.teacherTitle)) h += '<p><b>اللقب:</b> ' + esc(d.teacherTitle) + '</p>';
+  if (esc(d.ijaza)) h += '<p><b>الإجازة:</b> ' + esc(d.ijaza) + '</p>';
+  if (esc(d.bio)) h += '<p>' + esc(d.bio) + '</p>';
+  if (nonEmpty(d.qualifications).length) {
+    h += '<p><b>المؤهلات:</b></p><ul class="limits">' +
+      nonEmpty(d.qualifications).map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ul>';
+  }
+  if (esc(d.reviewDate)) h += '<p><b>تاريخ المراجعة:</b> ' + esc(d.reviewDate) + '</p>';
+  if (nonEmpty(d.reviewedContent).length) {
+    h += '<p><b>المحتوى اللي راجعه:</b></p><ul class="limits">' +
+      nonEmpty(d.reviewedContent).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>';
+  }
+  h += '</div>';
+  box.innerHTML = h;
+}
+async function darLoadReview() {
+  let d = null;
+  try {
+    const r = await fetch('data/review.json');
+    if (r.ok) d = await r.json();
+  } catch (e) { d = null; }
+  if (!d || typeof d !== 'object') d = { status: 'pending' };
+  darReviewData = d;
+  darRenderReviewBadge();
+  darRenderReviewTab();
+  return d;
+}
+
 loadSettings();
 initTextSize();
 initLearnSearch();
@@ -1659,6 +1731,7 @@ updateCapsBadge();
 renderChat();
 renderChatList();
 renderChatEngine();
+darLoadReview(); // شارة المراجعة + تبويب «عن المراجع» — من data/review.json
 handleGoogleRedirectReturn(); // عودة تسجيل الدخول (redirect) داخل نسخة الأندرويد
 renderGoogleAuthUI(); // حالات زر «سجّل دخول بجوجل» (بيتجهز / دخول / مسجّل)
 // أزرار الميكروفون (الإدخال الصوتي)

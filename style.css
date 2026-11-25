@@ -74,7 +74,7 @@ body {
 
 /* ---------- tabs (5 destinations, one row) ---------- */
 .tabs {
-  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
   background: var(--card); border-bottom: 1px solid var(--border);
 }
 .tab {
@@ -84,7 +84,7 @@ body {
 }
 .tab.active { color: #fff; background: var(--emerald); border-bottom-color: var(--gold); font-weight: 800; }
 @media (max-width: 480px) {
-  .tab { font-size: 14px; padding: 10px 1px; }
+  .tab { font-size: 13px; padding: 10px 1px; }
   .tab-ic { display: none; }
 }
 main { padding: 16px; }
@@ -320,6 +320,19 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
 .dar-hero-note {
   background: #FEF3C7; border: 1.5px solid var(--gold); color: #92400E;
   border-radius: 12px; padding: 10px 12px; font-size: var(--fs-ui); line-height: 1.9; margin: 12px 0;
+}
+
+/* ---------- شارة المراجعة + مصادر إجابات المعلم ---------- */
+.dar-review-badge {
+  background: var(--tint); border: 1.5px solid var(--gold-border); color: var(--emerald);
+  border-radius: 12px; padding: 10px 12px; font-size: var(--fs-ui); line-height: 1.9; margin: 12px 0;
+  text-align: center;
+}
+.dar-review-badge a { color: var(--emerald-3); font-weight: 700; }
+.dar-review-teacher p { margin: 6px 0; line-height: 1.9; }
+.chat-sources {
+  color: var(--muted); font-size: 15px; line-height: 1.9;
+  border-top: 1px dashed var(--border); margin-top: 8px; padding-top: 6px;
 }
 
 /* ---------- learn / home section cards (prototype qa-section pattern) ----------
