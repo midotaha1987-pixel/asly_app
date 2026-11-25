@@ -5,7 +5,7 @@
 // app keeps its existing demo-ad flow untouched.
 // NOTE: any change to this file triggers the Android APK workflow
 // (.github/workflows/build-android-apk.yml) — it rebuilds + republishes
-// the debug APK to release apk-v2.0.2.
+// the debug APK to release apk-v2.0.3.
 //
 // Policy (standing, do not relax):
 // - family-safe, child-directed (tagForChildDirectedTreatment), non-personalized (npa)

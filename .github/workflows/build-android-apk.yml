@@ -1,8 +1,8 @@
 # بناء نسخة APK (debug) لتطبيق «علم ينتفع به» — يعمل على GitHub
 # الناتج: ملف ilm-yantaf3-bihi-v2.0.0.apk جاهز للتثبيت على أندرويد مباشرة،
-# ويُرفع كأصل (asset) في الإصدار apk-v2.0.2 — رابطه ثابت ويستخدمه
+# ويُرفع كأصل (asset) في الإصدار apk-v2.0.3 — رابطه ثابت ويستخدمه
 # زر «نزّل نسخة الأندرويد» في الصفحة الرئيسية للتطبيق:
-# https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.2/ilm-yantaf3-bihi-v2.0.0.apk
+# https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.3/ilm-yantaf3-bihi-v2.0.0.apk
 #
 # ⚠️ قاعدة ذهبية — لا تحذف الإصدار أبداً: وسم apk-v2.0.0 احترق نهائياً
 # في 2026-11-25 (حذفنا إصداره فرفضت GitHub إعادة استخدامه:
@@ -12,6 +12,15 @@
 # إليها، ثم تُنشر — والنشر لا يحذف الإصدار أبداً بل يحدّث أصله في مكانه.
 # لو احتجنا إصداراً جديداً تماماً نستخدم وسماً جديداً (apk-v2.0.3…)
 # ونحدّث زر التحميل.
+# ⚠️ توقيع debug بمفتاح ثابت (2026-11-25): كل بناء سابق كان يوقّع
+# بـ debug keystore جديد يولّده الـ runner، فاختلف المفتاح بين
+# v2.0.0-android وapk-v2.0.0 وapk-v2.0.2، ورفض أندرويد تثبيت أي نسخة
+# جديدة فوق القديمة (INSTALL_FAILED_UPDATE_INCOMPATIBLE) — فبقي هاتف
+# روني على النسخة الأولى (popup-mode) رغم نشر الإصلاح. منذ apk-v2.0.3
+# التوقيع بمفتاح ثابت ملتزم في android/app/ilm-yantaf3-debug.keystore
+# (signingConfigs.debug في android/app/build.gradle) — لا تغيّر المفتاح
+# أبداً وإلا عاد نفس العطل. من يحدّث من نسخة قديمة بمفتاح آخر يجب أن
+# يلغي تثبيت التطبيق أولاً (مرة واحدة) ثم يثبّت النسخة الجديدة.
 # ⚠️ إنشاء وسم v2.0.0-android مرفوض بقاعدة المستودع
 # («Cannot create ref due to creations being restricted») — الوسوم
 # تُنشأ بالدفع المباشر من SSH فقط، لا من الـ workflow.
@@ -49,7 +58,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          # Publish step needs the apk-v2.0.2 tag visible locally
+          # Publish step needs the apk-v2.0.3 tag visible locally
           # (default shallow checkout fetches no tags).
           fetch-tags: true
 
@@ -112,14 +121,14 @@ jobs:
           if-no-files-found: error
 
       # Stable download URL for the home-screen button:
-      # .../releases/download/apk-v2.0.2/ilm-yantaf3-bihi-v2.0.0.apk
-      # (the tag apk-v2.0.2 is created by direct SSH push; the workflow
+      # .../releases/download/apk-v2.0.3/ilm-yantaf3-bihi-v2.0.0.apk
+      # (the tag apk-v2.0.3 is created by direct SSH push; the workflow
       # never deletes the release — see the header note about immutable tags)
       # NOTE: gh release create AND softprops both failed on the old tag
       # with a bare "HTTP 422: Validation Failed" — the raw API error was
       # «tag_name was used by an immutable release» — so publish goes
       # through the REST API with curl, whose raw response shows the cause.
-      - name: Publish to release apk-v2.0.2
+      - name: Publish to release apk-v2.0.3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -128,7 +137,7 @@ jobs:
           python3 - <<'PYEOF' > /tmp/release_payload.json
           import json
           print(json.dumps({
-            "tag_name": "apk-v2.0.2",
+            "tag_name": "apk-v2.0.3",
             "target_commitish": "main",
             "name": "Android v2.0.0 (APK)",
             "body": "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة.",
@@ -146,7 +155,7 @@ jobs:
           UPLOAD_URL=$(python3 -c "import json; print(json.load(open('/tmp/create.json')).get('upload_url','').split('{')[0])" 2>/dev/null)
           if [ -z "$REL_ID" ]; then
             echo "create returned no id (release may already exist published) — falling back to GET by tag"
-            REL_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.2")
+            REL_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.3")
             REL_ID=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('id') or '')" 2>/dev/null)
             UPLOAD_URL=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('upload_url','').split('{')[0])" 2>/dev/null)
           fi
@@ -173,7 +182,7 @@ jobs:
           echo "PATCH_HTTP:$PATCH_HTTP"
           tail -c 400 /tmp/patch.json; echo
           # 4) Final check: the (now published) release must exist AND carry the APK asset.
-          curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.2" | python3 -c "import json,sys; d=json.load(sys.stdin); a=d.get('assets',[]); print('ASSETS:', [(x['name'], x['size']) for x in a]); sys.exit(0 if any(x['name']=='ilm-yantaf3-bihi-v2.0.0.apk' for x in a) else 1)"
+          curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.3" | python3 -c "import json,sys; d=json.load(sys.stdin); a=d.get('assets',[]); print('ASSETS:', [(x['name'], x['size']) for x in a]); sys.exit(0 if any(x['name']=='ilm-yantaf3-bihi-v2.0.0.apk' for x in a) else 1)"
           } 2>&1 | tee "$GITHUB_WORKSPACE/publish.log"
           test "${PIPESTATUS[0]}" -eq 0
 
