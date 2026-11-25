@@ -1,8 +1,14 @@
 # بناء نسخة APK (debug) لتطبيق «علم ينتفع به» — يعمل على GitHub
 # الناتج: ملف ilm-yantaf3-bihi-v2.0.0.apk جاهز للتثبيت على أندرويد مباشرة،
-# ويُرفع كأصل (asset) في الإصدار v2.0.0-android — رابطه ثابت ويستخدمه
+# ويُرفع كأصل (asset) في الإصدار apk-v2.0.0 — رابطه ثابت ويستخدمه
 # زر «نزّل نسخة الأندرويد» في الصفحة الرئيسية للتطبيق:
-# https://github.com/midotaha1987-pixel/asly_app/releases/download/v2.0.0-android/ilm-yantaf3-bihi-v2.0.0.apk
+# https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
+#
+# ⚠️ اسم الوسم (tag) مقيّد بقاعدة مستودع: إنشاء وسم v2.0.0-android مرفوض
+# («Cannot create ref due to creations being restricted») — لذلك الوسم
+# apk-v2.0.0، وهو موجود بالفعل. خطوة الحذف أدناه تحذف الإصدار فقط
+# (بدون --cleanup-tag) حتى يبقى الوسم، فخطوة النشر تحدّث الإصدار عليه
+# ولا تحتاج إنشاء وسم جديد أبداً.
 #
 # متى يعمل:
 # - يدوياً من تبويب Actions (workflow_dispatch) — الطريقة المعتادة بعد أي
@@ -89,18 +95,23 @@ jobs:
       # with no assets, and GitHub refuses asset uploads to it — so remove
       # it first; the step below recreates it fresh with the APK attached.
       # (Tolerates absence on the very first run.)
+      # NOTE: no --cleanup-tag here on purpose — the repo ruleset forbids
+      # creating the tag v2.0.0-android, and the replacement tag apk-v2.0.0
+      # already exists; deleting it would leave the publish step unable to
+      # recreate it (that is exactly how the download link died on 2026-11-25).
       - name: Remove previous release (if any)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release delete v2.0.0-android --yes --cleanup-tag || true
+        run: gh release delete apk-v2.0.0 --yes || true
 
       # Stable download URL for the home-screen button:
-      # .../releases/download/v2.0.0-android/ilm-yantaf3-bihi-v2.0.0.apk
-      # (creates the release on first run, replaces the asset afterwards)
-      - name: Publish to release v2.0.0-android
+      # .../releases/download/apk-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
+      # (creates the release on first run, replaces the asset afterwards;
+      # the tag apk-v2.0.0 already exists, so no tag creation is needed)
+      - name: Publish to release apk-v2.0.0
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0.0-android
+          tag_name: apk-v2.0.0
           name: Android v2.0.0 (APK)
           body: "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة."
           files: ilm-yantaf3-bihi-v2.0.0.apk
