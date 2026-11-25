@@ -118,11 +118,21 @@ jobs:
       # .../releases/download/apk-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
       # (creates the release on first run, replaces the asset afterwards;
       # the tag apk-v2.0.0 already exists, so no tag creation is needed)
+      # NOTE: the release is deleted just above and recreated here; GitHub
+      # can briefly still report the deleted release, so create/upload is
+      # retried — a bare softprops publish failed this way on 2026-11-25
+      # (run 45545054876: build+upload OK, publish step failed, stable URL 404).
       - name: Publish to release apk-v2.0.0
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: apk-v2.0.0
-          name: Android v2.0.0 (APK)
-          body: "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة."
-          files: ilm-yantaf3-bihi-v2.0.0.apk
-          fail_on_unmatched_files: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in 1 2 3 4 5; do
+            if gh release view apk-v2.0.0 >/dev/null 2>&1; then
+              gh release upload apk-v2.0.0 ilm-yantaf3-bihi-v2.0.0.apk --clobber && break
+            elif gh release create apk-v2.0.0 --title "Android v2.0.0 (APK)" --notes "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة." ilm-yantaf3-bihi-v2.0.0.apk; then
+              break
+            fi
+            echo "publish attempt $i failed — retrying in 20s"
+            sleep 20
+          done
+          gh release view apk-v2.0.0 --json tagName,assets --jq '{tag: .tagName, assets: [.assets[].name]}'
