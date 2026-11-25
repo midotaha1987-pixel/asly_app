@@ -136,36 +136,43 @@ jobs:
             "prerelease": False,
           }, ensure_ascii=False))
           PYEOF
-          for i in 1 2 3 4 5; do
+          # 1) Create (or reuse) the DRAFT release. NOTE: GET /releases/tags/{tag}
+          # cannot see draft releases at all — so the release id and upload_url
+          # MUST come from the create response, never from a re-GET by tag.
+          CREATE_HTTP=$(curl -s -o /tmp/create.json -w "%{http_code}" -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases" --data @/tmp/release_payload.json)
+          echo "CREATE_HTTP:$CREATE_HTTP"
+          tail -c 600 /tmp/create.json; echo
+          REL_ID=$(python3 -c "import json; print(json.load(open('/tmp/create.json')).get('id') or '')" 2>/dev/null)
+          UPLOAD_URL=$(python3 -c "import json; print(json.load(open('/tmp/create.json')).get('upload_url','').split('{')[0])" 2>/dev/null)
+          if [ -z "$REL_ID" ]; then
+            echo "create returned no id (release may already exist published) — falling back to GET by tag"
             REL_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.2")
             REL_ID=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('id') or '')" 2>/dev/null)
-            if [ -n "$REL_ID" ]; then
-              echo "release $REL_ID exists — uploading asset"
-              UPLOAD_URL=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-              ASSET_ID=$(echo "$REL_JSON" | python3 -c "import json,sys; d=json.load(sys.stdin); print(next((str(a['id']) for a in d.get('assets',[]) if a['name']=='ilm-yantaf3-bihi-v2.0.0.apk'), ''))")
-              if [ -n "$ASSET_ID" ]; then
-                echo "deleting stale asset $ASSET_ID first"
-                curl -s -o /dev/null -w "DELETE_ASSET_HTTP:%{http_code}\n" -X DELETE -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/assets/$ASSET_ID"
-              fi
-              UPLOAD_OUT=$(curl -s -w "\nUPLOAD_HTTP:%{http_code}\n" -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/vnd.android.package-archive" --data-binary @ilm-yantaf3-bihi-v2.0.0.apk "$UPLOAD_URL?name=ilm-yantaf3-bihi-v2.0.0.apk" | tail -5)
-              echo "$UPLOAD_OUT"
-              echo "$UPLOAD_OUT" | grep -q "UPLOAD_HTTP:2" && break
-              echo "upload failed — retrying in 20s"
-              sleep 20
-              continue
+            UPLOAD_URL=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('upload_url','').split('{')[0])" 2>/dev/null)
+          fi
+          if [ -z "$REL_ID" ] || [ -z "$UPLOAD_URL" ]; then echo "ERROR: no release id/upload url"; exit 1; fi
+          echo "release id: $REL_ID"
+          # 2) Upload the APK (retry; delete a stale same-name asset first).
+          for i in 1 2 3; do
+            REL_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/$REL_ID")
+            ASSET_ID=$(echo "$REL_JSON" | python3 -c "import json,sys; d=json.load(sys.stdin); print(next((str(a['id']) for a in d.get('assets',[]) if a['name']=='ilm-yantaf3-bihi-v2.0.0.apk'), ''))" 2>/dev/null)
+            if [ -n "$ASSET_ID" ]; then
+              echo "deleting stale asset $ASSET_ID first"
+              curl -s -o /dev/null -w "DELETE_ASSET_HTTP:%{http_code}\n" -X DELETE -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/assets/$ASSET_ID"
             fi
-            echo "no release — creating DRAFT (attempt $i)"
-            CREATE_RESP=$(curl -s -w "\nCREATE_HTTP:%{http_code}\n" -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases" --data @/tmp/release_payload.json)
-            echo "$CREATE_RESP" | tail -15
-            sleep 10
+            UPLOAD_HTTP=$(curl -s -o /tmp/upload.json -w "%{http_code}" -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/vnd.android.package-archive" --data-binary @ilm-yantaf3-bihi-v2.0.0.apk "$UPLOAD_URL?name=ilm-yantaf3-bihi-v2.0.0.apk")
+            echo "UPLOAD_HTTP:$UPLOAD_HTTP (attempt $i)"
+            tail -c 300 /tmp/upload.json; echo
+            echo "$UPLOAD_HTTP" | grep -q "^2" && break
+            echo "upload failed — retrying in 20s"
+            sleep 20
           done
-          # Publish the draft (immutable releases lock only once published).
-          REL_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.2")
-          REL_ID=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('id') or '')" 2>/dev/null)
-          if [ -z "$REL_ID" ]; then echo "ERROR: no release after 5 attempts"; exit 1; fi
-          PATCH_RESP=$(curl -s -w "\nPATCH_HTTP:%{http_code}\n" -X PATCH -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/$REL_ID" -d '{"draft": false}')
-          echo "$PATCH_RESP" | tail -8
-          # Final check: the release must exist AND carry the APK asset.
+          echo "$UPLOAD_HTTP" | grep -q "^2" || { echo "ERROR: upload failed after 3 attempts"; exit 1; }
+          # 3) Publish the draft (immutable releases lock only once published).
+          PATCH_HTTP=$(curl -s -o /tmp/patch.json -w "%{http_code}" -X PATCH -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/$REL_ID" -d '{"draft": false}')
+          echo "PATCH_HTTP:$PATCH_HTTP"
+          tail -c 400 /tmp/patch.json; echo
+          # 4) Final check: the (now published) release must exist AND carry the APK asset.
           curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.2" | python3 -c "import json,sys; d=json.load(sys.stdin); a=d.get('assets',[]); print('ASSETS:', [(x['name'], x['size']) for x in a]); sys.exit(0 if any(x['name']=='ilm-yantaf3-bihi-v2.0.0.apk' for x in a) else 1)"
           } 2>&1 | tee "$GITHUB_WORKSPACE/publish.log"
           test "${PIPESTATUS[0]}" -eq 0
