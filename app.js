@@ -93,15 +93,32 @@ function loadGoogleIdentity() {
   });
   return _gisPromise;
 }
+/* نسخة الأندرويد (Capacitor) أم الموقع؟ — DarAds يُحمَّل قبل app.js،
+   وwindow.Capacitor يحقنه الجسر الأصلي داخل التطبيق. */
+function isNativeApp() {
+  try { if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return true; } catch (e) {}
+  try { if (window.DarAds && typeof window.DarAds.isNative === 'function' && window.DarAds.isNative()) return true; } catch (e) {}
+  return false;
+}
 let _googleTokenClient = null;
 function requestGoogleAccessToken(opts = {}) {
   return loadGoogleIdentity().then(() => new Promise((resolve, reject) => {
     if (!_googleTokenClient) {
+      /* داخل نسخة الأندرويد: وضع redirect بدلاً من النافذة المنبثقة.
+         النافذة المنبثقة (GIS popup) تفتح في متصفح النظام، وبعد الموافقة
+         تحاول العودة إلى https://localhost في ذلك المتصفح — وlocalhost
+         موجود فقط داخل WebView التطبيق، فيموت التدفق بـ ERR_CONNECTION_REFUSED.
+         في وضع redirect ينتقل الـ WebView نفسه إلى accounts.google.com
+         (مسموح به في server.allowNavigation) ثم يعود إلى https://localhost
+         داخل التطبيق، فنقرأ التوكن من الهاش عند الإقلاع (handleGoogleRedirectReturn).
+         يتطلب إضافة https://localhost إلى «Authorized redirect URIs» في العميل. */
+      const native = isNativeApp();
       _googleTokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CONFIG.googleOAuth.clientId,
         scope: GOOGLE_OAUTH_SCOPES,
         callback: () => {},
         error_callback: () => {},
+        ...(native ? { ux_mode: 'redirect', redirect_uri: 'https://localhost' } : {}),
       });
     }
     const client = _googleTokenClient;
@@ -137,12 +154,42 @@ async function fetchGoogleProfile(token) {
     }
   } catch (e) { /* العرض فقط — تجاهل */ }
 }
+/* عودة تدفق redirect داخل نسخة الأندرويد: بعد موافقة Google ترجع الصفحة إلى
+   https://localhost#access_token=... داخل الـ WebView نفسه — نقرأ التوكن من
+   الهاش ونحفظه ونمسح الهاش قبل أي شيء، ثم نعرض الاسم. يعمل فقط داخل التطبيق؛
+   على الموقع لا يحدث هذا أبداً (النافذة المنبثقة لا تترك توكن في الهاش). */
+function handleGoogleRedirectReturn() {
+  if (!isNativeApp()) return false;
+  try {
+    const h = window.location.hash || '';
+    if (!h.includes('access_token=')) {
+      if (h.includes('error=')) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+        toast('⚠️ لم يكتمل تسجيل الدخول بجوجل — حاول مرة أخرى');
+      }
+      return false;
+    }
+    const params = new URLSearchParams(h.slice(1));
+    const token = params.get('access_token');
+    if (!token) return false;
+    const rec = { access_token: token, expires_at: Date.now() + (Number(params.get('expires_in') || 3600) * 1000), email: '', name: '' };
+    LS.set(GOOGLE_TOKEN_KEY, rec);
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    fetchGoogleProfile(token);
+    toast('✅ تم تسجيل دخولك بجوجل — الوضع الذكي مفعّل');
+    return true;
+  } catch (e) { return false; }
+}
 /* يرجع توكن صالحاً، أو null. interactive=true يفتح نافذة الموافقة (من نقرة فقط). */
 async function ensureGoogleToken(opts = {}) {
   const stored = googleStoredToken();
   if (stored && stored.access_token && stored.expires_at && stored.expires_at - Date.now() > 5 * 60 * 1000) return stored.access_token;
   if (!googleOAuthConfigured()) return null;
   if (stored && stored.access_token) {
+    /* في نسخة الأندرويد لا يوجد تحديث صامت: وضع redirect ينتقل بالصفحة
+       كاملة، فلا ننتقل من تلقاء أنفسنا أثناء استخدام المعلم — يرجع null
+       فيطلب التطبيق من المستخدم تسجيل الدخول من جديد (التوكن يعيش ساعة). */
+    if (isNativeApp()) return null;
     try { const rec = await requestGoogleAccessToken({ prompt: '' }); return rec.access_token; }
     catch (e) { return null; }
   }
@@ -1612,6 +1659,7 @@ updateCapsBadge();
 renderChat();
 renderChatList();
 renderChatEngine();
+handleGoogleRedirectReturn(); // عودة تسجيل الدخول (redirect) داخل نسخة الأندرويد
 renderGoogleAuthUI(); // حالات زر «سجّل دخول بجوجل» (بيتجهز / دخول / مسجّل)
 // أزرار الميكروفون (الإدخال الصوتي)
 $('#micChat').addEventListener('click', (e) => toggleDictation($('#chatInput'), e.currentTarget));
@@ -1649,7 +1697,7 @@ window.__asly = {
   renderChat,
   renderChatList, renderChatEngine, newChat, renameChat, deleteChat, switchChat,
   // خطافات تسجيل الدخول بجوجل
-  googleOAuthConfigured, googleSignedIn, googleAccountLabel, googleSignIn, googleSignOut,
+  googleOAuthConfigured, googleSignedIn, googleAccountLabel, googleSignIn, googleSignOut, isNativeApp, handleGoogleRedirectReturn,
   getGeminiAuth, geminiFetch, renderGoogleAuthUI, ensureGoogleToken, googleStoredToken,
   GOOGLE_QUOTA_EXHAUSTED_MSG,
   chatStore, chatEngineLabel, setChatProvider, mdRender, regenerateMessage, editUserMessage, editAssistantMessage, deleteMessage,

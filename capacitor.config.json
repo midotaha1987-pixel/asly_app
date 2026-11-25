@@ -1,1 +1,1 @@
-{"android":{"allowMixedContent":false},"appId":"com.ilm.yantaf3","appName":"علم ينتفع به","server":{"androidScheme":"https"},"webDir":"www"}
+{"android":{"allowMixedContent":false},"appId":"com.ilm.yantaf3","appName":"علم ينتفع به","server":{"allowNavigation":["accounts.google.com"],"androidScheme":"https"},"webDir":"www"}
