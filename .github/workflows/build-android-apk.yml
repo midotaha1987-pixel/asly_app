@@ -1,14 +1,18 @@
 # بناء نسخة APK (debug) لتطبيق «علم ينتفع به» — يعمل على GitHub
 # الناتج: ملف ilm-yantaf3-bihi-v2.0.0.apk جاهز للتثبيت على أندرويد مباشرة،
-# ويُرفع كأصل (asset) في الإصدار apk-v2.0.0 — رابطه ثابت ويستخدمه
+# ويُرفع كأصل (asset) في الإصدار apk-v2.0.1 — رابطه ثابت ويستخدمه
 # زر «نزّل نسخة الأندرويد» في الصفحة الرئيسية للتطبيق:
-# https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
+# https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.1/ilm-yantaf3-bihi-v2.0.0.apk
 #
-# ⚠️ اسم الوسم (tag) مقيّد بقاعدة مستودع: إنشاء وسم v2.0.0-android مرفوض
-# («Cannot create ref due to creations being restricted») — لذلك الوسم
-# apk-v2.0.0، وهو موجود بالفعل. خطوة الحذف أدناه تحذف الإصدار فقط
-# (بدون --cleanup-tag) حتى يبقى الوسم، فخطوة النشر تحدّث الإصدار عليه
-# ولا تحتاج إنشاء وسم جديد أبداً.
+# ⚠️ قاعدة ذهبية — لا تحذف الإصدار أبداً: وسم apk-v2.0.0 احترق نهائياً
+# في 2026-11-25 (حذفنا إصداره فرفضت GitHub إعادة استخدامه:
+# 422 «tag_name was used by an immutable release»). أي وسم يُستخدم في
+# إصدار ثم يُحذف إصداره يموت للأبد — لذلك النشر يحدّث الإصدار الحالي
+# في مكانه (رفع الأصل فوق القديم) ولا يحذفه أبداً. لو احتجنا إصداراً
+# جديداً تماماً نستخدم وسماً جديداً (apk-v2.0.2…) ونحدّث زر التحميل.
+# ⚠️ إنشاء وسم v2.0.0-android مرفوض بقاعدة المستودع
+# («Cannot create ref due to creations being restricted») — الوسوم
+# تُنشأ بالدفع المباشر من SSH فقط، لا من الـ workflow.
 #
 # متى يعمل:
 # - يدوياً من تبويب Actions (workflow_dispatch) — الطريقة المعتادة بعد أي
@@ -43,7 +47,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          # Publish step needs the apk-v2.0.0 tag visible locally
+          # Publish step needs the apk-v2.0.1 tag visible locally
           # (default shallow checkout fetches no tags).
           fetch-tags: true
 
@@ -105,27 +109,15 @@ jobs:
           path: ilm-yantaf3-bihi-v2.0.0.apk
           if-no-files-found: error
 
-      # The release created by run 1 (gh CLI) came out immutable/published
-      # with no assets, and GitHub refuses asset uploads to it — so remove
-      # it first; the step below recreates it fresh with the APK attached.
-      # (Tolerates absence on the very first run.)
-      # NOTE: no --cleanup-tag here on purpose — the repo ruleset forbids
-      # creating the tag v2.0.0-android, and the replacement tag apk-v2.0.0
-      # already exists; deleting it would leave the publish step unable to
-      # recreate it (that is exactly how the download link died on 2026-11-25).
-      - name: Remove previous release (if any)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release delete apk-v2.0.0 --yes || true
-
       # Stable download URL for the home-screen button:
-      # .../releases/download/apk-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
-      # (the tag apk-v2.0.0 already exists, so no tag creation is needed)
-      # NOTE: gh release create AND softprops both failed here with a bare
-      # "HTTP 422: Validation Failed" (runs 45545054876, 45545536616,
-      # 45546393572) hiding the API's errors array — so publish goes through
-      # the REST API with curl, whose raw response shows the exact cause.
-      - name: Publish to release apk-v2.0.0
+      # .../releases/download/apk-v2.0.1/ilm-yantaf3-bihi-v2.0.0.apk
+      # (the tag apk-v2.0.1 is created by direct SSH push; the workflow
+      # never deletes the release — see the header note about immutable tags)
+      # NOTE: gh release create AND softprops both failed on the old tag
+      # with a bare "HTTP 422: Validation Failed" — the raw API error was
+      # «tag_name was used by an immutable release» — so publish goes
+      # through the REST API with curl, whose raw response shows the cause.
+      - name: Publish to release apk-v2.0.1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -134,7 +126,7 @@ jobs:
           python3 - <<'PYEOF' > /tmp/release_payload.json
           import json
           print(json.dumps({
-            "tag_name": "apk-v2.0.0",
+            "tag_name": "apk-v2.0.1",
             "target_commitish": "main",
             "name": "Android v2.0.0 (APK)",
             "body": "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة.",
@@ -143,11 +135,16 @@ jobs:
           }, ensure_ascii=False))
           PYEOF
           for i in 1 2 3 4 5; do
-            REL_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.0")
+            REL_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.1")
             REL_ID=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('id') or '')" 2>/dev/null)
             if [ -n "$REL_ID" ]; then
               echo "release $REL_ID exists — uploading asset"
               UPLOAD_URL=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+              ASSET_ID=$(echo "$REL_JSON" | python3 -c "import json,sys; d=json.load(sys.stdin); print(next((str(a['id']) for a in d.get('assets',[]) if a['name']=='ilm-yantaf3-bihi-v2.0.0.apk'), ''))")
+              if [ -n "$ASSET_ID" ]; then
+                echo "deleting stale asset $ASSET_ID first"
+                curl -s -o /dev/null -w "DELETE_ASSET_HTTP:%{http_code}\n" -X DELETE -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/assets/$ASSET_ID"
+              fi
               UPLOAD_OUT=$(curl -s -w "\nUPLOAD_HTTP:%{http_code}\n" -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/vnd.android.package-archive" --data-binary @ilm-yantaf3-bihi-v2.0.0.apk "$UPLOAD_URL?name=ilm-yantaf3-bihi-v2.0.0.apk" | tail -5)
               echo "$UPLOAD_OUT"
               echo "$UPLOAD_OUT" | grep -q "UPLOAD_HTTP:2" && break
@@ -161,7 +158,7 @@ jobs:
             sleep 20
           done
           # Final check: the release must exist AND carry the APK asset.
-          curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.0" | python3 -c "import json,sys; d=json.load(sys.stdin); a=d.get('assets',[]); print('ASSETS:', [(x['name'], x['size']) for x in a]); sys.exit(0 if any(x['name']=='ilm-yantaf3-bihi-v2.0.0.apk' for x in a) else 1)"
+          curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.1" | python3 -c "import json,sys; d=json.load(sys.stdin); a=d.get('assets',[]); print('ASSETS:', [(x['name'], x['size']) for x in a]); sys.exit(0 if any(x['name']=='ilm-yantaf3-bihi-v2.0.0.apk' for x in a) else 1)"
           } 2>&1 | tee "$GITHUB_WORKSPACE/publish.log"
           test "${PIPESTATUS[0]}" -eq 0
 
