@@ -120,38 +120,55 @@ jobs:
 
       # Stable download URL for the home-screen button:
       # .../releases/download/apk-v2.0.0/ilm-yantaf3-bihi-v2.0.0.apk
-      # (creates the release on first run, replaces the asset afterwards;
-      # the tag apk-v2.0.0 already exists, so no tag creation is needed)
-      # NOTE: the release is deleted just above and recreated here; GitHub
-      # can briefly still report the deleted release, so create/upload is
-      # retried — a bare softprops publish failed this way on 2026-11-25
-      # (run 45545054876: build+upload OK, publish step failed, stable URL 404).
+      # (the tag apk-v2.0.0 already exists, so no tag creation is needed)
+      # NOTE: gh release create AND softprops both failed here with a bare
+      # "HTTP 422: Validation Failed" (runs 45545054876, 45545536616,
+      # 45546393572) hiding the API's errors array — so publish goes through
+      # the REST API with curl, whose raw response shows the exact cause.
       - name: Publish to release apk-v2.0.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -x
           {
-          echo "--- local tags:"; git tag --list 'apk-*'
-          echo "--- remote tags:"; git ls-remote --tags origin 'apk-*'
-          echo "--- release now:"; gh release view apk-v2.0.0 --json tagName --jq .tagName || echo "(no release)"
+          python3 - <<'PYEOF' > /tmp/release_payload.json
+          import json
+          print(json.dumps({
+            "tag_name": "apk-v2.0.0",
+            "target_commitish": "main",
+            "name": "Android v2.0.0 (APK)",
+            "body": "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة.",
+            "draft": False,
+            "prerelease": False,
+          }, ensure_ascii=False))
+          PYEOF
           for i in 1 2 3 4 5; do
-            if gh release view apk-v2.0.0 >/dev/null 2>&1; then
-              gh release upload apk-v2.0.0 ilm-yantaf3-bihi-v2.0.0.apk --clobber && break
-            elif gh release create apk-v2.0.0 --title "Android v2.0.0 (APK)" --notes "نسخة أندرويد (debug) من «علم ينتفع به» — تثبيت مباشر من خارج المتجر. الإعلانات الحقيقية (AdMob) تعمل داخل هذه النسخة." ilm-yantaf3-bihi-v2.0.0.apk; then
-              break
+            REL_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.0")
+            REL_ID=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('id') or '')" 2>/dev/null)
+            if [ -n "$REL_ID" ]; then
+              echo "release $REL_ID exists — uploading asset"
+              UPLOAD_URL=$(echo "$REL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+              UPLOAD_OUT=$(curl -s -w "\nUPLOAD_HTTP:%{http_code}\n" -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/vnd.android.package-archive" --data-binary @ilm-yantaf3-bihi-v2.0.0.apk "$UPLOAD_URL?name=ilm-yantaf3-bihi-v2.0.0.apk" | tail -5)
+              echo "$UPLOAD_OUT"
+              echo "$UPLOAD_OUT" | grep -q "UPLOAD_HTTP:2" && break
+              echo "upload failed — retrying in 20s"
+              sleep 20
+              continue
             fi
-            echo "publish attempt $i failed — retrying in 20s"
+            echo "no release — creating (attempt $i)"
+            CREATE_RESP=$(curl -s -w "\nCREATE_HTTP:%{http_code}\n" -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases" --data @/tmp/release_payload.json)
+            echo "$CREATE_RESP" | tail -15
             sleep 20
           done
-          gh release view apk-v2.0.0 --json tagName,assets --jq '{tag: .tagName, assets: [.assets[].name]}'
+          # Final check: the release must exist AND carry the APK asset.
+          curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/midotaha1987-pixel/asly_app/releases/tags/apk-v2.0.0" | python3 -c "import json,sys; d=json.load(sys.stdin); a=d.get('assets',[]); print('ASSETS:', [(x['name'], x['size']) for x in a]); sys.exit(0 if any(x['name']=='ilm-yantaf3-bihi-v2.0.0.apk' for x in a) else 1)"
           } 2>&1 | tee "$GITHUB_WORKSPACE/publish.log"
           test "${PIPESTATUS[0]}" -eq 0
 
-      # Job logs need repo auth to read; surface the exact gh error as a
+      # Job logs need repo auth to read; surface the publish log as a
       # job annotation instead (readable without auth).
-      - name: Annotate publish error on failure
+      - name: Annotate publish log on failure
         if: failure()
         run: |
-          MSG=$(grep -aiE "error|failed|HTTP [0-9]{3}|422|403|404|Cannot|denied|not found" "$GITHUB_WORKSPACE/publish.log" | tail -8 | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk '{print $0 "%0A"}' | tr -d '\n')
-          echo "::error title=APK publish failed::$MSG"
+          MSG=$(tail -60 "$GITHUB_WORKSPACE/publish.log" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk '{print $0 "%0A"}' | tr -d '\n')
+          echo "::error title=APK publish log::$MSG"
