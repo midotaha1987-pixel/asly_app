@@ -1,7 +1,7 @@
 /* علم ينتفع به service worker — cache-first for the app shell only.
    API calls (AlQuran Cloud / jsDelivr / Pollinations / Gemini / YouTube) are never cached. */
-const CACHE = 'dar-quran-v13'; // BUMP ON EVERY SHELL RELEASE — browsers only reinstall the SW when sw.js itself changes; a stale CACHE serves the old app forever.
-const SHELL = ['index.html', 'style.css', 'app.js', 'quran.js', 'journey.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'logo-a.webp', 'logo-b.webp', 'sponsors.json', 'data/manners.json'];
+const CACHE = 'dar-quran-v14'; // BUMP ON EVERY SHELL RELEASE — browsers only reinstall the SW when sw.js itself changes; a stale CACHE serves the old app forever.
+const SHELL = ['index.html', 'privacy.html', 'style.css', 'app.js', 'quran.js', 'journey.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'logo-a.webp', 'logo-b.webp', 'sponsors.json', 'data/manners.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

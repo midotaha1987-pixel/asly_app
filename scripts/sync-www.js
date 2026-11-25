@@ -12,7 +12,7 @@ const www = path.join(root, 'www');
 
 // Files/dirs copied verbatim (the web app itself).
 const COPY = [
-  'index.html', 'app.js', 'journey.js', 'quran.js', 'style.css', 'sw.js',
+  'index.html', 'privacy.html', 'app.js', 'journey.js', 'quran.js', 'style.css', 'sw.js',
   'manifest.json', 'icon-192.png', 'icon-512.png', 'icon.svg',
   'logo-a.webp', 'logo-b.webp',
   'featured-1.jpg', 'featured-2.jpg', 'featured-3.jpg',
