@@ -19,6 +19,38 @@ const REWARDED_ID = 'ca-app-pub-9117972626650086/3449185524';
 let initialized = false;
 let bannerVisible = false;
 
+// ---- Diagnostics (read-only): why ads do/don't show ----
+// Rony installed the APK and saw no ads at all, with no consent popup.
+// Nothing here changes ad behaviour — it only records what happened, so
+// Settings can show it in plain words via window.DarAds.status().
+const diag = {
+  initialized: false,
+  canRequestAds: null,      // true | false | null (not asked yet)
+  consentStatus: null,      // e.g. 'REQUIRED' | 'NOT_REQUIRED' | 'OBTAINED' | null
+  consentFormAvailable: null,
+  banner: 'not-requested',  // 'not-requested' | 'shown' | 'failed' | 'hidden'
+  lastError: null,          // short string of the last failed step, or null
+  lastStep: null,           // 'consent' | 'initialize' | 'banner' | 'rewarded' | null
+};
+
+function shortErr(e) {
+  if (e == null) return 'unknown error';
+  const m = (e && e.message) ? e.message : String(e);
+  return m.slice(0, 160);
+}
+
+function status() {
+  return {
+    platform: isNative() ? 'native' : 'web',
+    initialized: initialized,
+    canRequestAds: diag.canRequestAds,
+    consent: { status: diag.consentStatus, formAvailable: diag.consentFormAvailable },
+    banner: diag.banner,
+    lastError: diag.lastError,
+    lastStep: diag.lastStep,
+  };
+}
+
 function isNative() {
   try { return Capacitor.isNativePlatform(); } catch (e) { return false; }
 }
@@ -28,14 +60,26 @@ async function ensureInit() {
   if (!isNative()) return false;
   try {
     let consent = await AdMob.requestConsentInfo();
+    diag.consentStatus = consent.status || null;
+    diag.consentFormAvailable = !!consent.isConsentFormAvailable;
+    diag.canRequestAds = !!consent.canRequestAds;
     if (consent.isConsentFormAvailable && consent.status === AdmobConsentStatus.REQUIRED) {
       consent = await AdMob.showConsentForm();
+      diag.consentStatus = consent.status || diag.consentStatus;
+      diag.canRequestAds = !!consent.canRequestAds;
     }
-    if (!consent.canRequestAds) return false;
+    if (!consent.canRequestAds) {
+      diag.lastError = 'canRequestAds=false — لم يُسمح بطلب الإعلانات (موافقة الإعلانات غير ممنوحة)';
+      diag.lastStep = 'consent';
+      return false;
+    }
     await AdMob.initialize({ tagForChildDirectedTreatment: true });
     initialized = true;
+    diag.initialized = true;
     return true;
   } catch (e) {
+    diag.lastError = 'initialize: ' + shortErr(e);
+    diag.lastStep = 'initialize';
     return false;
   }
 }
@@ -51,8 +95,12 @@ async function showBanner() {
       npa: true,
     });
     bannerVisible = true;
+    diag.banner = 'shown';
     return true;
   } catch (e) {
+    diag.banner = 'failed';
+    diag.lastError = 'banner: ' + shortErr(e);
+    diag.lastStep = 'banner';
     return false;
   }
 }
@@ -61,6 +109,7 @@ async function hideBanner() {
   if (!bannerVisible) return;
   try { await AdMob.hideBanner(); } catch (e) { /* already hidden */ }
   bannerVisible = false;
+  diag.banner = 'hidden';
 }
 
 // Shows the real rewarded ad. Returns { ok: true } only when the user
@@ -73,8 +122,10 @@ async function showRewarded() {
     await AdMob.showRewardVideoAd();
     return { ok: true };
   } catch (e) {
+    diag.lastError = 'rewarded: ' + shortErr(e);
+    diag.lastStep = 'rewarded';
     return { ok: false, reason: 'failed' };
   }
 }
 
-window.DarAds = { isNative, showBanner, hideBanner, showRewarded };
+window.DarAds = { isNative, showBanner, hideBanner, showRewarded, status };

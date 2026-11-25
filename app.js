@@ -430,6 +430,10 @@ function darSwitchPane(tab) {
   if (tab === 'home' && typeof darEnsureHome === 'function') darEnsureHome();
   if (tab === 'home' && typeof darJourneyHomeCard === 'function') darJourneyHomeCard();
   applyNativeBanner(tab);
+  if (tab === 'settings') {
+    updateAdsDiag();
+    setTimeout(updateAdsDiag, 2500); // يلحق نتيجة التهيئة/البانر غير المتزامنة
+  }
 }
 $$('.tab').forEach(function (b) { b.addEventListener('click', function () {
   $$('.tab').forEach(function (x) { x.classList.remove('active'); });
@@ -592,11 +596,47 @@ function applyNativeBanner(tab) {
   if (DAR_NATIVE_BANNER_TABS.indexOf(tab) !== -1) {
     Promise.resolve(window.DarAds.showBanner()).then(function (ok) {
       if (ok) document.body.classList.add('dar-native-banner');
+      updateAdsDiag();
     });
   } else {
     document.body.classList.remove('dar-native-banner');
     window.DarAds.hideBanner();
+    updateAdsDiag();
   }
+}
+
+/* ---------------- تشخيص الإعلانات (سطر صغير في الإعدادات) ---------------- */
+// يقرأ حالة AdMob الحقيقية من DarAds.status() ويعرضها بكلمات بسيطة، حتى
+// يعرف صاحب التطبيق لماذا لا تظهر إعلانات (مثلاً: التطبيق غير منشور على
+// بلاي بعد، أو فشل تحميل الإعلان). لا يغيّر أي سلوك إعلاني.
+function updateAdsDiag() {
+  const el = document.getElementById('adsDiagLine');
+  if (!el) return;
+  let text;
+  try {
+    const D = window.DarAds;
+    if (!D || typeof D.status !== 'function' || !D.isNative()) {
+      text = 'حالة الإعلانات: الإعلانات الحقيقية تظهر في نسخة الأندرويد فقط — على الموقع تظهر إعلانات تجريبية.';
+    } else {
+      const st = D.status() || {};
+      if (st.initialized && st.banner === 'shown') {
+        text = 'حالة الإعلانات: تعمل — البانر ظاهر الآن.';
+      } else if (st.initialized && st.banner === 'failed') {
+        text = 'حالة الإعلانات: تمت التهيئة لكن البانر لم يظهر' + (st.lastError ? ' — ' + st.lastError : ' — لم يصل إعلان من جوجل.');
+      } else if (st.initialized) {
+        text = 'حالة الإعلانات: تمت التهيئة — بانتظار عرض البانر.';
+      } else if (st.canRequestAds === false) {
+        text = 'حالة الإعلانات: غير مسموح بطلب الإعلانات (موافقة الإعلانات غير ممنوحة).';
+      } else if (st.lastError) {
+        text = 'حالة الإعلانات: تعذّرت التهيئة — ' + st.lastError;
+      } else {
+        text = 'حالة الإعلانات: جارٍ التهيئة…';
+      }
+    }
+  } catch (e) {
+    text = 'حالة الإعلانات: غير معروفة حالياً.';
+  }
+  el.textContent = text;
 }
 
 /* ---------------- إعلانات الويب (AdSense) — خانة واحدة في الصفحة الرئيسية ---------------- */
@@ -1563,6 +1603,7 @@ fillEndCard();
 applyAdsVisibility();
 applyAdsenseVisibility();
 applyNativeBanner('home'); // Android only — no-op on the website
+updateAdsDiag(); // سطر حالة الإعلانات في الإعدادات — يبدأ بقيمة صحيحة فوراً
 // Inside the Android app itself, don't offer the APK download.
 if (window.DarAds && window.DarAds.isNative()) {
   $$('.apk-download').forEach(function (el) { el.classList.add('hidden'); });
