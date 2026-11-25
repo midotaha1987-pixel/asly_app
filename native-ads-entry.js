@@ -3,6 +3,9 @@
 // plain <script>). On the website this file is inert: isNative() is false
 // and every method returns false without touching the network — the web
 // app keeps its existing demo-ad flow untouched.
+// NOTE: any change to this file triggers the Android APK workflow
+// (.github/workflows/build-android-apk.yml) — it rebuilds + republishes
+// the debug APK to release v2.0.0-android.
 //
 // Policy (standing, do not relax):
 // - family-safe, child-directed (tagForChildDirectedTreatment), non-personalized (npa)
