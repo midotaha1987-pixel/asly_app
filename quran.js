@@ -199,6 +199,8 @@ function darAyahCard(a, surahN, opts) {
     h += '<div class="dar-mem-row"><button class="dar-btn dar-btn-small" onclick="darMarkMemorised(' + surahN + ',' + a.n + ',this)">✓ حفظتها</button>' +
       '<span class="dar-mem-state" id="mem-' + surahN + '-' + a.n + '">' + darMemStateLabel(surahN, a.n) + '</span></div>';
   }
+  /* مساعد التسميع «سمّعني» — في سور جزء عمّ (78–114) فقط */
+  if (surahN >= 78 && a.audio) h += darSpeechPanelHtml(surahN, a.n, a.audio, a.text);
   h += '</div>';
   return h;
 }
@@ -504,6 +506,36 @@ function darOpenLesson() {
 function darLessonStepName(i) {
   return ['', 'اسمع', 'ردّد', 'احفظ', 'افهم', 'طبّق التجويد', 'اختبر نفسك'][i];
 }
+/* ---------- حكايات السور (درس اليوم) ----------
+   ملخص مبسط لموضوع كل سورة من «التفسير الميسر» (مجمع الملك
+   فهد) — بلا أي حوار أو تفاصيل مخترعة، وبلا أي ادعاء ديني
+   خارج التفسير. كل حكاية ⏳ بانتظار مراجعة معلم القرآن قبل
+   الاستخدام الحقيقي. السور 78–100 بلا حكاية (لا أساس موثّق
+   مختصر كافٍ — تُضاف بعد مراجعة المعلم). */
+const DAR_SURAH_STORIES = {
+  114: 'السورة دي بتعلّمنا نستعيذ بالله — رب الناس وملكهم وإلههم — من الوسواس اللي بيوسوس في صدورنا ويخلّينا نفكّر في حاجات وحشة. كل ما تحسّ بوسوسة، قول: أعوذ بالله من الشيطان الرجيم.',
+  113: 'السورة دي بتعلّمنا نستعيذ برب الفلق — رب الصبح اللي بيطلّع النور بعد الظلمة — من شر كل اللي خلقه، ومن شر الظلمة لما تدخل، ومن شر اللي بينفثوا في العُقد، ومن شر الحاسد لما يحسد.',
+  112: 'السورة دي أربع آيات بس، وبتقول لنا أهم حاجة في ديننا: الله واحد أحد، صمد — يعني كل الناس محتاجين له وهو مش محتاج لحد — لم يلد ولم يولد، ومفيش حد زيه أبدًا.',
+  111: 'كان فيه راجل اسمه أبو لهب، عم النبي ﷺ، كان بيؤذي النبي وبيحاربه، وامراته كانت بتعينه على الأذى وبتحمل الحطب. السورة دي نزلت تقول إن ماله وعياله مش هينفعوه، وإنه من أهل النار.',
+  110: 'لما جه نصر الله وفتح مكة، دخل الناس في دين الله أفواجًا — جماعات كتيرة. السورة بتقول للنبي ﷺ: سبّح بحمد ربك واستغفره، لأنه تواب بيقبل التوبة.',
+  109: 'المشركون قالوا للنبي ﷺ: نعبد إلهك سنة وتعبد آلهتنا سنة. السورة دي نزلت تقول: لا — أنا مش هعبد اللي بتعبدوه، وانتم مش هتعبدوا اللي بعبده، لكم دينكم ولي دين.',
+  108: 'ربنا أعطى النبي ﷺ الكوثر — خير كتير أوي، ونهر في الجنة. السورة بتقوله: صلّ لربك وانحر — يعني صلّ واذبح لله وحده — وإن اللي بيكرهك هو المقطوع من الخير.',
+  107: 'السورة دي بتتكلم عن اللي بيكذّب بيوم الدين — بيزقّ اليتيم ومش بيطعم المسكين، وبيصلّي وهو غافل ومش مركّز، وبيمنع الحاجات البسيطة اللي الناس بتستعيرها من بعض.',
+  106: 'قريش كان عندهم رحلتين في السنة — رحلة الشتا لليمن ورحلة الصيف للشام — بيتاجروا ويرجعوا بأمان. السورة بتقولهم: اعبدوا رب البيت اللي أطعمكم من جوع وآمنكم من خوف.',
+  105: 'ملك اسمه أبرهة جه بجيش وفيلة عشان يهدم الكعبة، فربنا بعت عليهم طيورًا أبابيل بترميهم بحجارة من سجّيل، فبقوا زي الزرع اللي أكلته الدواب. ربنا حمى بيته.',
+  104: 'السورة دي بتحذّر اللي بيهمز ويلمز — يعني بيعيب الناس ويتكلم عليهم من وراهم — وبيجمع فلوسه ويفكّر إنها هتخلّيه يعيش للأبد. فلوسه مش هتنفعه، ومصيره النار.',
+  103: 'ربنا أقسم بالعصر — بالوقت — إن الإنسان في خسارة، إلا اللي آمنوا وعملوا الصالحات وتواصوا بالحق وتواصوا بالصبر.',
+  102: 'ناس كتير بتتلهى بالمفاخرة بكثرة الفلوس والعيال، لحد ما يموتوا وهم مشغولين. السورة بتقولهم: هتعرفوا الحقيقة لما تشوفوا النار، وهتتسألوا عن النعيم.',
+  101: 'القارعة يوم القيامة — يوم الناس فيه زي الفراش المنتشر، والجبال زي الصوف المنفوش. اللي حسناته تقيلة يعيش عيشة راضية، واللي حسناته خفيفة فمأواه الهاوية.',
+};
+function darSurahStoryHtml(n) {
+  const s = DAR_SURAH_STORIES[n];
+  if (!s) return '';
+  const meta = DAR_SURAHS[n - 1];
+  return '<div class="dar-story-card"><div class="dar-story-t">📖 حكاية سورة ' + darEsc(darSurahBare(meta.name)) + '</div>'
+    + '<p>' + darEsc(s) + '</p>'
+    + '<p class="hint">الحكاية ملخص مبسط لموضوع السورة من «التفسير الميسر» — ⏳ بانتظار مراجعة معلم القرآن.</p></div>';
+}
 async function darRenderLessonView(host) {
   const l = darGetLesson();
   darQuizDone = {};
@@ -524,6 +556,7 @@ async function darRenderLessonView(host) {
   h += '<div class="dar-lesson-head"><h3 class="dar-lesson-title">📖 درس اليوم</h3>' +
     '<div class="dar-lesson-surah">' + darEsc(d.name) + ' — ' + d.ayahs.length + ' آية • ' + meta.type + '</div>' +
     '<div class="dar-lesson-sub">المسار: جزء عمّ — سورة ' + (114 - n + 1) + ' من 37 • حوالي 15 دقيقة</div></div>';
+  h += darSurahStoryHtml(n);
   h += darNoTtsLine();
   h += '<div class="dar-steps">' + [1, 2, 3, 4, 5, 6].map(function (i) {
     return '<button class="dar-step' + (darLessonStep === i ? ' active' : '') + '" onclick="darGoStep(' + i + ')">' + i + ' — ' + darLessonStepName(i) + '</button>';
@@ -952,6 +985,142 @@ function darWords(text) {
   // words apart. Split only on ASCII whitespace.
   return (text || '').split(/[ \n\r\t]+/).filter(function (w) { return w && w !== '۞' && w !== '۝'; });
 }
+
+/* ============================================================
+   مساعد التسميع «سمّعني» (Web Speech API — مجاني من المتصفح)
+   الطفل يسمّع بصوته، المتصفح يحوّل كلامه لنص عربي، والتطبيق
+   يقارنه بنص الآية بعد توحيد التشكيل ويلوّن الكلمات. مساعد
+   مرح فقط — لا يحكم على التلاوة أبدًا، والحكم النهائي للمعلم.
+   خصوصية: التعرف على الكلام في كروم يبعت الصوت لخدمة التعرف
+   على الكلام في المتصفح (جوجل) — التطبيق نفسه لا يحفظ أي صوت
+   ولا يرفع أي تسجيل. اختياري تمامًا: بيشتغل بس لما الطفل أو
+   ولي الأمر يدوس على الزرار. لو المتصفح مش بيدعمه، البديل
+   المضمون: التسجيل والمقارنة بنفسك جنب صوت القارئ.
+   ============================================================ */
+function darSpeechSupported() {
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+function darSpeechNorm(s) {
+  return (s || '')
+    .replace(/[\u064B-\u0652\u0670\u0640\u06D6-\u06ED\u08D3-\u08E2]/g, '')
+    .replace(/[\u200A\u2060\u200F\u200E]/g, '')
+    .replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+    .replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+    .replace(/[^\u0621-\u064A\s]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+/* مقارنة تقريبية: كل كلمة في الآية «اتسمعت» لو لقيناها في اللي
+   اتقال، بالترتيب، مع سماح بكلمتين زيادة بين كل كلمة والتانية. */
+function darSpeechCompare(heard, ayahText) {
+  const heardWords = darSpeechNorm(heard).split(' ').filter(Boolean);
+  const ayahWords = darWords(ayahText);
+  const out = [];
+  let h = 0;
+  ayahWords.forEach(function (w) {
+    const nw = darSpeechNorm(w);
+    let ok = false;
+    for (let k = h; k < Math.min(heardWords.length, h + 3); k++) {
+      if (heardWords[k] === nw) { ok = true; h = k + 1; break; }
+    }
+    out.push({ w: w, ok: ok });
+  });
+  return out;
+}
+/* عدّاد يجعل كل لوحة «سمّعني» بمعرّف فريد — نفس الآية ممكن تظهر في
+   المصحف ودرس اليوم ورحلتي معًا، ومعرّف مكرر كان يخلّي الزر يحدّث
+   لوحة مخفية بدل لوحته. */
+let darSpeechSeq = 0;
+function darSpeechPanelHtml(surahN, ayahN, audioUrl, ayahText) {
+  const id = 'dar-speech-' + (++darSpeechSeq) + '-' + surahN + '-' + ayahN;
+  return '<div class="dar-speech" id="' + id + '" data-audio="' + darEsc(audioUrl) + '" data-text="' + darEsc(encodeURIComponent(ayahText)) + '">'
+    + '<button class="dar-btn dar-speech-btn" onclick="darSpeechStart(\'' + id + '\')">🎤 سمّعني — مساعد تسميع</button>'
+    + '<p class="hint">مساعد مرح — بيسمعك ويقارن كلامك بالآية. والكلمة الأخيرة للمعلم، مش للتطبيق.</p>'
+    + '<p class="hint">🔒 الصوت بيتبعت لخدمة التعرف على الكلام في المتصفح — التطبيق نفسه مش بيحفظ أي صوت ولا بيرفع أي تسجيل.</p>'
+    + '<div class="dar-speech-status"></div>'
+    + '<div class="dar-speech-result"></div></div>';
+}
+function darSpeechStart(panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const st = panel.querySelector('.dar-speech-status');
+  const res = panel.querySelector('.dar-speech-result');
+  if (!darSpeechSupported()) {
+    if (st) st.innerHTML = '<div class="dar-fb-soft">التعرف على الكلام مش متاح في المتصفح ده — جرّب كروم على أندرويد أو الكمبيوتر. البديل: سجّل صوتك واسمعه جنب صوت القارئ وقارن بنفسك.</div>';
+    return;
+  }
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec;
+  try { rec = new Rec(); } catch (e) {
+    if (st) st.innerHTML = '<div class="dar-fb-soft">الميكروفون مش متاح دلوقتي — جرّب تاني.</div>';
+    return;
+  }
+  rec.lang = 'ar-SA';
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  if (st) st.innerHTML = '<div class="dar-jrn-recing">🎤 بيسمعك… قول الآية بصوت واضح</div>';
+  if (res) res.innerHTML = '';
+  rec.onresult = function (ev) {
+    const heard = (ev.results && ev.results[0] && ev.results[0][0] && ev.results[0][0].transcript) || '';
+    const ayahText = decodeURIComponent(panel.getAttribute('data-text') || '');
+    const cmp = darSpeechCompare(heard, ayahText);
+    const okN = cmp.filter(function (x) { return x.ok; }).length;
+    if (st) st.innerHTML = '<div class="dar-fb-good">سمعتك — دي الكلمات زي ما فهمها المتصفح (ممكن يغلط، خصوصًا مع أصوات الأطفال):</div>';
+    if (res) res.innerHTML = '<div class="dar-speech-words">' + cmp.map(function (x) {
+      return '<span class="dar-speech-word ' + (x.ok ? 'ok' : 'miss') + '">' + darEsc(x.w) + '</span>';
+    }).join(' ') + '</div>'
+      + '<p class="hint">الكلمات الخضرا: المتصفح فهمها. الكلمات الصفرا: راجعها مع القارئ — مش معناها إنك غلطت، المتصفح ممكن يكون هو اللي ما فهمش.</p>'
+      + '<p><strong>' + okN + ' من ' + cmp.length + ' كلمة فهمها المتصفح.</strong></p>'
+      + '<button class="dar-btn" onclick="darSpeechPlayModel(\'' + panelId + '\')">▶ اسمع القارئ للآية دي</button>';
+    if (typeof touchStreak === 'function') { try { touchStreak(); } catch (e) {} }
+  };
+  rec.onerror = function (ev) {
+    const err = (ev && ev.error) || '';
+    if (st) st.innerHTML = '<div class="dar-fb-soft">' + (err === 'not-allowed' ? 'الميكروفون مقفول — اسمح للمتصفح بالميكروفون من إعدادات المتصفح، أو استخدم التسجيل والمقارنة بنفسك.' : err === 'no-speech' ? 'ما سمعناش صوت — قول الآية بصوت أعلى وجرّب تاني.' : 'تعذّر التعرّف على الكلام دلوقتي — جرّب تاني، أو استخدم التسجيل والمقارنة بنفسك.') + '</div>';
+  };
+  rec.onend = function () {
+    if (st && !st.textContent.trim()) st.innerHTML = '';
+  };
+  try { rec.start(); } catch (e) {
+    if (st) st.innerHTML = '<div class="dar-fb-soft">تعذّر تشغيل الميكروفون — جرّب تاني.</div>';
+  }
+}
+function darSpeechPlayModel(panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const url = panel.getAttribute('data-audio') || '';
+  if (typeof darPlayUrl === 'function') darPlayUrl(url, null, null);
+}
+if (typeof window !== 'undefined') { window.__darSpeech = { supported: darSpeechSupported, norm: darSpeechNorm, compare: darSpeechCompare }; }
+
+/* ============================================================
+   الرفيقان هلال ونجمة — رسم أصلي بهوية التطبيق (أخضر وذهبي)
+   هلال ذهبي ونجمة خضراء، بأسلوب مسطّح مرح. مرشدان فقط:
+   يباركان ويشجعان ويوجّهان — لا يعلّمان محتوى، ولا يقرآن
+   أي نص قرآني أبدًا. الإطار حولهما من متجر الجواهر إن وُجد.
+   ============================================================ */
+function darCompanionFrameClass() {
+  try { const s = JSON.parse(localStorage.getItem('asly_shop') || '{}'); return s.frame || ''; } catch (e) { return ''; }
+}
+function darCompanionSVG(mood) {
+  const wink = mood === 'encourage';
+  const bigSmile = mood === 'happy';
+  const starMouth = bigSmile ? '<ellipse cx="88" cy="50" rx="4" ry="5" fill="#0B3D2E"/>' : '<path d="M83 48 q5 5 10 0" stroke="#0B3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  const moonEye = wink ? '<path d="M38 34 q4 -4 8 0" stroke="#0B3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>' : '<circle cx="42" cy="34" r="2.6" fill="#0B3D2E"/>';
+  return '<svg class="dar-companion-svg" viewBox="0 0 120 84" role="img" aria-label="هلال ونجمة">'
+    + '<path d="M58 8 A30 30 0 1 0 58 76 A24 24 0 1 1 58 8 Z" fill="#F2C94C" stroke="#B28A38" stroke-width="2.5" stroke-linejoin="round"/>'
+    + moonEye
+    + '<path d="M36 46 q6 6 12 0" stroke="#0B3D2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+    + '<path d="M88 14 L93.5 30 L110 30 L96.5 40 L101.5 56 L88 46 L74.5 56 L79.5 40 L66 30 L82.5 30 Z" fill="#0B3D2E" stroke="#F2C94C" stroke-width="2.5" stroke-linejoin="round"/>'
+    + '<circle cx="83" cy="36" r="2.4" fill="#F2C94C"/><circle cx="93" cy="36" r="2.4" fill="#F2C94C"/>'
+    + starMouth
+    + '</svg>';
+}
+function darCompanionHtml(mood, text) {
+  const frame = darCompanionFrameClass();
+  return '<div class="dar-companion"><div class="dar-companion-art' + (frame ? ' ' + darEsc(frame) : '') + '">' + darCompanionSVG(mood) + '</div>'
+    + '<div class="dar-companion-bubble">' + darEsc(text) + '</div></div>';
+}
+
 async function darEnsureExercises() {
   const host = darEl('exercisesContent');
   if (host && !host.innerHTML.trim()) await darRenderExercises();
@@ -980,7 +1149,8 @@ async function darRenderExercises() {
   const ayahs = disp.ayahs;
   let h = '<div class="dar-section-intro"><h3 class="dar-h3">✏️ التمارين التفاعلية</h3>' +
     '<p>كل التمارين مولّدة من نص المصحف الموثّق نفسه — الإجابة الصحيحة دائماً كلمة أو آية حقيقية من السورة، والاختيارات الأخرى كلمات وآيات حقيقية أيضاً. لا يوجد شيء مخترع.</p>' +
-    '<p>التمارين متاحة الآن على: الفاتحة والملك ويس وجزء عمّ كاملاً (40 سورة) — وباقي سور المصحف قريباً إن شاء الله.</p></div>';
+    '<p>التمارين متاحة الآن على: الفاتحة والملك ويس وجزء عمّ كاملاً (40 سورة) — وباقي سور المصحف قريباً إن شاء الله.</p></div>'
+    + darCompanionHtml('encourage', 'أنا هلال، ودي نجمة — جرّب وحاول، والغلط هنا تعلّم مش مشكلة!');
   h += '<div class="dar-ex-picker"><label>السورة: <select id="darExSurahSel" onchange="darExChangeSurah(this.value)">' +
     darExSurahOptions() + '</select></label></div>';
   h += '<div class="dar-ex-kinds">' + DAR_EX_KINDS.map(function (k) {

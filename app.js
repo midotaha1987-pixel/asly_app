@@ -429,7 +429,7 @@ function touchStreak() {
   LS.set('asly_streak', s);
   updateStreakBadge();
 }
-function updateStreakBadge() { const el = $('#streakBadge'); if (el) el.textContent = currentStreak(); }
+function updateStreakBadge() { const el = $('#streakBadge'); if (el) el.textContent = currentStreak(); const top = $('#streakBadgeTop'); if (top) top.textContent = currentStreak(); }
 function stats() { return LS.get('asly_stats', { totalChats: 0, badges: [] }); }
 function saveStats(s) { LS.set('asly_stats', s); }
 function levelFor(n) {
@@ -446,11 +446,53 @@ function awardBadge(id, label) {
   saveStats(s);
   toast(`🏅 وسام جديد: ${label}!`);
 }
-/* الأوسمة الممنوحة في التطبيق — تُحفظ على الجهاز (لا توجد صفحة عرض لها بعد) */
+/* الأوسمة الممنوحة في التطبيق — تُحفظ على الجهاز، وتُعرض في «🏆 إنجازاتي» */
 const BADGE_DEFS = [
   ['firstChat', '💬 أول محادثة'],
   ['streak7', '🔥 7 أيام متتالية'],
+  ['firstJewel', '💎 أول جوهرة'],
+  ['firstSelfcheck', '🎤 أول تسميع ذاتي'],
+  ['shopFirst', '🛍️ أول شراء من المتجر'],
+  ['badge-hafiz', 'شارة الحافظ الصغير'],
+  ['badge-star', 'شارة النجم'],
 ];
+/* ---------- صفحة الإنجازات (من الرئيسية) ---------- */
+function darToggleAchievements() {
+  const host = document.getElementById('darAchievements');
+  if (!host) return;
+  if (host.classList.contains('hidden')) {
+    host.innerHTML = darAchievementsHtml();
+    host.classList.remove('hidden');
+  } else host.classList.add('hidden');
+}
+function darAchievementsHtml() {
+  const s = stats();
+  const earned = s.badges || [];
+  const labels = {};
+  BADGE_DEFS.forEach(function (b) { labels[b[0]] = b[1]; });
+  let streakDays = 0, granted = [];
+  try { const st = JSON.parse(localStorage.getItem('asly_streak') || '{}'); granted = st.granted || []; streakDays = currentStreak(); } catch (e) {}
+  let jewels = 0, lessons = 0, sc = 0;
+  try { if (typeof darJrnJewels === 'function') jewels = darJrnJewels(); } catch (e) {}
+  try {
+    if (typeof darJrnProg === 'function') {
+      const p = darJrnProg();
+      lessons = Object.keys(p.lessons || {}).filter(function (id) { return (p.lessons[id].stars || [])[0]; }).length;
+      sc = Object.keys(p.lessons || {}).filter(function (id) { return p.lessons[id].selfcheck && p.lessons[id].selfcheck.done; }).length;
+    }
+  } catch (e) {}
+  let h = '<div class="dar-ach"><h3 class="dar-h3">🏆 إنجازاتي</h3>';
+  h += '<p>سلسلتك اليومية: <strong>' + streakDays + ' يوم 🔥</strong> • جواهرك: <strong>' + jewels + ' 💎</strong> • دروس مخلّصة: <strong>' + lessons + '</strong> • تسميعات ذاتية: <strong>' + sc + '</strong></p>';
+  if (!earned.length && !granted.length) h += '<p class="hint">لسه مفيش أوسمة — خلّص درس أو سمّع نفسك عشان تكسب أول وسام!</p>';
+  else {
+    h += '<div class="dar-ach-grid">';
+    earned.forEach(function (id) { h += '<span class="dar-ach-badge">' + darEsc(labels[id] || id) + '</span>'; });
+    granted.forEach(function (n) { h += '<span class="dar-ach-badge">🔥 سلسلة ' + n + ' أيام</span>'; });
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
 const DAR_QURAN_TABS = ['quran', 'lesson', 'journey', 'tajweed', 'hadith', 'exercises'];
 function darShowQuranSubnav(show) {
   const sn = document.getElementById('quranSubnav');
@@ -481,6 +523,15 @@ function darSwitchPane(tab) {
     updateAdsDiag();
     setTimeout(updateAdsDiag, 2500); // يلحق نتيجة التهيئة/البانر غير المتزامنة
   }
+  darApplyNightTheme(tab);
+  if (typeof darUpdateRewardsBar === 'function') darUpdateRewardsBar();
+}
+/* ---------- هوية ليلة الزمرد: سماء ليلية خضراء داكنة + نجوم ذهبية ----------
+   لمناطق الأطفال بس (الرئيسية، تعلّم، درس اليوم، رحلتي، التمارين،
+   السلوكيات، المتجر) — صفحات المصحف والنصوص تفضل فاتحة ومقروءة. */
+const DAR_NIGHT_TABS = ['home', 'learn', 'lesson', 'journey', 'exercises', 'manners'];
+function darApplyNightTheme(tab) {
+  document.body.classList.toggle('dar-night', DAR_NIGHT_TABS.indexOf(tab) !== -1);
 }
 $$('.tab').forEach(function (b) { b.addEventListener('click', function () {
   $$('.tab').forEach(function (x) { x.classList.remove('active'); });

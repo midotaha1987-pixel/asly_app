@@ -41,6 +41,11 @@
   <button class="subtab" data-tab="hadith">📜 الحديث</button>
   <button class="subtab" data-tab="exercises">✏️ التمارين</button>
 </nav>
+<div id="darRewardsBar" class="dar-rewards-bar" aria-label="مكافآتك">
+  <span>💎 <b id="rwJewels">0</b></span>
+  <span>⭐ <b id="rwStars">0</b></span>
+  <span>🔥 <b id="rwStreak">0</b></span>
+</div>
 </div>
 
 <main>
@@ -55,9 +60,12 @@
       <div class="dar-review-badge" id="reviewBadge">⏳ المحتوى قيد المراجعة من معلم قرآن — <a href="#" onclick="darSwitchTab('review'); return false;">اعرف أكتر</a></div>
     </div>
     <div id="apkDownload" class="dar-apk-download apk-download">
-      <a class="dar-btn dar-btn-primary dar-btn-big dar-apk-btn" href="https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.4/ilm-yantaf3-bihi-v2.0.0.apk">📲 نزّل نسخة الأندرويد (APK)</a>
+      <a class="dar-btn dar-btn-primary dar-btn-big dar-apk-btn" href="https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.5/ilm-yantaf3-bihi-v2.0.0.apk">📲 نزّل نسخة الأندرويد (APK)</a>
       <p class="hint">نسخة أندرويد من التطبيق — تثبيت مباشر من خارج المتجر، والإعلانات الحقيقية تعمل داخلها. لو ظهر تحذير «تثبيت من مصدر غير معروف» فده طبيعي — الملف من صفحتنا الرسمية على GitHub.</p>
     </div>
+    <div id="darCircleCard"></div>
+    <div id="darStreakTop" class="dar-streak-top">🔥 <span id="streakBadgeTop">0</span> يوم متتالي • 💎 <span id="jewelBadgeTop">0</span> جوهرة • <button class="dar-btn dar-btn-small" id="darAchBtn" onclick="darToggleAchievements()">🏆 إنجازاتي</button></div>
+    <div id="darAchievements" class="hidden"></div>
     <div id="darJourneyHome"></div>
     <div id="homeNamesake" class="dar-namesake"></div>
     <div class="dar-home-sections">
@@ -128,6 +136,8 @@
       </button>
     </div>
     <div id="learnEmpty" class="empty hidden">مفيش قسم بالاسم ده — جرّب كلمة تانية.</div>
+    <div class="dar-shop-entry"><button class="dar-btn dar-btn-primary dar-jrn-big" id="darShopOpenBtn" onclick="darJrnOpenShop()">🛍️ متجر الجواهر — اشترِ بجواهرك (مجاني)</button></div>
+    <div id="darShopView" class="hidden"></div>
   </section>
 
   <!-- ============ QURAN TAB ============ -->
@@ -299,10 +309,20 @@
     <div class="hint" id="journeyStageHint"></div>
     <div class="hint">صوت التعليمات في الدروس: تسجيلات المعلّم نفسه (قريبًا)؛ حاليًا التعليمات مكتوبة على الشاشة بس، من غير أي صوت آلي. التلاوة بصوت مقرئ حقيقي فقط دائمًا.</div>
 
+    <h3>👥 الحلقة أو المعلم (اختياري)</h3>
+    <p class="hint">لو طفلك تابع لحلقة تحفيظ أو معلم، فعّل وضع المتابعة — تقرير أسبوعي بسيط من «رحلتي» يتطبع أو يتبعت للمعلم، من غير أي خوادم ولا حسابات.</p>
+    <div class="setting-row" id="circleRow">
+      <label><input type="radio" name="circleLinked" value="no"> لأ، بيتعلم لوحده</label>
+      <label><input type="radio" name="circleLinked" value="yes"> أيوه، تابع لحلقة أو معلم</label>
+    </div>
+    <label class="field-label" for="circleName">اسم الحلقة أو المعلم (اختياري)</label>
+    <input id="circleName" type="text" placeholder="مثال: حلقة مسجد النور" maxlength="60" autocomplete="off">
+    <div class="hint" id="circleHint"></div>
+
     <h3>📲 تثبيت التطبيق على شاشتك</h3>
     <p class="hint">التطبيق يعمل كصفحة ويب كاملة من غير تثبيت، ويمكنك تثبيته كأيقونة على الشاشة الرئيسية (PWA) — يفتح بضغطة واحدة من غير متصفح.</p>
     <button id="installAppBtn" class="btn">📲 تثبيت علم ينتفع به على شاشتك</button>
-    <a class="btn apk-download" href="https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.4/ilm-yantaf3-bihi-v2.0.0.apk">📲 أو نزّل نسخة الأندرويد (APK)</a>
+    <a class="btn apk-download" href="https://github.com/midotaha1987-pixel/asly_app/releases/download/apk-v2.0.5/ilm-yantaf3-bihi-v2.0.0.apk">📲 أو نزّل نسخة الأندرويد (APK)</a>
     <div id="installSteps" class="install-steps hidden">
       <b>📲 التثبيت اليدوي — اختر جهازك:</b>
       <span>أندرويد (كروم): من قائمة المتصفح ⋮ اختر «إضافة إلى الشاشة الرئيسية».</span>

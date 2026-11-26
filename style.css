@@ -706,6 +706,33 @@ h3 { font-size: 16px; margin: 20px 0 6px; color: var(--emerald); }
 .dar-jrn-tile.found { background: #EAF7EE; border-color: #2E7D32; font-weight: 700; }
 .dar-jrn-tile.wrong { background: #FDECEA; border-color: #C62828; opacity: .6; }
 .dar-jrn-tile:disabled { cursor: default; }
+/* ---------- التظليل كلمة كلمة + خطوة «سمّع نفسك» + الكواكب والجواهر ---------- */
+.dar-jrn-w { transition: background .15s; border-radius: 6px; padding: 0 2px; }
+.dar-jrn-w.hl { background: #FDE68A; }
+.dar-ayah-text.hl { background: #FBF6E3; border-radius: 12px; }
+.dar-jrn-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.dar-jrn-chip { font-family: 'Amiri', serif; font-size: 24px; line-height: 1.6; min-height: 56px; min-width: 72px; padding: 8px 14px; border: 2px dashed var(--gold-border); border-radius: 12px; background: var(--card); color: var(--muted); cursor: pointer; }
+.dar-jrn-chip.revealed { border-style: solid; border-color: var(--border); color: var(--ink); }
+.dar-jrn-chip.good { background: #EAF7EE; border-color: #2E7D32; color: #2E7D32; font-weight: 700; }
+.dar-jrn-chip.hard { background: #FEF3C7; border-color: #B8860B; color: #92400E; font-weight: 700; }
+.dar-jrn-chip.hl { outline: 3px solid var(--gold); outline-offset: 2px; background: #FDE68A; }
+.dar-jrn-sc-current { background: var(--tint); border: 1px solid var(--gold-border); border-radius: 12px; padding: 12px; margin: 10px 0; }
+.dar-jrn-sc-good { background: #EAF7EE; border-color: #2E7D32; color: #2E7D32; font-weight: 700; min-height: 56px; }
+.dar-jrn-sc-hard { background: #FEF3C7; border-color: #B8860B; color: #92400E; font-weight: 700; min-height: 56px; }
+.dar-jrn-mistake { border-color: #F59E0B; background: #FFFBEB; }
+.dar-jrn-hard-word { font-family: 'Amiri', serif; font-size: 22px; font-weight: 700; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; padding: 2px 10px; display: inline-block; margin: 2px; }
+.dar-jrn-sc-hard-list { background: #FFFBEB; border: 1px solid #F59E0B; border-radius: 12px; padding: 12px; margin: 10px 0; line-height: 2; }
+.dar-jrn-planets { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 34px; margin: 10px 0 4px; }
+.dar-jrn-planet { opacity: .45; filter: grayscale(.4); }
+.dar-jrn-planet.now { opacity: 1; filter: none; outline: 3px solid var(--gold); border-radius: 50%; }
+.dar-jrn-planet.done { opacity: 1; filter: none; }
+.dar-jrn-path { font-size: 16px; color: var(--muted); letter-spacing: 2px; }
+.dar-jrn-jewels { display: inline-block; background: #E0F2FE; border: 1px solid #38BDF8; color: #075985; border-radius: 20px; padding: 2px 12px; font-weight: 700; }
+.dar-jrn-jewel-mark { font-size: 18px; }
+.dar-jrn-report { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 14px; margin: 12px 0; box-shadow: var(--shadow); }
+.dar-jrn-report-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding: 12px 0; font-size: 17px; }
+.dar-jrn-report-row:last-child { border-bottom: none; }
+.dar-jrn-report-row strong { color: var(--emerald); font-size: 19px; }
 .dar-jrn-fingers { background: var(--card); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 12px; margin: 12px 0; }
 .dar-jrn-finger { font-size: 26px; min-height: 60px; }
 .dar-jrn-finger.on { background: #EAF7EE; border-color: #2E7D32; }
@@ -731,3 +758,173 @@ body.dar-native-banner { padding-bottom: 72px; }
 /* APK download button (home) — prominent, next to the journey card. */
 .dar-apk-download { margin: 12px 0 4px; text-align: center; }
 .dar-apk-btn { display: inline-block; text-decoration: none; }
+
+/* ============================================================
+   هوية «ليلة الزمرد» — سماء ليلية خضراء داكنة + نجوم ذهبية
+   (لغة تصميم ريان وبيان: ليلة + كواكب + شريط مكافآت + بطاقات
+   مستديرة كبيرة + رفيقان — لكن بهويتنا: أخضر وذهبي، لا بنفسجي،
+   وشخصيتا هلال ونجمة الأصليتان، لا رائدهم/روبوتتهم.)
+   تُطبَّق على مناطق الأطفال بس (الرئيسية، تعلّم، درس اليوم،
+   رحلتي، التمارين، السلوكيات، المتجر) عبر body.dar-night —
+   صفحات المصحف والنصوص تفضل فاتحة ومقروءة.
+   ============================================================ */
+body.dar-night {
+  background: linear-gradient(180deg, #03130C 0%, #052A1A 45%, #0B3D2E 100%);
+  color: #F5F1E6;
+}
+body.dar-night main {
+  background-image:
+    radial-gradient(2px 2px at 25px 35px, #F2C94C 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 90px 120px, #FFFFFF 50%, transparent 51%),
+    radial-gradient(1px 1px at 160px 60px, #F2C94C 50%, transparent 51%),
+    radial-gradient(2px 2px at 220px 180px, #FFFFFF 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 300px 90px, #F2C94C 50%, transparent 51%),
+    radial-gradient(1px 1px at 60px 200px, #FFFFFF 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 270px 30px, #FFFFFF 50%, transparent 51%);
+  background-size: 340px 240px;
+}
+body.dar-night .tabs { background: #052A1A; }
+body.dar-night .tab { background: transparent; color: #C9DCD2; }
+body.dar-night .tab.active { background: #0E4A38; color: #F2C94C; border-bottom-color: #F2C94C; }
+/* بطاقة البطل فاتحة حتى في الوضع الليلي — نصها يفضل غامقًا */
+body.dar-night .dar-hero p { color: var(--ink); }
+body.dar-night .hint { color: #BFD8C8; }
+body.dar-night p { color: #EAF6EE; }
+body.dar-night .dar-h3, body.dar-night .dar-h4,
+body.dar-night .dar-jrn-home-t, body.dar-night .dar-jrn-station-name,
+body.dar-night .dar-jrn-story-t, body.dar-night .dar-learn-title,
+body.dar-night .dar-lesson-title, body.dar-night .dar-story-t,
+body.dar-night .dar-shop-name, body.dar-night .dar-ex-kind { color: #F2C94C; }
+body.dar-night .dar-learn-card, body.dar-night .dar-jrn-station,
+body.dar-night .dar-jrn-home, body.dar-night .dar-jrn-card,
+body.dar-night .dar-jrn-story, body.dar-night .dar-jrn-review,
+body.dar-night .dar-ex-ayah,
+body.dar-night .dar-section-intro, body.dar-night .dar-step,
+body.dar-night .dar-ex-kind, body.dar-night .dar-shop-item,
+body.dar-night .dar-ach, body.dar-night .dar-circle-card,
+body.dar-night .dar-story-card, body.dar-night .dar-jrn-report,
+body.dar-night .dar-step-intro, body.dar-night .dar-chapter,
+body.dar-night .dar-mem-block, body.dar-night .dar-quiz,
+body.dar-night .dar-finish {
+  background: rgba(255, 255, 255, .07);
+  border-color: rgba(242, 201, 76, .45);
+  color: #F5F1E6;
+  border-radius: 24px;
+}
+body.dar-night .dar-jrn-word { color: #F5F1E6; border-bottom-color: rgba(242, 201, 76, .6); }
+body.dar-night .dar-matn-line { color: #F5F1E6; }
+body.dar-night .dar-choice.correct { background: #14532D; border-color: #4ADE80; color: #BBF7D0; }
+body.dar-night .dar-choice.wrong { background: #450A0A; border-color: #F87171; color: #FECACA; }
+body.dar-night .dar-learn-card:hover { background: rgba(255, 255, 255, .12); border-color: #F2C94C; }
+body.dar-night .dar-learn-desc, body.dar-night .dar-learn-arrow { color: #D8E8DC; }
+body.dar-night .dar-btn { background: rgba(255, 255, 255, .1); color: #F2C94C; border-color: rgba(242, 201, 76, .6); }
+body.dar-night .dar-btn-primary { background: #0E4A38; color: #fff; border-color: #F2C94C; }
+body.dar-night .dar-jrn-goal { background: rgba(242, 201, 76, .12); color: #F5F1E6; }
+body.dar-night .dar-jrn-tag { border-color: #F2C94C; color: #F2C94C; }
+body.dar-night .dar-jrn-pill { background: rgba(255, 255, 255, .08); color: #C9DCD2; border-color: rgba(242, 201, 76, .35); }
+body.dar-night .dar-jrn-pill.cur { background: #F2C94C; color: #0B3D2E; border-color: #F2C94C; }
+body.dar-night .dar-jrn-pill.seen { color: #F5F1E6; }
+body.dar-night .dar-search input, body.dar-night #learnSearch,
+body.dar-night input[type="text"], body.dar-night input[type="search"],
+body.dar-night select, body.dar-night textarea {
+  background: rgba(255, 255, 255, .1); color: #F5F1E6; border-color: rgba(242, 201, 76, .5);
+}
+body.dar-night .dar-jrn-instr { color: #F2C94C; }
+body.dar-night .dar-jrn-warn { background: rgba(245, 158, 11, .18); color: #FDE68A; border-color: #F59E0B; }
+body.dar-night .dar-jrn-lam { background: rgba(255, 255, 255, .07); color: #F5F1E6; }
+body.dar-night .dar-jrn-finger { background: rgba(255, 255, 255, .1); color: #F2C94C; }
+body.dar-night .dar-jrn-tile { background: rgba(255, 255, 255, .08); color: #F5F1E6; border-color: rgba(242, 201, 76, .45); }
+body.dar-night .dar-jrn-tile.found { background: #14532D; border-color: #4ADE80; color: #BBF7D0; }
+body.dar-night .dar-jrn-tile.wrong { background: #450A0A; border-color: #F87171; }
+body.dar-night .dar-choice { background: rgba(255, 255, 255, .08); color: #F5F1E6; border-color: rgba(242, 201, 76, .45); }
+body.dar-night .dar-ayah-text { color: #F5F1E6; }
+body.dar-night .dar-ayah-text.hl { background: rgba(242, 201, 76, .25); }
+body.dar-night .dar-jrn-w.hl { background: rgba(242, 201, 76, .45); }
+body.dar-night .dar-jrn-chip { background: rgba(255, 255, 255, .08); color: #C9DCD2; border-color: rgba(242, 201, 76, .5); }
+body.dar-night .dar-jrn-chip.revealed { color: #F5F1E6; }
+body.dar-night .dar-jrn-chip.good { background: #14532D; border-color: #4ADE80; color: #BBF7D0; }
+body.dar-night .dar-jrn-chip.hard { background: #78350F; border-color: #F59E0B; color: #FDE68A; }
+body.dar-night .dar-jrn-chip.hl { background: rgba(242, 201, 76, .5); }
+body.dar-night .dar-jrn-sc-current { background: rgba(255, 255, 255, .07); }
+body.dar-night .dar-jrn-sc-good { background: #14532D; color: #BBF7D0; border-color: #4ADE80; }
+body.dar-night .dar-jrn-sc-hard { background: #78350F; color: #FDE68A; border-color: #F59E0B; }
+body.dar-night .dar-jrn-mistake { background: rgba(245, 158, 11, .14); border-color: #F59E0B; }
+body.dar-night .dar-jrn-hard-word { background: rgba(245, 158, 11, .25); color: #FDE68A; border-color: #F59E0B; }
+body.dar-night .dar-jrn-sc-hard-list { background: rgba(245, 158, 11, .14); }
+body.dar-night .dar-fb-good { background: rgba(34, 197, 94, .18); color: #BBF7D0; }
+body.dar-night .dar-fb-soft { background: rgba(255, 255, 255, .08); color: #FDE68A; }
+body.dar-night .dar-jrn-due { color: #FDE68A; }
+body.dar-night .dar-jrn-state { background: rgba(242, 201, 76, .15); color: #F2C94C; }
+body.dar-night .dar-jrn-streak { background: rgba(242, 201, 76, .15); color: #F2C94C; border-color: rgba(242, 201, 76, .5); }
+body.dar-night .dar-jrn-progress { background: rgba(255, 255, 255, .15); }
+body.dar-night .dar-jrn-progress span { background: #F2C94C; }
+body.dar-night .dar-companion-bubble { background: #FFF8E1; color: var(--ink); }
+body.dar-night .dar-speech { background: rgba(255, 255, 255, .07); }
+body.dar-night .dar-speech-word.ok { background: #14532D; color: #BBF7D0; }
+body.dar-night .dar-speech-word.miss { background: #78350F; color: #FDE68A; }
+body.dar-night .dar-story-card { background: rgba(242, 201, 76, .1); }
+body.dar-night .dar-shop-item.active { background: rgba(242, 201, 76, .15); border-color: #F2C94C; }
+body.dar-night .dar-ach-badge { background: rgba(242, 201, 76, .15); color: #FDE68A; border-color: #F2C94C; }
+body.dar-night .dar-jrn-report-row strong { color: #F2C94C; }
+body.dar-night .dar-jrn-report-row { border-color: rgba(242, 201, 76, .25); }
+body.dar-night .dar-ex-kind.active { background: #F2C94C; color: #0B3D2E; }
+/* محطات الرحلة كواكب: بطاقات كبيرة مستديرة بتدرج كوكبي */
+body.dar-night .dar-jrn-station {
+  background: linear-gradient(135deg, rgba(11, 61, 46, .92), rgba(20, 102, 76, .88));
+  border: 2px solid rgba(242, 201, 76, .55);
+  border-radius: 28px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}
+body.dar-night .dar-jrn-station-name { font-size: 22px; }
+/* شريط المكافآت المثبّت — ظاهر بس في مناطق الأطفال */
+.dar-rewards-bar { display: none; }
+body.dar-night .dar-rewards-bar {
+  display: flex; gap: 18px; justify-content: center; align-items: center;
+  background: linear-gradient(90deg, #7A5C14, #B28A38, #7A5C14);
+  color: #fff; font-weight: 800; font-size: 17px; padding: 8px 12px;
+  border-bottom: 2px solid #F2C94C;
+}
+body.dar-night .dar-rewards-bar b { color: #FFF7D6; }
+
+/* ---------- الرفيقان هلال ونجمة ---------- */
+.dar-companion { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+.dar-companion-art { flex: none; width: 88px; }
+.dar-companion-svg { width: 100%; height: auto; display: block; }
+.dar-companion-bubble {
+  background: #FFF8E1; border: 2px solid var(--gold-border); border-radius: 18px;
+  padding: 10px 14px; font-size: 16px; line-height: 1.8; color: var(--ink); flex: 1;
+}
+.dar-companion-art.frame-gold { border: 3px solid #F2C94C; border-radius: 18px; padding: 4px; background: #FFF8E1; }
+.dar-companion-art.frame-star { border: 3px dashed #F2C94C; border-radius: 50%; padding: 6px; background: #FFF8E1; }
+
+/* ---------- متجر الجواهر ---------- */
+.dar-shop-entry { margin: 16px 0; }
+.dar-shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.dar-shop-item { background: var(--card); border: 2px solid var(--border); border-radius: 20px; padding: 12px; }
+.dar-shop-item.active { border-color: var(--gold); background: #FFF8E1; }
+.dar-shop-name { font-weight: 800; font-size: 17px; margin-bottom: 2px; }
+
+/* ---------- حكاية السورة + مساعد التسميع ---------- */
+.dar-story-card { background: #FFF8E1; border: 2px solid var(--gold-border); border-radius: 18px; padding: 14px; margin: 12px 0; box-shadow: var(--shadow); }
+.dar-story-t { font-weight: 800; color: var(--emerald); font-size: 17px; margin-bottom: 4px; }
+.dar-speech { background: var(--tint); border: 1px solid var(--gold-border); border-radius: 14px; padding: 12px; margin: 10px 0; }
+.dar-speech-words { font-family: 'Amiri', serif; font-size: 22px; line-height: 2; margin: 8px 0; }
+.dar-speech-word { border-radius: 6px; padding: 0 4px; }
+.dar-speech-word.ok { background: #EAF7EE; color: #2E7D32; }
+.dar-speech-word.miss { background: #FEF3C7; color: #92400E; }
+
+/* ---------- السلسلة والإنجازات وبطاقة الحلقة ---------- */
+.dar-streak-top {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  background: var(--card); border: 2px solid var(--gold-border); border-radius: 20px;
+  padding: 10px 14px; margin: 12px 0; font-size: 17px; font-weight: 700; color: var(--emerald);
+}
+.dar-ach { background: var(--card); border: 2px solid var(--gold-border); border-radius: 20px; padding: 14px; margin: 12px 0; }
+.dar-ach-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.dar-ach-badge { background: #FFF8E1; border: 1px solid var(--gold); border-radius: 20px; padding: 6px 12px; font-weight: 700; }
+.dar-circle-card { background: var(--card); border: 2px solid var(--gold-border); border-radius: 20px; padding: 14px; margin: 12px 0; box-shadow: var(--shadow); }
+
+/* ---------- ثيمات المتجر (تغيّر الألوان فقط — النص يفضل مقروءًا) ---------- */
+body.dar-shop-theme-gold { --emerald: #7A5C14; --emerald-2: #8A6D1B; --gold: #C9A227; --tint: #FBF3D5; }
+body.dar-shop-theme-mint { --emerald: #0E6B4A; --emerald-2: #12805A; --gold: #2FA37C; --tint: #E2F5EC; }
+body.dar-shop-theme-night { --emerald: #0E4A38; --emerald-2: #14664C; --gold: #F2C94C; --gold-border: #F2C94C; --tint: #EAF6EE; }
