@@ -2,7 +2,7 @@
    البيانات المحفوظة (نصوص القرآن والتلاوات والحديث والخطوط) ثابتة وموثوقة،
    فتُحفظ على الجهاز وتُقرأ منه عند غياب الشبكة — التطبيق يفتح ويعمل بدون إنترنت.
    شبكة فقط دائمًا: Pollinations / Gemini (googleapis.com) / YouTube / googlevideo. */
-const CACHE = 'dar-quran-v17'; // BUMP ON EVERY SHELL RELEASE — browsers only reinstall the SW when sw.js itself changes; a stale CACHE serves the old app forever.
+const CACHE = 'dar-quran-v18'; // BUMP ON EVERY SHELL RELEASE — browsers only reinstall the SW when sw.js itself changes; a stale CACHE serves the old app forever.
 const DATA = 'dar-quran-data-v1'; // ذاكرة البيانات (قرآن/صوت/حديث/خطوط)
 const SHELL = ['index.html', 'privacy.html', 'style.css', 'app.js', 'quran.js', 'journey.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'logo-a.webp', 'logo-b.webp', 'sponsors.json', 'data/manners.json', 'data/review.json'];
 const DATA_HOSTS = ['api.alquran.cloud', 'cdn.islamic.network', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
